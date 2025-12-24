@@ -856,6 +856,11 @@ input {
         text-align: center;
     }
     
+    .hero-headline {
+        font-size: 1.75rem;
+        white-space: nowrap;
+    }
+    
     .form-group {
         justify-content: center;
     }
