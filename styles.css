@@ -859,6 +859,7 @@ input {
     .hero-headline {
         font-size: 1.75rem;
         white-space: nowrap;
+        padding-top: var(--spacing-md);
     }
     
     .form-group {
