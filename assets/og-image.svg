@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Simple black background -->
+  <rect x="0" y="0" width="1200" height="630" fill="#000000"/>
+  
+  <!-- Nave Logo - white "N" in circle -->
+  <circle cx="600" cy="220" r="65" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  <text x="600" y="248" font-family="Arial, Helvetica, sans-serif" 
+        font-size="75" font-weight="bold" fill="#ffffff" text-anchor="middle">N</text>
+  
+  <!-- Tagline -->
+  <text x="600" y="400" font-family="Arial, Helvetica, sans-serif" 
+        font-size="38" font-weight="normal" fill="#ffffff" text-anchor="middle">Find Your Catholic Neighborhood</text>
+</svg>

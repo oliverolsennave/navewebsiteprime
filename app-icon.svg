@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea"/>
+      <stop offset="100%" style="stop-color:#764ba2"/>
+    </linearGradient>
+    <linearGradient id="coin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="200" fill="url(#bg)"/>
+  <!-- Coin circle -->
+  <circle cx="512" cy="512" r="320" fill="url(#coin)" stroke="#DAA520" stroke-width="20"/>
+  <circle cx="512" cy="512" r="280" fill="none" stroke="#DAA520" stroke-width="8"/>
+  <!-- Dollar sign -->
+  <text x="512" y="600" font-family="Arial, sans-serif" font-size="400" font-weight="bold" fill="#764ba2" text-anchor="middle">$</text>
+  <!-- Chart bars -->
+  <rect x="180" y="720" width="60" height="120" rx="10" fill="rgba(255,255,255,0.9)"/>
+  <rect x="260" y="680" width="60" height="160" rx="10" fill="rgba(255,255,255,0.9)"/>
+  <rect x="340" y="640" width="60" height="200" rx="10" fill="rgba(255,255,255,0.9)"/>
+  <!-- Arrow up -->
+  <path d="M800 300 L870 380 L830 380 L830 480 L770 480 L770 380 L730 380 Z" fill="#38ef7d"/>
+</svg>
