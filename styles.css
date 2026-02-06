@@ -1026,3 +1026,115 @@ input {
     }
 }
 
+
+/* ==========================================================================
+   Ask Gabriel Section
+   ========================================================================== */
+
+.ask-gabriel {
+    padding: var(--spacing-2xl) var(--spacing-md);
+    background: linear-gradient(180deg, var(--color-bg) 0%, #0f0f12 100%);
+}
+
+.gabriel-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-xl);
+    align-items: center;
+}
+
+.gabriel-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05));
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: var(--color-accent);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+}
+
+.gabriel-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+}
+
+.gabriel-subtitle {
+    font-size: 1.25rem;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-md);
+    font-weight: 500;
+}
+
+.gabriel-desc {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-lg);
+    max-width: 600px;
+}
+
+.gabriel-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.example-chip {
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.example-chip:hover {
+    border-color: var(--color-accent);
+    color: var(--color-text);
+}
+
+.gabriel-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gabriel-icon {
+    font-size: 8rem;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 40px rgba(212, 175, 55, 0.3));
+}
+
+@media (max-width: 768px) {
+    .gabriel-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .gabriel-title {
+        font-size: 2rem;
+    }
+    
+    .gabriel-desc {
+        max-width: 100%;
+    }
+    
+    .gabriel-examples {
+        justify-content: center;
+    }
+    
+    .gabriel-visual {
+        order: -1;
+    }
+    
+    .gabriel-icon {
+        font-size: 5rem;
+    }
+}
