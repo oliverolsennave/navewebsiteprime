@@ -474,12 +474,14 @@ async function fetchChurchContext(q) {
                 if (isQueryRelevant(q, searchable)) score += 10;
             }
 
-            // Bonus for rich data
-            if (isUnlocked) score += 5;
-            if (hasEvents) score += 3;
-            if (hasMass) score += 2;
+            // Bonus for rich data (only if already relevant)
+            if (score > 0) {
+                if (isUnlocked) score += 5;
+                if (hasEvents) score += 3;
+                if (hasMass) score += 2;
+            }
 
-            if (score > 0 || !isLocationBased) {
+            if (score > 0) {
                 scored.push({
                     score,
                     distanceMiles,
@@ -530,7 +532,7 @@ async function fetchMissionaryContext(q) {
             const city = d.city || '';
             const country = d.country || '';
             const searchable = `${name} ${org} ${desc} ${city} ${country} missionary mission`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 3) {
+            if (isQueryRelevant(q, searchable)) {
                 contexts.push({
                     id: doc.id, name, type: EntityType.MISSIONARY,
                     subtitle: org, description: desc,
@@ -555,7 +557,7 @@ async function fetchPilgrimageContext(q) {
             const location = d.location || '';
             const desc = (d.description || '').substring(0, 100);
             const searchable = `${name} ${location} ${desc} pilgrimage holy site shrine`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 3) {
+            if (isQueryRelevant(q, searchable)) {
                 contexts.push({ id: doc.id, name, type: EntityType.PILGRIMAGE, subtitle: 'Pilgrimage Site', description: desc, location });
             }
         });
@@ -569,7 +571,7 @@ async function fetchPilgrimageContext(q) {
             const location = d.location || '';
             const desc = (d.description || '').substring(0, 100);
             const searchable = `${title} ${location} ${desc} pilgrimage trip tour`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 5) {
+            if (isQueryRelevant(q, searchable)) {
                 contexts.push({ id: doc.id, name: title, type: EntityType.PILGRIMAGE, subtitle: 'Pilgrimage Trip', description: desc, location });
             }
         });
@@ -591,7 +593,7 @@ async function fetchRetreatContext(q) {
             const desc = (d.description || '').substring(0, 100);
             const rType = d.retreatType || d.type || '';
             const searchable = `${name} ${location} ${desc} ${rType} retreat center spiritual`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 3) {
+            if (isQueryRelevant(q, searchable)) {
                 contexts.push({ id: doc.id, name, type: EntityType.RETREAT, subtitle: rType || 'Retreat Center', description: desc, location });
             }
         });
@@ -607,7 +609,7 @@ async function fetchRetreatContext(q) {
             const desc = (d.description || '').substring(0, 100);
             const rType = d.retreatType || '';
             const searchable = `${title} ${location} ${desc} ${rType} retreat spiritual`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 5) {
+            if (isQueryRelevant(q, searchable)) {
                 contexts.push({ id: doc.id, name: title, type: EntityType.RETREAT, subtitle: rType || 'Retreat', description: desc, location });
             }
         });
@@ -621,7 +623,7 @@ async function fetchRetreatContext(q) {
             if (!name) return;
             const desc = (d.description || '').substring(0, 100);
             const searchable = `${name} ${desc} retreat center organization`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 7) {
+            if (isQueryRelevant(q, searchable)) {
                 contexts.push({ id: doc.id, name, type: EntityType.RETREAT, subtitle: 'Retreat Center', description: desc, location: '' });
             }
         });
@@ -657,7 +659,7 @@ async function fetchSchoolContext(q) {
                 else if (cityMatch) relevant = true;
             }
 
-            if (relevant || contexts.length < 3) {
+            if (relevant) {
                 contexts.push({ id: doc.id, name, type: EntityType.SCHOOL, subtitle: sType || 'Catholic School', description: desc, location: `${city}, ${state}` });
             }
         });
@@ -679,7 +681,7 @@ async function fetchVocationContext(q) {
             const desc = (d.description || '').substring(0, 100);
             const vType = d.type || '';
             const searchable = `${title} ${location} ${desc} ${vType} vocation religious order seminary`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 3) {
+            if (isQueryRelevant(q, searchable)) {
                 contexts.push({ id: doc.id, name: title, type: EntityType.VOCATION, subtitle: vType || 'Religious Vocation', description: desc, location });
             }
         });
@@ -716,7 +718,7 @@ async function fetchBusinessContext(q) {
                 else if (cityMatch) relevant = true;
             }
 
-            if (relevant || contexts.length < 5) {
+            if (relevant) {
                 contexts.push({ id: doc.id, name, type: EntityType.BUSINESS, subtitle: sub || cat, description: desc, location: `${city}, ${state}` });
             }
         });
@@ -738,7 +740,7 @@ async function fetchCampusMinistryContext(q) {
             const desc = (d.description || '').substring(0, 100);
             const t = d.type || '';
             const searchable = `${title} ${location} ${desc} ${t} campus ministry college university`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 3) {
+            if (isQueryRelevant(q, searchable)) {
                 contexts.push({ id: doc.id, name: title, type: EntityType.CAMPUS_MINISTRY, subtitle: t || 'Campus Ministry', description: desc, location });
             }
         });
@@ -809,13 +811,18 @@ function buildUnifiedSystemPrompt(entities, queryStr) {
     if (entities.length === 0) {
         return `You are Gabriel, a friendly Catholic AI assistant in the Nave app. You help users discover Catholic churches, schools, retreats, pilgrimages, missionaries, vocations, and businesses.
 
-I couldn't find specific matches for this query, but I'm always learning about new Catholic resources!
+I couldn't find relevant matches for this query in our database.
 
-If they're greeting you, respond warmly and let them know you can help find Catholic parishes, schools, retreats, pilgrimages, and more.
+If they're greeting you, respond warmly and let them know you can help find Catholic parishes, schools, retreats, pilgrimages, and more. Suggest they try asking about a specific city or topic.
 
-If they asked about something specific, kindly let them know you don't have that particular information yet and encourage them to try another query.
+If they asked about something specific, kindly let them know: "I don't have information on that just yet — we're always adding new Catholic resources! Try asking about parishes, schools, retreats, or pilgrimages in a specific city."
 
-Keep your tone warm, conversational, and helpful. Don't mention databases, queries, or technical terms.`;
+RULES:
+- Do NOT list or recommend any resources — you have none to share for this query
+- Do NOT make up or fabricate any locations, parishes, schools, or other entities
+- Keep your response short (under 40 words)
+- Be warm and helpful, suggest they try a different or more specific query
+- Don't mention databases, queries, or technical terms`;
     }
 
     // Group entities by type
