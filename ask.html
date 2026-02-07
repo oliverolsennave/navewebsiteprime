@@ -279,6 +279,66 @@
             color: #8e8e93;
         }
 
+        /* Rainbow-bordered event cards (mirrors iOS RainbowEventCard) */
+        .ask-event-cards {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .ask-event-card {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 12px;
+            min-width: 150px;
+            max-width: 200px;
+            background: #fff;
+            border-radius: 12px;
+            border: 2.5px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        .ask-event-card::before {
+            content: '';
+            position: absolute;
+            inset: -2.5px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6);
+            z-index: -1;
+        }
+
+        .ask-event-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+        }
+
+        .ask-event-card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1c1c1e;
+            line-height: 1.3;
+        }
+
+        .ask-event-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            color: #8e8e93;
+        }
+
+        .ask-event-card-meta svg {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+        }
+
         /* Typing indicator */
         .ask-typing {
             display: flex;
@@ -524,7 +584,7 @@
 
 
     <script type="module">
-        import { sendMessage as gabrielSend, clearConversation, hasAPIKey } from './gabriel-service.js';
+        import { sendMessage as gabrielSend, clearConversation } from './gabriel-service.js';
 
         // ── DOM ────────────────────────────────────────────────
         const input = document.getElementById('ask-input');
@@ -577,7 +637,7 @@
             try {
                 const result = await gabrielSend(text);
                 typingEl.remove();
-                addMessage(result.text, 'assistant', result.suggestions);
+                addMessage(result.text, 'assistant', result.suggestions, result.events);
             } catch (err) {
                 typingEl.remove();
                 console.error('Gabriel error:', err);
@@ -595,11 +655,12 @@
         }
 
         // ── UI helpers ─────────────────────────────────────────
-        function addMessage(text, role, suggestions) {
+        function addMessage(text, role, suggestions, events) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `ask-msg ask-msg-${role}`;
 
             if (role === 'assistant') {
+                // Entity suggestion cards
                 let suggestionsHTML = '';
                 if (suggestions && suggestions.length > 0) {
                     const cards = suggestions.map(s => {
@@ -616,6 +677,26 @@
                     suggestionsHTML = `<div class="ask-suggestion-cards">${cards}</div>`;
                 }
 
+                // Event cards (rainbow-bordered, mirrors iOS RainbowEventCard)
+                let eventsHTML = '';
+                if (events && events.length > 0) {
+                    const eventCards = events.map(e => {
+                        const parishLabel = e.parishName ? ` · ${escapeHTML(e.parishName)}` : '';
+                        return `<div class="ask-event-card" onclick="window.submitChip({textContent:'Tell me more about ${escapeHTML(e.title).replace(/'/g, "\\'")}'})">
+                            <div class="ask-event-card-title">${escapeHTML(e.title)}</div>
+                            <div class="ask-event-card-meta">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>
+                                ${escapeHTML(e.date)}
+                            </div>
+                            ${e.time ? `<div class="ask-event-card-meta">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                                ${escapeHTML(e.time)}${parishLabel}
+                            </div>` : ''}
+                        </div>`;
+                    }).join('');
+                    eventsHTML = `<div class="ask-event-cards">${eventCards}</div>`;
+                }
+
                 msgDiv.innerHTML = `
                     <div class="ask-msg-avatar">
                         <svg viewBox="0 0 120 120">
@@ -630,6 +711,7 @@
                         </div>
                         <div class="ask-msg-bubble">${escapeHTML(text)}</div>
                         ${suggestionsHTML}
+                        ${eventsHTML}
                     </div>
                 `;
             } else {
