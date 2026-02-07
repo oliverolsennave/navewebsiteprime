@@ -415,6 +415,17 @@ input {
     transform: translateY(0);
 }
 
+/* Hero buttons row */
+.hero-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+}
+
+.hero-buttons .btn-primary {
+    flex: 1;
+}
+
 .form-note {
     font-size: 0.875rem;
     color: var(--color-text-light);
