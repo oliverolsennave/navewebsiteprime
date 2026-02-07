@@ -45,11 +45,12 @@ export function clearConversation() {
 // ── "Near me" detection (mirrors iOS isLocationQuery in Relevance extension) ──
 function isNearbyQuery(q) {
     const locationPatterns = [
-        'near me', 'nearby', 'closest', 'around me',
+        'near me', 'nearby', 'nearest', 'closest', 'around me',
         'in my area', 'close to me', 'local',
         "what's nearby", 'what is nearby', 'near my location',
         'around here', 'in this area', 'close by',
-        'within', 'walking distance'
+        'within', 'walking distance', 'nearest to me',
+        'nerest to me', 'neerest', 'near est'
     ];
     const queryLower = q.toLowerCase();
     return locationPatterns.some(pattern => {
@@ -859,8 +860,34 @@ DO NOT say "I don't have information" if there is ANY data about this parish bel
 `;
     }
 
-    // Add the rich parish context
+    // Add the rich parish context (unlocked parishes with full schedules/events)
     prompt += parishSection;
+
+    // ALSO include regular entities from fetchRankedContext (churches + other types)
+    // This ensures the AI sees ALL nearby parishes, not just unlocked ones
+    if (otherEntities && otherEntities.length > 0 && !specificParishName) {
+        const churches = otherEntities.filter(e => e.type === 'Church');
+        const others = otherEntities.filter(e => e.type !== 'Church');
+
+        if (churches.length > 0) {
+            prompt += `\n\nADDITIONAL NEARBY PARISHES (basic info):\n`;
+            for (const c of churches.slice(0, 12)) {
+                prompt += `• ${c.name}`;
+                if (c.location) prompt += ` — ${c.location}`;
+                if (c.subtitle && c.subtitle !== 'Parish') prompt += ` (${c.subtitle})`;
+                prompt += '\n';
+            }
+        }
+
+        if (others.length > 0) {
+            prompt += `\nOTHER CATHOLIC RESOURCES NEARBY:\n`;
+            for (const e of others.slice(0, 5)) {
+                prompt += `• ${e.name} (${e.type})`;
+                if (e.location) prompt += ` — ${e.location}`;
+                prompt += '\n';
+            }
+        }
+    }
 
     // Customize based on query type
     if (isEventQuery) {
@@ -883,11 +910,14 @@ You MUST start with the [RECOMMEND: tag before any text.`;
         prompt += `
 USER IS ASKING ABOUT NEARBY PARISHES.
 
+Recommend 2-3 parishes from the lists above. Prefer parishes with rich data (schedules, events) but also include nearby parishes from the ADDITIONAL list.
+
 YOUR RESPONSE FORMAT (follow exactly):
 [RECOMMEND: Parish Name]
-Brief description with distance. Tap below to explore!
+[RECOMMEND: Another Parish Name]
+Brief description. Tap the cards below to explore!
 
-You MUST start with the [RECOMMEND: tag before any text.`;
+You MUST include multiple [RECOMMEND: name] tags — one for each parish you recommend.`;
     } else if (specificParishName) {
         prompt += `
 USER IS ASKING ABOUT A SPECIFIC PARISH BY NAME.
@@ -900,22 +930,23 @@ You MUST start your response with [RECOMMEND: Parish Name] using the EXACT name 
 Focus ONLY on the parish the user asked about. Do not mention other locations.`;
     } else {
         prompt += `
-USER IS ASKING ABOUT A PARISH OR PARISH PROGRAM.
+USER IS ASKING ABOUT PARISHES.
+
+Recommend 2-3 parishes from the lists above. Include [RECOMMEND: name] for each.
 
 YOUR RESPONSE FORMAT (follow exactly):
 [RECOMMEND: Parish Name]
-2-3 sentence friendly summary. Tap the card below to learn more!
+[RECOMMEND: Another Parish]
+Brief, warm summary. Tap the cards below to learn more!
 
-You MUST start your response with [RECOMMEND: Parish Name] - this creates the tappable card.
-Keep your response under 50 words after the tag. Be warm and inviting.`;
+Keep your response under 50 words after the tags. Be warm and inviting.`;
     }
 
     prompt += `
 
-⚠️ MANDATORY: YOUR RESPONSE MUST START WITH [RECOMMEND: Parish Name]
+⚠️ MANDATORY: Include [RECOMMEND: Parish Name] for EACH parish you recommend (up to 3).
 
-This tag creates a tappable card for the user. Without it, they can't navigate to the parish.
-Use the EXACT parish name from the PARISH DATA section above.
+These tags create tappable cards. Use the EXACT names from the lists above.
 
 SPACING RULES:
 - Put a SPACE after EVERY period, comma, colon, and exclamation mark
