@@ -1,0 +1,12 @@
+{
+  "name": "Nave",
+  "short_name": "Nave",
+  "description": "Find Your Catholic Neighborhood",
+  "icons": [
+    { "src": "assets/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/favicon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#0D0D10",
+  "background_color": "#000000",
+  "display": "standalone"
+}
