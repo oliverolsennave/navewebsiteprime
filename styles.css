@@ -1106,10 +1106,12 @@ input {
     justify-content: center;
 }
 
+.gabriel-icon svg { display: block; }
+
 .gabriel-icon {
-    font-size: 8rem;
-    opacity: 0.9;
-    filter: drop-shadow(0 0 40px rgba(212, 175, 55, 0.3));
+    filter: drop-shadow(0 0 30px rgba(0, 122, 255, 0.5));
+    
+    
 }
 
 @media (max-width: 768px) {
@@ -1134,7 +1136,9 @@ input {
         order: -1;
     }
     
-    .gabriel-icon {
-        font-size: 5rem;
+    .gabriel-icon svg { display: block; }
+
+.gabriel-icon {
+        width: 100px; height: 100px;
     }
 }
