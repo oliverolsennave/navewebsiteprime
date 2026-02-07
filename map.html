@@ -977,6 +977,32 @@
         </div>
     </div>
 
+    <!-- Waitlist Popup (30s) -->
+    <div id="map-waitlist-overlay" class="location-prompt-overlay hidden" style="z-index: 1100;">
+        <div class="location-prompt" style="text-align: center;">
+            <button onclick="closeMapWaitlist()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#707070;font-size:1.5rem;cursor:pointer;line-height:1;">&times;</button>
+            <div class="location-prompt-icon" style="margin: 0 auto 16px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+            </div>
+            <h3 style="color:#f5f5f5;font-size:1.25rem;margin:0 0 8px;">Join the Waitlist</h3>
+            <p style="color:#888;font-size:0.9rem;margin:0 0 20px;">Love exploring? Be the first to know when Nave launches on iOS.</p>
+            <form id="map-waitlist-form">
+                <input type="email" id="map-waitlist-email" placeholder="you@email.com" required style="width:100%;padding:12px 16px;font-size:1rem;border:1px solid #333;border-radius:10px;background:#111;color:#f5f5f5;margin-bottom:12px;box-sizing:border-box;">
+                <button type="submit" class="map-waitlist-btn" style="width:100%;padding:12px;font-size:1rem;font-weight:600;color:#000;background:#fff;border:none;border-radius:10px;cursor:pointer;">Join the Waitlist</button>
+            </form>
+            <div id="map-waitlist-success" class="hidden" style="padding:20px 0;">
+                <svg width="48" height="48" viewBox="0 0 20 20" fill="none" style="margin:0 auto 12px;display:block;">
+                    <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z" fill="#d4af37"/>
+                </svg>
+                <p style="color:#f5f5f5;font-size:1rem;">You're on the list! We'll be in touch.</p>
+            </div>
+            <button onclick="closeMapWaitlist()" style="margin-top:12px;background:none;border:none;color:#555;font-size:0.85rem;cursor:pointer;">Maybe later</button>
+        </div>
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Leaflet MarkerCluster JS -->
@@ -1446,6 +1472,48 @@
         
         // Start loading
         loadData();
+
+        // ── Waitlist popup after 30s ──────────────────────────
+        (function() {
+            if (sessionStorage.getItem('nave_map_waitlist_shown')) return;
+            setTimeout(() => {
+                if (sessionStorage.getItem('nave_map_waitlist_shown')) return;
+                document.getElementById('map-waitlist-overlay').classList.remove('hidden');
+                sessionStorage.setItem('nave_map_waitlist_shown', '1');
+            }, 30000);
+        })();
+
+        function closeMapWaitlist() {
+            document.getElementById('map-waitlist-overlay').classList.add('hidden');
+        }
+
+        document.getElementById('map-waitlist-overlay')?.addEventListener('click', (e) => {
+            if (e.target.id === 'map-waitlist-overlay') closeMapWaitlist();
+        });
+
+        document.getElementById('map-waitlist-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('map-waitlist-email').value.trim();
+            if (!email) return;
+            const btn = e.target.querySelector('.map-waitlist-btn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+            try {
+                const { collection, addDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const { db } = await import('./firebase-config.js');
+                await addDoc(collection(db, 'waitlist'), {
+                    email: email,
+                    createdAt: serverTimestamp(),
+                    source: 'map_30s'
+                });
+                document.getElementById('map-waitlist-form').classList.add('hidden');
+                document.getElementById('map-waitlist-success').classList.remove('hidden');
+            } catch (err) {
+                console.error('Waitlist error:', err);
+                btn.textContent = 'Error - Try Again';
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
