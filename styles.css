@@ -1197,6 +1197,54 @@ input {
 }
 
 /* ==========================================================================
+   Floating Ask Gabriel Button
+   ========================================================================== */
+
+.fab-gabriel {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #007AFF;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fab-gabriel:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 28px rgba(0, 122, 255, 0.55), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.fab-gabriel:active {
+    transform: scale(0.95);
+}
+
+.fab-gabriel svg {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .fab-gabriel {
+        bottom: 1.25rem;
+        right: 1.25rem;
+        width: 48px;
+        height: 48px;
+    }
+    .fab-gabriel svg {
+        width: 26px;
+        height: 26px;
+    }
+}
+
+/* ==========================================================================
    Engage/Network Section
    ========================================================================== */
 
