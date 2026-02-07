@@ -336,56 +336,63 @@
         /* ── iOS-style pulsing current location marker ─── */
         .user-location-marker {
             position: relative;
-            width: 20px;
-            height: 20px;
+            width: 14px;
+            height: 14px;
         }
 
+        /* Green pulse wave — radiates outward */
         .user-location-pulse {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: rgba(34, 197, 94, 0.25);
+            background: rgba(34, 197, 94, 0.3);
             animation: locationPulse 2s ease-out infinite;
         }
 
-        .user-location-ring {
+        /* Second pulse wave — offset timing */
+        .user-location-pulse2 {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: rgba(34, 197, 94, 0.15);
-            border: 1.5px solid rgba(34, 197, 94, 0.4);
+            background: rgba(34, 197, 94, 0.2);
+            animation: locationPulse 2s ease-out infinite 1s;
         }
 
+        /* The dot itself — black fill, white outline, matches church marker size */
         .user-location-dot {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: #0a0a0a;
-            border: 2.5px solid #22C55E;
-            box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+            z-index: 2;
         }
 
         @keyframes locationPulse {
             0% {
-                width: 20px;
-                height: 20px;
-                opacity: 0.6;
+                width: 14px;
+                height: 14px;
+                opacity: 0.7;
+            }
+            70% {
+                opacity: 0.15;
             }
             100% {
-                width: 60px;
-                height: 60px;
+                width: 50px;
+                height: 50px;
                 opacity: 0;
             }
         }
@@ -1080,12 +1087,12 @@
                 html: `
                     <div class="user-location-marker">
                         <div class="user-location-pulse"></div>
-                        <div class="user-location-ring"></div>
+                        <div class="user-location-pulse2"></div>
                         <div class="user-location-dot"></div>
                     </div>
                 `,
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
             });
 
             userLocationMarker = L.marker([lat, lng], { icon: pulsingIcon, zIndexOffset: 9999 }).addTo(map);
