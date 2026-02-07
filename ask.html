@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask Gabriel — Nave</title>
+    <meta name="description" content="Ask Gabriel, your Catholic AI assistant. Discover parishes, schools, pilgrimages, retreats, and more.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Favicon (adaptive: white in dark mode, black in light mode) -->
+    <link rel="icon" href="assets/favicon-adaptive.svg" type="image/svg+xml">
+    
+    <style>
+        /* Ask Page — Light-themed like the iOS app */
+        .ask-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #f8f8fa;
+        }
+
+        .ask-page .nav {
+            background: #fff;
+            border-bottom: 1px solid #e5e5ea;
+        }
+
+        .ask-page .nav .nav-logo .logo-text,
+        .ask-page .nav .nav-link {
+            color: #1c1c1e;
+        }
+
+        .ask-page .nav .nav-link:hover,
+        .ask-page .nav .nav-link-active {
+            color: #3366CC;
+        }
+
+        .ask-page .nav .logo-img {
+            filter: invert(1);
+        }
+
+        /* Chat container */
+        .ask-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-top: 57px;
+            overflow: hidden;
+        }
+
+        .ask-chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        /* Welcome View */
+        .ask-welcome {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3rem 1rem;
+            min-height: 100%;
+        }
+
+        .ask-welcome-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(51, 102, 204, 0.1), rgba(51, 102, 204, 0.05));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .ask-welcome-icon svg {
+            display: block;
+        }
+
+        .ask-welcome h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1c1c1e;
+            margin-bottom: 0.5rem;
+        }
+
+        .ask-welcome p {
+            font-size: 1rem;
+            color: #8e8e93;
+            margin-bottom: 2rem;
+        }
+
+        /* Suggestion chips */
+        .ask-suggestions-label {
+            font-size: 0.8rem;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+
+        .ask-suggestions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .ask-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(51, 102, 204, 0.08);
+            border: 1px solid rgba(51, 102, 204, 0.2);
+            border-radius: 12px;
+            color: #3366CC;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            text-align: left;
+        }
+
+        .ask-chip:hover {
+            background: rgba(51, 102, 204, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .ask-chip:active {
+            transform: translateY(0);
+        }
+
+        .ask-chip svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Chat messages */
+        .ask-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .ask-msg {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 85%;
+        }
+
+        .ask-msg-user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .ask-msg-assistant {
+            align-self: flex-start;
+        }
+
+        .ask-msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(51, 102, 204, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ask-msg-avatar svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .ask-msg-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .ask-msg-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #8e8e93;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .ask-msg-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .ask-msg-user .ask-msg-bubble {
+            background: #3366CC;
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ask-msg-assistant .ask-msg-bubble {
+            background: #e5e5ea;
+            color: #1c1c1e;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Typing indicator */
+        .ask-typing {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            align-self: flex-start;
+        }
+
+        .ask-typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 0.75rem 1rem;
+            background: #e5e5ea;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .ask-typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #8e8e93;
+            animation: askDot 1.2s infinite;
+        }
+
+        .ask-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .ask-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes askDot {
+            0%, 60%, 100% { opacity: 0.4; transform: scale(0.8); }
+            30% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Input area */
+        .ask-input-area {
+            background: #fff;
+            border-top: 1px solid #e5e5ea;
+            padding: 0.75rem 1rem;
+        }
+
+        .ask-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .ask-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 24px;
+            border: none;
+            background: #f2f2f7;
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: #1c1c1e;
+            outline: none;
+        }
+
+        .ask-input::placeholder {
+            color: #8e8e93;
+        }
+
+        .ask-input:focus {
+            box-shadow: 0 0 0 2px rgba(51, 102, 204, 0.3);
+        }
+
+        .ask-send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+            padding: 0;
+        }
+
+        .ask-send-btn:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .ask-send-btn svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        /* Coming soon banner */
+        .ask-coming-soon {
+            background: linear-gradient(135deg, rgba(51, 102, 204, 0.08), rgba(51, 102, 204, 0.03));
+            border: 1px solid rgba(51, 102, 204, 0.2);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            max-width: 500px;
+            margin: 1.5rem auto 0;
+            text-align: center;
+        }
+
+        .ask-coming-soon p {
+            font-size: 0.9rem;
+            color: #3366CC;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .ask-coming-soon .ask-coming-sub {
+            color: #8e8e93;
+            font-weight: 400;
+            margin-top: 0.35rem;
+            font-size: 0.85rem;
+        }
+
+        /* Download CTA after AI response */
+        .ask-download-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: #3366CC;
+            color: #fff;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 0.75rem;
+            transition: background 0.2s;
+        }
+
+        .ask-download-cta:hover {
+            background: #2952a3;
+        }
+
+        @media (max-width: 768px) {
+            .ask-suggestions {
+                grid-template-columns: 1fr;
+            }
+            
+            .ask-welcome h2 {
+                font-size: 1.5rem;
+            }
+
+            .ask-msg {
+                max-width: 92%;
+            }
+        }
+    </style>
+</head>
+<body class="ask-page">
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="assets/whitenavelogo.png" alt="Nave" class="logo-img">
+                <span class="logo-text">Nave</span>
+            </a>
+            <div class="nav-links">
+                <a href="ask.html" class="nav-link nav-link-active">Ask</a>
+                <a href="map.html" class="nav-link">Map</a>
+                <a href="about.html" class="nav-link">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="ask-wrapper">
+        <!-- Chat Area -->
+        <div class="ask-chat-area" id="ask-chat-area">
+            <!-- Welcome View (shown by default) -->
+            <div class="ask-welcome" id="ask-welcome">
+                <div class="ask-welcome-icon">
+                    <svg viewBox="0 0 120 120" width="48" height="48">
+                        <rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/>
+                        <text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text>
+                    </svg>
+                </div>
+
+                <h2>Ask Gabriel</h2>
+                <p>Your Catholic resource assistant</p>
+
+                <div class="ask-suggestions-label">Try asking about...</div>
+                <div class="ask-suggestions">
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                        Nearby parishes
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+                        Catholic schools
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.05 4.14l-.39-.39c-.39-.39-1.02-.39-1.41 0l-.01.01c-.39.39-.39 1.02 0 1.41l.39.39c.39.39 1.03.39 1.42 0l-.01-.01c.4-.39.4-1.02.01-1.41zM3.01 10.5H1.99c-.55 0-1.01.45-1.01 1s.45 1.01 1.01 1.01h1.02c.55 0 .99-.46.99-1.01s-.44-1-.99-1zm8.99-6.02V3.49c0-.55-.45-.99-1-1s-1 .44-1 .99V4.5c0 .55.44.99 1 .99s1-.44 1-.99zM19.76 4.14c-.39-.39-1.02-.39-1.41 0l-.39.39c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l.39-.39c.39-.39.39-1.02 0-1.41zM17.95 18.86l.39.39c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-.39-.39c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41zM21.01 10.5c-.55 0-1.01.45-1.01 1s.45 1.01 1.01 1.01H22c.55 0 1.01-.45 1.01-1.01-.01-.55-.46-1-1.01-1h-.99zM12 6.5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.01c0 .55.45 1 1 1s1-.45 1-1v-1.02c0-.55-.45-1-1-1s-1 .45-1 1v1.02zm-7.36-2.65c.39.39 1.02.39 1.41 0l.39-.39c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-.39.39c-.38.39-.38 1.02 0 1.41z"/></svg>
+                        Retreat centers
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                        Pilgrimage sites
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages container (hidden initially) -->
+            <div class="ask-messages" id="ask-messages" style="display:none;"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="ask-input-area">
+            <div class="ask-input-row">
+                <input 
+                    type="text" 
+                    class="ask-input" 
+                    id="ask-input" 
+                    placeholder="Ask about Catholic resources..." 
+                    autocomplete="off"
+                >
+                <button class="ask-send-btn" id="ask-send-btn" disabled onclick="sendMessage()">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <circle cx="24" cy="24" r="22" fill="#3366CC"/>
+                        <path d="M24 14l0 20M24 14l-7 7M24 14l7 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('ask-input');
+        const sendBtn = document.getElementById('ask-send-btn');
+        const welcomeEl = document.getElementById('ask-welcome');
+        const messagesEl = document.getElementById('ask-messages');
+        const chatArea = document.getElementById('ask-chat-area');
+
+        // Enable/disable send button
+        input.addEventListener('input', () => {
+            sendBtn.disabled = input.value.trim() === '';
+        });
+
+        // Submit on Enter
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && input.value.trim()) {
+                sendMessage();
+            }
+        });
+
+        function submitChip(el) {
+            input.value = el.textContent.trim();
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Hide welcome, show messages
+            welcomeEl.style.display = 'none';
+            messagesEl.style.display = 'flex';
+
+            // Add user message
+            addMessage(text, 'user');
+
+            input.value = '';
+            sendBtn.disabled = true;
+
+            // Show typing indicator
+            const typingEl = showTyping();
+
+            // Simulate Gabriel response
+            setTimeout(() => {
+                typingEl.remove();
+                const response = getGabrielResponse(text);
+                addMessage(response, 'assistant');
+                scrollToBottom();
+            }, 1500);
+        }
+
+        function addMessage(text, role) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `ask-msg ask-msg-${role}`;
+
+            if (role === 'assistant') {
+                msgDiv.innerHTML = `
+                    <div class="ask-msg-avatar">
+                        <svg viewBox="0 0 120 120">
+                            <rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/>
+                            <text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text>
+                        </svg>
+                    </div>
+                    <div class="ask-msg-content">
+                        <div class="ask-msg-label">
+                            <svg viewBox="0 0 120 120" width="12" height="12"><rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/><text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text></svg>
+                            Gabriel
+                        </div>
+                        <div class="ask-msg-bubble">${text}</div>
+                    </div>
+                `;
+            } else {
+                msgDiv.innerHTML = `
+                    <div class="ask-msg-content">
+                        <div class="ask-msg-bubble">${text}</div>
+                    </div>
+                `;
+            }
+
+            messagesEl.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'ask-typing';
+            typingDiv.innerHTML = `
+                <div class="ask-msg-avatar">
+                    <svg viewBox="0 0 120 120">
+                        <rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/>
+                        <text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text>
+                    </svg>
+                </div>
+                <div class="ask-typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            messagesEl.appendChild(typingDiv);
+            scrollToBottom();
+            return typingDiv;
+        }
+
+        function scrollToBottom() {
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function getGabrielResponse(query) {
+            const q = query.toLowerCase();
+
+            if (q.includes('parish') || q.includes('church') || q.includes('mass')) {
+                return "Great question! Gabriel can help you find parishes near you — including those with Latin Mass, Eucharistic Adoration, confession times, and more. Download the Nave app to chat with Gabriel and explore over 17,000 Catholic parishes across the US.";
+            }
+            if (q.includes('school') || q.includes('education') || q.includes('curriculum')) {
+                return "Gabriel knows about Catholic schools including classical, Great Books, Charlotte Mason, and Montessori programs. On the Nave app, Gabriel can search hundreds of Catholic schools by curriculum type, location, and tuition. Download Nave to get personalized school recommendations!";
+            }
+            if (q.includes('retreat') || q.includes('young adult')) {
+                return "Looking for retreat centers? Gabriel can help you discover retreat houses, programs for young adults, couples, and families, as well as silent retreats and directed retreats near you. Open the Nave app to ask Gabriel for personalized retreat recommendations.";
+            }
+            if (q.includes('pilgrimage') || q.includes('travel') || q.includes('site')) {
+                return "Gabriel can guide you to incredible pilgrimage sites — from major shrines to hidden gems. Whether you're planning a Camino, looking for Marian apparition sites, or exploring local shrines, Gabriel has you covered. Download Nave to start planning your pilgrimage!";
+            }
+            if (q.includes('missionary') || q.includes('mission') || q.includes('volunteer')) {
+                return "Interested in missionary work? Gabriel can connect you with Catholic missionary organizations, volunteer opportunities, and apostolates across the country. Download the Nave app to explore missionary opportunities near you.";
+            }
+            if (q.includes('business') || q.includes('shop') || q.includes('store')) {
+                return "Gabriel can help you find Catholic-owned businesses in your area — from bookstores and coffee shops to professional services. Support the Catholic economy! Download Nave to discover Catholic businesses near you.";
+            }
+
+            return "That's a great question! Gabriel is familiar with every location in our database — parishes, schools, pilgrimages, retreats, missionaries, and Catholic businesses. Download the Nave app to have a full conversation with Gabriel and get personalized, location-aware answers.";
+        }
+    </script>
+</body>
+</html>

@@ -43,6 +43,7 @@
                 <span class="logo-text">Nave</span>
             </a>
             <div class="nav-links">
+                <a href="ask.html" class="nav-link">Ask</a>
                 <a href="map.html" class="nav-link">Map</a>
                 <a href="about.html" class="nav-link">About</a>
             </div>
@@ -483,12 +484,12 @@
     <script type="module" src="app.js"></script>
     
     <!-- Floating Ask Gabriel Button -->
-    <button class="fab-gabriel" onclick="document.querySelector('.ask-gabriel').scrollIntoView({behavior:'smooth'})" aria-label="Ask Gabriel">
+    <a href="ask.html" class="fab-gabriel" aria-label="Ask Gabriel">
         <svg viewBox="0 0 120 120" width="32" height="32">
             <rect x="10" y="10" width="100" height="100" rx="22" fill="#007AFF"/>
             <text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text>
         </svg>
-    </button>
+    </a>
 
     <!-- Modal Script (non-module for onclick) -->
     <script>
