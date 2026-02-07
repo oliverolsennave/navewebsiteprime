@@ -408,6 +408,34 @@ input {
     transform: translateY(0);
 }
 
+.btn-explore-map {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #000;
+    background: var(--color-accent);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    transition: background var(--transition), transform var(--transition);
+    white-space: nowrap;
+}
+
+.btn-explore-map:hover {
+    background: #d4af37;
+    transform: translateY(-1px);
+}
+
+.btn-explore-map:active {
+    transform: translateY(0);
+}
+
+.btn-explore-map svg {
+    flex-shrink: 0;
+}
+
 /* Map CTA Button */
 .btn-map-cta {
     display: inline-flex;
@@ -1046,8 +1074,10 @@ input {
     }
     
     .form-group input[type="email"],
-    .btn-primary {
+    .btn-primary,
+    .btn-explore-map {
         width: 100%;
+        justify-content: center;
     }
     
     .form-note {
