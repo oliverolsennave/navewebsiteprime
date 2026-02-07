@@ -1202,10 +1202,14 @@ input {
         order: -1;
     }
     
-    .gabriel-icon svg { display: block; }
+    .gabriel-icon {
+        justify-self: center;
+    }
 
-.gabriel-icon {
-        width: 100px; height: 100px;
+    .gabriel-icon svg {
+        display: block;
+        width: 100px;
+        height: 100px;
     }
 }
 
