@@ -713,10 +713,11 @@
                 display: block;
             }
 
-            /* Legend toggle — right of zoom controls */
+            /* Legend toggle — clear of zoom controls, pushed right */
             .legend-toggle {
                 top: 10px;
-                left: 50px;
+                left: auto;
+                right: 12px;
                 padding: 8px 12px;
                 font-size: 0.82rem;
                 min-height: 44px;
@@ -731,9 +732,11 @@
                 font-size: 20px !important;
             }
             
-            /* Stats bar — compact, safe-area aware */
+            /* Stats bar — bottom left, safe-area aware */
             .map-stats {
                 bottom: 10px;
+                left: 12px;
+                transform: none;
                 font-size: 0.8rem;
                 padding: 8px 16px;
                 gap: 8px;
@@ -741,9 +744,9 @@
                 padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
             }
 
-            /* Locate me — above stats bar, 44px touch target */
+            /* Locate me — bottom right, aligned with stats bar */
             .locate-btn {
-                bottom: 56px;
+                bottom: 10px;
                 right: 12px;
                 padding: 10px;
                 min-width: 44px;
@@ -751,6 +754,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
             }
 
             .locate-btn svg {
@@ -1255,6 +1259,42 @@
             // Show/hide backdrop on mobile
             if (backdrop) backdrop.classList.toggle('visible', !isCollapsed);
         };
+
+        // Swipe-down to dismiss legend on mobile
+        (function() {
+            const legend = document.getElementById('map-legend');
+            let startY = 0;
+            let currentY = 0;
+            let swiping = false;
+
+            legend.addEventListener('touchstart', (e) => {
+                // Only enable swipe on the drag handle or at scroll top
+                if (legend.scrollTop > 0) return;
+                startY = e.touches[0].clientY;
+                swiping = true;
+            }, { passive: true });
+
+            legend.addEventListener('touchmove', (e) => {
+                if (!swiping) return;
+                currentY = e.touches[0].clientY;
+                const diff = currentY - startY;
+                if (diff > 0) {
+                    legend.style.transform = `translateY(${diff}px)`;
+                }
+            }, { passive: true });
+
+            legend.addEventListener('touchend', () => {
+                if (!swiping) return;
+                swiping = false;
+                const diff = currentY - startY;
+                legend.style.transform = '';
+                if (diff > 80) {
+                    toggleLegend();
+                }
+                currentY = 0;
+                startY = 0;
+            }, { passive: true });
+        })();
         
         // ── User location marker (shared) — iOS-style pulsing dot ──
         let userLocationMarker = null;
@@ -1389,13 +1429,16 @@
                         const { latitude, longitude } = pos.coords;
                         map.setView([latitude, longitude], 11);
                         addUserMarker(latitude, longitude);
+                        localStorage.setItem('nave_user_location', JSON.stringify({ lat: latitude, lng: longitude, zoom: 11 }));
                     },
                     (err) => {
                         console.warn('Geolocation error:', err);
-                        alert('Could not determine your location. Please enable location services.');
+                        alert('Could not determine your location. Please enable location services in your browser settings.');
                     },
-                    { enableHighAccuracy: true }
+                    { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
                 );
+            } else {
+                alert('Location services are not available in this browser.');
             }
         };
         
