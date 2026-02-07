@@ -5,8 +5,9 @@
 import { db } from './firebase-config.js';
 import { collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-// Waitlist collection reference
+// Collection references
 const waitlistCollection = collection(db, 'waitlist');
+const partnerInquiriesCollection = collection(db, 'partner-inquiries');
 
 /**
  * Handle form submission
@@ -51,6 +52,59 @@ async function handleFormSubmit(event, formId, successId) {
         
     } catch (error) {
         console.error('Error adding to waitlist:', error);
+        
+        // Show error state
+        submitButton.textContent = 'Error - Try Again';
+        submitButton.disabled = false;
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+            submitButton.textContent = originalText;
+        }, 3000);
+    }
+}
+
+/**
+ * Handle partner inquiry form submission
+ * @param {Event} event - Form submit event
+ */
+async function handlePartnerFormSubmit(event) {
+    event.preventDefault();
+    
+    const form = document.getElementById('partner-form');
+    const nameInput = document.getElementById('partner-name');
+    const emailInput = document.getElementById('partner-email');
+    const companyInput = document.getElementById('partner-company');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const successMessage = document.getElementById('partner-success');
+    
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const company = companyInput.value.trim();
+    
+    if (!name || !email || !company) return;
+    
+    // Disable button and show loading state
+    const originalText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
+    
+    try {
+        // Add inquiry to Firestore
+        await addDoc(partnerInquiriesCollection, {
+            name: name,
+            email: email,
+            company: company,
+            createdAt: serverTimestamp(),
+            source: window.location.pathname
+        });
+        
+        // Show success message
+        form.classList.add('hidden');
+        successMessage.classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('Error submitting partner inquiry:', error);
         
         // Show error state
         submitButton.textContent = 'Error - Try Again';
@@ -109,6 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
         bottomForm.addEventListener('submit', (e) => {
             handleFormSubmit(e, 'waitlist-form-bottom', 'form-success-bottom');
         });
+    }
+    
+    // Partner inquiry form
+    const partnerForm = document.getElementById('partner-form');
+    if (partnerForm) {
+        partnerForm.addEventListener('submit', handlePartnerFormSubmit);
     }
     
     // Count-up animation for location stat
