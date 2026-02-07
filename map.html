@@ -333,6 +333,63 @@
             height: 20px;
         }
 
+        /* ── iOS-style pulsing current location marker ─── */
+        .user-location-marker {
+            position: relative;
+            width: 20px;
+            height: 20px;
+        }
+
+        .user-location-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.25);
+            animation: locationPulse 2s ease-out infinite;
+        }
+
+        .user-location-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1.5px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .user-location-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0a0a0a;
+            border: 2.5px solid #22C55E;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+        }
+
+        @keyframes locationPulse {
+            0% {
+                width: 20px;
+                height: 20px;
+                opacity: 0.6;
+            }
+            100% {
+                width: 60px;
+                height: 60px;
+                opacity: 0;
+            }
+        }
+
         /* ── Location Prompt Modal ─────────────────────── */
         .location-prompt-overlay {
             position: absolute;
@@ -1010,21 +1067,28 @@
             toggle.classList.toggle('visible', legend.classList.contains('collapsed'));
         };
         
-        // ── User location marker (shared) ────────────────────
+        // ── User location marker (shared) — iOS-style pulsing dot ──
         let userLocationMarker = null;
 
         function addUserMarker(lat, lng) {
             if (userLocationMarker) {
                 map.removeLayer(userLocationMarker);
             }
-            userLocationMarker = L.circleMarker([lat, lng], {
-                radius: 8,
-                fillColor: '#007AFF',
-                color: '#ffffff',
-                weight: 3,
-                opacity: 1,
-                fillOpacity: 1
-            }).addTo(map);
+
+            const pulsingIcon = L.divIcon({
+                className: '',
+                html: `
+                    <div class="user-location-marker">
+                        <div class="user-location-pulse"></div>
+                        <div class="user-location-ring"></div>
+                        <div class="user-location-dot"></div>
+                    </div>
+                `,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+
+            userLocationMarker = L.marker([lat, lng], { icon: pulsingIcon, zIndexOffset: 9999 }).addTo(map);
             userLocationMarker.bindPopup('<div class="popup-content"><div class="popup-name">You are here</div></div>');
         }
 
