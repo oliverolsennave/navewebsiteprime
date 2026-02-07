@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Map — Nave</title>
     <meta name="description" content="Explore the Catholic culture heat map. Discover churches, missionaries, pilgrimages, schools, retreats, and Catholic businesses near you.">
     
@@ -169,11 +169,11 @@
             font-weight: 500;
         }
         
-        /* Toggle Legend Button */
+        /* Toggle Legend Button — positioned right of zoom controls */
         .legend-toggle {
             position: absolute;
             top: 16px;
-            left: 16px;
+            left: 56px;
             z-index: 999;
             background: rgba(20, 20, 20, 0.95);
             backdrop-filter: blur(12px);
@@ -636,29 +636,130 @@
             font-size: 13px;
         }
         
+        /* ── Mobile-first improvements ─────────────────────── */
         @media (max-width: 768px) {
-            .map-legend {
-                top: auto;
-                bottom: 80px;
-                left: 12px;
-                right: 12px;
-                min-width: auto;
-            }
-            
-            .legend-toggle {
-                top: 12px;
-                left: 12px;
-            }
-            
-            .map-stats {
-                bottom: 16px;
-                font-size: 0.8rem;
-                padding: 8px 14px;
-                gap: 10px;
-            }
-            
             .map-wrapper {
                 margin-top: 52px;
+            }
+
+            /* Legend panel — bottom sheet on mobile */
+            .map-legend {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                min-width: auto;
+                border-radius: 16px 16px 0 0;
+                padding: 16px 20px 24px;
+                max-height: 55vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            }
+
+            .map-legend.collapsed {
+                transform: translateY(100%);
+            }
+
+            .legend-filter {
+                padding: 6px 0;
+                gap: 14px;
+            }
+
+            .filter-dot {
+                width: 16px;
+                height: 16px;
+            }
+
+            .filter-label {
+                font-size: 1rem;
+            }
+
+            .filter-count {
+                font-size: 0.85rem;
+            }
+
+            /* Legend toggle — right of zoom controls */
+            .legend-toggle {
+                top: 10px;
+                left: 50px;
+                padding: 8px 12px;
+                font-size: 0.82rem;
+            }
+            
+            /* Stats bar — mobile positioned above safe area */
+            .map-stats {
+                bottom: 12px;
+                font-size: 0.78rem;
+                padding: 8px 14px;
+                gap: 8px;
+                border-radius: 8px;
+                padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+            }
+
+            /* Locate me — avoid overlap with stats */
+            .locate-btn {
+                bottom: 60px;
+                right: 12px;
+                padding: 10px;
+            }
+
+            .locate-btn svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            /* Location prompt — full-width on mobile */
+            .location-prompt {
+                width: 94%;
+                padding: 24px 20px;
+                border-radius: 14px;
+            }
+
+            .location-prompt h3 {
+                font-size: 1.15rem;
+            }
+
+            .location-prompt p {
+                font-size: 0.85rem;
+                margin-bottom: 20px;
+            }
+
+            .location-prompt-btn {
+                padding: 13px 18px;
+                font-size: 0.92rem;
+            }
+
+            .location-prompt-search input {
+                padding: 12px 14px;
+                font-size: 1rem; /* prevent iOS zoom */
+            }
+
+            /* Popup sizing */
+            .leaflet-popup-content-wrapper {
+                max-width: 240px !important;
+            }
+
+            .popup-name {
+                font-size: 0.9rem;
+            }
+
+            .popup-detail {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Small phones */
+        @media (max-width: 380px) {
+            .legend-toggle {
+                padding: 7px 10px;
+                font-size: 0.78rem;
+                gap: 6px;
+            }
+
+            .map-stats {
+                font-size: 0.72rem;
+                padding: 6px 12px;
             }
         }
     </style>
@@ -807,7 +908,7 @@
         
         <!-- Stats Bar -->
         <div class="map-stats">
-            <span><span class="stat-highlight" id="total-visible">0</span> locations visible</span>
+            <span><span class="stat-highlight" id="total-visible">0</span> cultural keys</span>
         </div>
     </div>
 
@@ -846,11 +947,11 @@
             campus: '#166534'
         };
         
-        // Collection mapping
+        // Collection mapping (must match Firebase exactly)
         const COLLECTIONS = {
             church: 'Churches',
             missionary: 'missionaries',
-            pilgrimage: 'pilgrimages',
+            pilgrimage: 'pilgrimageSites',
             school: 'schools',
             vocation: 'vocations',
             retreat: 'retreats',

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ask Gabriel — Nave</title>
     <meta name="description" content="Ask Gabriel, your Catholic AI assistant. Discover parishes, schools, pilgrimages, retreats, and more.">
     
@@ -482,17 +482,167 @@
             background: rgba(51, 102, 204, 0.15);
         }
 
+        /* ── Mobile-first improvements ─────────────────────── */
         @media (max-width: 768px) {
+            .ask-wrapper {
+                margin-top: 52px;
+            }
+
+            /* Welcome screen */
+            .ask-welcome {
+                padding: 2rem 1rem;
+            }
+
+            .ask-welcome-icon {
+                width: 72px;
+                height: 72px;
+                margin-bottom: 1rem;
+            }
+
+            .ask-welcome-icon svg {
+                width: 36px;
+                height: 36px;
+            }
+
+            .ask-welcome h2 {
+                font-size: 1.4rem;
+            }
+
+            .ask-welcome p {
+                font-size: 0.9rem;
+                margin-bottom: 1.5rem;
+            }
+
+            /* Chips — single column, bigger touch targets */
             .ask-suggestions {
                 grid-template-columns: 1fr;
+                gap: 0.5rem;
             }
-            
-            .ask-welcome h2 {
-                font-size: 1.5rem;
+
+            .ask-chip {
+                padding: 0.85rem 1rem;
+                font-size: 0.88rem;
+                border-radius: 14px;
+            }
+
+            .ask-chip svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            /* Chat area */
+            .ask-chat-area {
+                padding: 1rem;
             }
 
             .ask-msg {
                 max-width: 92%;
+            }
+
+            .ask-msg-bubble {
+                padding: 0.65rem 0.85rem;
+                font-size: 0.92rem;
+                border-radius: 16px;
+            }
+
+            .ask-msg-user .ask-msg-bubble {
+                border-bottom-right-radius: 4px;
+            }
+
+            .ask-msg-assistant .ask-msg-bubble {
+                border-bottom-left-radius: 4px;
+            }
+
+            .ask-msg-avatar {
+                width: 28px;
+                height: 28px;
+            }
+
+            /* Suggestion cards — horizontal scroll on mobile */
+            .ask-suggestion-cards {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 4px;
+                scrollbar-width: none;
+            }
+
+            .ask-suggestion-cards::-webkit-scrollbar {
+                display: none;
+            }
+
+            .ask-suggestion-card {
+                min-width: 180px;
+                flex-shrink: 0;
+                padding: 0.6rem 0.85rem;
+            }
+
+            /* Event cards — horizontal scroll on mobile */
+            .ask-event-cards {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 4px;
+                scrollbar-width: none;
+            }
+
+            .ask-event-cards::-webkit-scrollbar {
+                display: none;
+            }
+
+            .ask-event-card {
+                min-width: 160px;
+                flex-shrink: 0;
+            }
+
+            /* Input area — safe area aware */
+            .ask-input-area {
+                padding: 0.6rem 0.75rem;
+                padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+            }
+
+            .ask-input-row {
+                gap: 0.5rem;
+            }
+
+            .ask-input {
+                padding: 0.7rem 0.85rem;
+                font-size: 1rem; /* prevent iOS zoom on focus */
+                border-radius: 22px;
+            }
+
+            .ask-send-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .ask-send-btn svg {
+                width: 32px;
+                height: 32px;
+            }
+
+            /* New chat button */
+            .ask-new-chat-btn {
+                top: 8px;
+                right: 8px;
+                width: 34px;
+                height: 34px;
+            }
+        }
+
+        /* Small phones */
+        @media (max-width: 380px) {
+            .ask-welcome h2 {
+                font-size: 1.25rem;
+            }
+
+            .ask-chip {
+                padding: 0.75rem 0.85rem;
+                font-size: 0.84rem;
+            }
+
+            .ask-msg-bubble {
+                font-size: 0.88rem;
             }
         }
     </style>

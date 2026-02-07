@@ -137,6 +137,30 @@ input {
     color: var(--color-text);
 }
 
+/* Nav — mobile */
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0.75rem 1rem;
+    }
+
+    .nav-links {
+        gap: 1rem;
+    }
+
+    .nav-link {
+        font-size: 0.9rem;
+    }
+
+    .logo-img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .logo-text {
+        font-size: 1.1rem;
+    }
+}
+
 /* ==========================================================================
    About Page
    ========================================================================== */
