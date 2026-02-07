@@ -1142,3 +1142,118 @@ input {
         width: 100px; height: 100px;
     }
 }
+
+/* ==========================================================================
+   Engage/Network Section
+   ========================================================================== */
+
+.engage-section {
+    padding: var(--spacing-2xl) var(--spacing-md);
+    background: var(--color-bg-alt);
+}
+
+.engage-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--spacing-xl);
+    align-items: center;
+}
+
+.engage-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.engage-icon {
+    filter: drop-shadow(0 0 30px rgba(76, 139, 245, 0.4));
+}
+
+.engage-icon svg {
+    display: block;
+}
+
+.engage-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(76, 139, 245, 0.15), rgba(76, 139, 245, 0.05));
+    border: 1px solid rgba(76, 139, 245, 0.3);
+    color: #4C8BF5;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+}
+
+.engage-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: var(--spacing-sm);
+}
+
+.engage-subtitle {
+    font-size: 1.25rem;
+    color: #4C8BF5;
+    margin-bottom: var(--spacing-md);
+    font-weight: 500;
+}
+
+.engage-desc {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin-bottom: var(--spacing-lg);
+    max-width: 600px;
+}
+
+.engage-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.engage-chip {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.engage-chip:hover {
+    border-color: #4C8BF5;
+    color: var(--color-text);
+}
+
+@media (max-width: 768px) {
+    .engage-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .engage-title {
+        font-size: 2rem;
+    }
+    
+    .engage-desc {
+        max-width: 100%;
+    }
+    
+    .engage-chips {
+        justify-content: center;
+    }
+    
+    .engage-visual {
+        order: -1;
+    }
+    
+    .engage-icon svg {
+        width: 100px;
+        height: 100px;
+    }
+}
