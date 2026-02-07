@@ -27,6 +27,7 @@
         /* Map Page Specific Styles */
         .map-page {
             height: 100vh;
+            height: 100dvh; /* dynamic viewport height — respects mobile URL bar */
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -582,6 +583,16 @@
             color: #a0a0a0;
         }
         
+        /* Drag handle — hidden on desktop */
+        .legend-drag-handle {
+            display: none;
+        }
+
+        /* Legend backdrop — hidden on desktop */
+        .legend-backdrop {
+            display: none;
+        }
+
         /* Cluster styling overrides */
         .marker-cluster {
             background-clip: padding-box;
@@ -643,7 +654,7 @@
                 right: 0;
                 min-width: auto;
                 border-radius: 16px 16px 0 0;
-                padding: 16px 20px 24px;
+                padding: 12px 20px 24px;
                 max-height: 55vh;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
@@ -654,9 +665,26 @@
                 transform: translateY(100%);
             }
 
+            /* Drag handle — iOS-style pill at top of bottom sheet */
+            .legend-drag-handle {
+                display: flex;
+                justify-content: center;
+                padding: 4px 0 12px;
+                cursor: pointer;
+            }
+
+            .legend-drag-handle span {
+                display: block;
+                width: 36px;
+                height: 4px;
+                border-radius: 2px;
+                background: #555;
+            }
+
             .legend-filter {
                 padding: 6px 0;
                 gap: 14px;
+                min-height: 44px; /* Apple HIG min touch target */
             }
 
             .filter-dot {
@@ -672,29 +700,57 @@
                 font-size: 0.85rem;
             }
 
+            /* Legend backdrop — semi-transparent overlay behind bottom sheet */
+            .legend-backdrop {
+                display: none;
+                position: absolute;
+                inset: 0;
+                z-index: 999;
+                background: rgba(0, 0, 0, 0.4);
+            }
+
+            .legend-backdrop.visible {
+                display: block;
+            }
+
             /* Legend toggle — right of zoom controls */
             .legend-toggle {
                 top: 10px;
                 left: 50px;
                 padding: 8px 12px;
                 font-size: 0.82rem;
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* Leaflet zoom controls — larger touch targets */
+            .leaflet-control-zoom a {
+                width: 44px !important;
+                height: 44px !important;
+                line-height: 44px !important;
+                font-size: 20px !important;
             }
             
-            /* Stats bar — mobile positioned above safe area */
+            /* Stats bar — compact, safe-area aware */
             .map-stats {
-                bottom: 12px;
-                font-size: 0.78rem;
-                padding: 8px 14px;
+                bottom: 10px;
+                font-size: 0.8rem;
+                padding: 8px 16px;
                 gap: 8px;
                 border-radius: 8px;
                 padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
             }
 
-            /* Locate me — avoid overlap with stats */
+            /* Locate me — above stats bar, 44px touch target */
             .locate-btn {
-                bottom: 60px;
+                bottom: 56px;
                 right: 12px;
                 padding: 10px;
+                min-width: 44px;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .locate-btn svg {
@@ -721,11 +777,17 @@
             .location-prompt-btn {
                 padding: 13px 18px;
                 font-size: 0.92rem;
+                min-height: 48px;
             }
 
             .location-prompt-search input {
                 padding: 12px 14px;
-                font-size: 1rem; /* prevent iOS zoom */
+                font-size: 16px; /* prevent iOS auto-zoom on focus */
+            }
+
+            .location-prompt-search button {
+                min-width: 48px;
+                min-height: 48px;
             }
 
             /* Popup sizing */
@@ -824,6 +886,7 @@
         
         <!-- Legend / Filters -->
         <div id="map-legend" class="map-legend">
+            <div class="legend-drag-handle" onclick="toggleLegend()"><span></span></div>
             <div class="legend-header">
                 <h3>Map Key</h3>
                 <button class="legend-close" onclick="toggleLegend()">&times;</button>
@@ -891,6 +954,9 @@
             Map Key
         </button>
         
+        <!-- Legend backdrop (mobile only — closes legend on tap) -->
+        <div id="legend-backdrop" class="legend-backdrop" onclick="toggleLegend()"></div>
+
         <!-- Locate Me Button -->
         <button class="locate-btn" onclick="locateMe()" title="Find my location">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1182,8 +1248,12 @@
         window.toggleLegend = function() {
             const legend = document.getElementById('map-legend');
             const toggle = document.getElementById('legend-toggle');
+            const backdrop = document.getElementById('legend-backdrop');
             legend.classList.toggle('collapsed');
-            toggle.classList.toggle('visible', legend.classList.contains('collapsed'));
+            const isCollapsed = legend.classList.contains('collapsed');
+            toggle.classList.toggle('visible', isCollapsed);
+            // Show/hide backdrop on mobile
+            if (backdrop) backdrop.classList.toggle('visible', !isCollapsed);
         };
         
         // ── User location marker (shared) — iOS-style pulsing dot ──
