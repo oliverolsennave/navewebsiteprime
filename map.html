@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map — Nave</title>
+    <meta name="description" content="Explore the Catholic culture heat map. Discover churches, missionaries, pilgrimages, schools, retreats, and Catholic businesses near you.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Favicon (adaptive: white in dark mode, black in light mode) -->
+    <link rel="icon" href="assets/favicon-adaptive.svg" type="image/svg+xml">
+    
+    <style>
+        /* Map Page Specific Styles */
+        .map-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .map-wrapper {
+            flex: 1;
+            position: relative;
+            margin-top: 57px; /* nav height */
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+        }
+        
+        /* Override Leaflet dark theme */
+        .leaflet-container {
+            background: #0a0a0a;
+            font-family: 'Instrument Sans', -apple-system, sans-serif;
+        }
+        
+        .leaflet-control-zoom a {
+            background: #1a1a1a !important;
+            color: #f5f5f5 !important;
+            border-color: #2a2a2a !important;
+        }
+        
+        .leaflet-control-zoom a:hover {
+            background: #2a2a2a !important;
+        }
+        
+        .leaflet-control-attribution {
+            background: rgba(10, 10, 10, 0.8) !important;
+            color: #707070 !important;
+            font-size: 10px !important;
+        }
+        
+        .leaflet-control-attribution a {
+            color: #a0a0a0 !important;
+        }
+        
+        /* Map Legend / Filter Panel */
+        .map-legend {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 1000;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 200px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .map-legend.collapsed {
+            transform: translateX(-calc(100% + 16px));
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .legend-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .legend-header h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f5f5f5;
+            margin: 0;
+        }
+        
+        .legend-close {
+            background: none;
+            border: none;
+            color: #707070;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+        
+        .legend-close:hover {
+            color: #f5f5f5;
+        }
+        
+        .legend-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .legend-filter {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .legend-filter input[type="checkbox"] {
+            display: none;
+        }
+        
+        .filter-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: opacity 0.2s;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .legend-filter input:not(:checked) ~ .filter-dot {
+            opacity: 0.25;
+        }
+        
+        .filter-label {
+            font-size: 0.95rem;
+            color: #f5f5f5;
+            font-weight: 400;
+        }
+        
+        .legend-filter input:not(:checked) ~ .filter-label {
+            color: #707070;
+        }
+        
+        .filter-count {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: #707070;
+            font-weight: 500;
+        }
+        
+        /* Toggle Legend Button */
+        .legend-toggle {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 999;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #f5f5f5;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .legend-toggle.visible {
+            display: flex;
+        }
+        
+        /* Stats bar */
+        .map-stats {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: #a0a0a0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .map-stats .stat-highlight {
+            color: #d4af37;
+            font-weight: 700;
+        }
+        
+        /* Loading overlay */
+        .map-loading {
+            position: absolute;
+            inset: 0;
+            z-index: 1001;
+            background: rgba(10, 10, 10, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            transition: opacity 0.5s ease;
+        }
+        
+        .map-loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .map-loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #2a2a2a;
+            border-top-color: #d4af37;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .map-loading-text {
+            color: #a0a0a0;
+            font-size: 0.95rem;
+        }
+        
+        /* Location popup */
+        .leaflet-popup-content-wrapper {
+            background: #1a1a1a !important;
+            border: 1px solid #2a2a2a !important;
+            border-radius: 10px !important;
+            color: #f5f5f5 !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+        }
+        
+        .leaflet-popup-tip {
+            background: #1a1a1a !important;
+            border: 1px solid #2a2a2a !important;
+        }
+        
+        .leaflet-popup-close-button {
+            color: #707070 !important;
+        }
+        
+        .leaflet-popup-close-button:hover {
+            color: #f5f5f5 !important;
+        }
+        
+        .popup-content {
+            padding: 4px 0;
+        }
+        
+        .popup-type {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        
+        .popup-name {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .popup-detail {
+            font-size: 0.85rem;
+            color: #a0a0a0;
+        }
+        
+        /* Locate me button */
+        .locate-btn {
+            position: absolute;
+            bottom: 80px;
+            right: 16px;
+            z-index: 1000;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 12px;
+            color: #f5f5f5;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: background 0.2s;
+        }
+        
+        .locate-btn:hover {
+            background: rgba(40, 40, 40, 0.95);
+        }
+        
+        .locate-btn svg {
+            display: block;
+            width: 20px;
+            height: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .map-legend {
+                top: auto;
+                bottom: 80px;
+                left: 12px;
+                right: 12px;
+                min-width: auto;
+            }
+            
+            .legend-toggle {
+                top: 12px;
+                left: 12px;
+            }
+            
+            .map-stats {
+                bottom: 16px;
+                font-size: 0.8rem;
+                padding: 8px 14px;
+                gap: 10px;
+            }
+            
+            .map-wrapper {
+                margin-top: 52px;
+            }
+        }
+    </style>
+</head>
+<body class="map-page">
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="assets/whitenavelogo.png" alt="Nave" class="logo-img">
+                <span class="logo-text">Nave</span>
+            </a>
+            <div class="nav-links">
+                <a href="map.html" class="nav-link nav-link-active">Map</a>
+                <a href="about.html" class="nav-link">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Map Container -->
+    <div class="map-wrapper">
+        <!-- Loading Overlay -->
+        <div id="map-loading" class="map-loading">
+            <div class="map-loading-spinner"></div>
+            <div class="map-loading-text">Loading Catholic locations...</div>
+        </div>
+        
+        <!-- Map -->
+        <div id="map"></div>
+        
+        <!-- Legend / Filters -->
+        <div id="map-legend" class="map-legend">
+            <div class="legend-header">
+                <h3>Map Key</h3>
+                <button class="legend-close" onclick="toggleLegend()">&times;</button>
+            </div>
+            <div class="legend-filters">
+                <label class="legend-filter">
+                    <input type="checkbox" data-type="church" checked>
+                    <span class="filter-dot" style="background: #3B82F6;"></span>
+                    <span class="filter-label">Church</span>
+                    <span class="filter-count" id="count-church">0</span>
+                </label>
+                <label class="legend-filter">
+                    <input type="checkbox" data-type="missionary" checked>
+                    <span class="filter-dot" style="background: #D4A017;"></span>
+                    <span class="filter-label">Missionary</span>
+                    <span class="filter-count" id="count-missionary">0</span>
+                </label>
+                <label class="legend-filter">
+                    <input type="checkbox" data-type="pilgrimage" checked>
+                    <span class="filter-dot" style="background: #EF4444;"></span>
+                    <span class="filter-label">Pilgrimage</span>
+                    <span class="filter-count" id="count-pilgrimage">0</span>
+                </label>
+                <label class="legend-filter">
+                    <input type="checkbox" data-type="school" checked>
+                    <span class="filter-dot" style="background: #A855F7;"></span>
+                    <span class="filter-label">Education</span>
+                    <span class="filter-count" id="count-school">0</span>
+                </label>
+                <label class="legend-filter">
+                    <input type="checkbox" data-type="vocation" checked>
+                    <span class="filter-dot" style="background: #22C55E;"></span>
+                    <span class="filter-label">Vocation</span>
+                    <span class="filter-count" id="count-vocation">0</span>
+                </label>
+                <label class="legend-filter">
+                    <input type="checkbox" data-type="retreat" checked>
+                    <span class="filter-dot" style="background: #F97316;"></span>
+                    <span class="filter-label">Retreat</span>
+                    <span class="filter-count" id="count-retreat">0</span>
+                </label>
+                <label class="legend-filter">
+                    <input type="checkbox" data-type="business" checked>
+                    <span class="filter-dot" style="background: #A1887F;"></span>
+                    <span class="filter-label">Business</span>
+                    <span class="filter-count" id="count-business">0</span>
+                </label>
+                <label class="legend-filter">
+                    <input type="checkbox" data-type="campus" checked>
+                    <span class="filter-dot" style="background: #166534;"></span>
+                    <span class="filter-label">Campus</span>
+                    <span class="filter-count" id="count-campus">0</span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- Toggle Legend Button (when legend is hidden) -->
+        <button id="legend-toggle" class="legend-toggle" onclick="toggleLegend()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <circle cx="4" cy="4" r="3" fill="#3B82F6"/>
+                <circle cx="12" cy="4" r="3" fill="#D4A017"/>
+                <circle cx="4" cy="12" r="3" fill="#22C55E"/>
+                <circle cx="12" cy="12" r="3" fill="#A855F7"/>
+            </svg>
+            Map Key
+        </button>
+        
+        <!-- Locate Me Button -->
+        <button class="locate-btn" onclick="locateMe()" title="Find my location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+            </svg>
+        </button>
+        
+        <!-- Stats Bar -->
+        <div class="map-stats">
+            <span><span class="stat-highlight" id="total-visible">0</span> locations visible</span>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Firebase config (same project as iOS app)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMzrI35yZxIlUr-OJ56acE_bMnYnrHoEw",
+            authDomain: "navefirebase.firebaseapp.com",
+            projectId: "navefirebase",
+            storageBucket: "navefirebase.firebasestorage.app",
+            messagingSenderId: "701712826975",
+            appId: "1:701712826975:web:placeholder"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Pin colors matching iOS app
+        const PIN_COLORS = {
+            church: '#3B82F6',
+            missionary: '#D4A017',
+            pilgrimage: '#EF4444',
+            school: '#A855F7',
+            vocation: '#22C55E',
+            retreat: '#F97316',
+            business: '#A1887F',
+            campus: '#166534'
+        };
+        
+        // Collection mapping
+        const COLLECTIONS = {
+            church: 'Churches',
+            missionary: 'missionaries',
+            pilgrimage: 'pilgrimages',
+            school: 'schools',
+            vocation: 'vocations',
+            retreat: 'retreats',
+            business: 'businesses',
+            campus: 'bibleStudies'
+        };
+        
+        // Initialize map
+        const map = L.map('map', {
+            center: [39.5, -98.35],  // Center of US
+            zoom: 5,
+            zoomControl: true,
+            attributionControl: true
+        });
+        
+        // Dark-themed tile layer (CartoDB Dark Matter)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Layer groups for each type
+        const layers = {};
+        const markerCounts = {};
+        
+        Object.keys(PIN_COLORS).forEach(type => {
+            layers[type] = L.layerGroup().addTo(map);
+            markerCounts[type] = 0;
+        });
+        
+        // Create circle marker
+        function createMarker(lat, lng, type, name, detail) {
+            const marker = L.circleMarker([lat, lng], {
+                radius: 6,
+                fillColor: PIN_COLORS[type],
+                color: '#ffffff',
+                weight: 1.5,
+                opacity: 0.9,
+                fillOpacity: 0.85
+            });
+            
+            const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+            const bgColor = PIN_COLORS[type];
+            
+            marker.bindPopup(`
+                <div class="popup-content">
+                    <span class="popup-type" style="background: ${bgColor}22; color: ${bgColor};">${typeLabel}</span>
+                    <div class="popup-name">${name}</div>
+                    ${detail ? `<div class="popup-detail">${detail}</div>` : ''}
+                </div>
+            `, { maxWidth: 250 });
+            
+            return marker;
+        }
+        
+        // Extract coordinates from different document structures
+        function getCoords(doc, type) {
+            const d = doc.data();
+            
+            // Schools have nested location object
+            if (type === 'school') {
+                if (d.location?.coordinates) {
+                    const c = d.location.coordinates;
+                    // GeoPoint
+                    if (c.latitude !== undefined) return { lat: c.latitude, lng: c.longitude };
+                    if (c._latitude !== undefined) return { lat: c._latitude, lng: c._longitude };
+                    // Array [lat, lng]
+                    if (Array.isArray(c)) return { lat: c[0], lng: c[1] };
+                }
+                if (d.location?.latitude !== undefined) return { lat: d.location.latitude, lng: d.location.longitude };
+            }
+            
+            // GeoPoint in coordinates field
+            if (d.coordinates) {
+                const c = d.coordinates;
+                if (c.latitude !== undefined) return { lat: c.latitude, lng: c.longitude };
+                if (c._latitude !== undefined) return { lat: c._latitude, lng: c._longitude };
+                if (Array.isArray(c)) return { lat: c[0], lng: c[1] };
+            }
+            
+            // Direct lat/lng fields
+            if (d.latitude !== undefined && d.longitude !== undefined) {
+                return { lat: d.latitude, lng: d.longitude };
+            }
+            
+            // lat/lon fields
+            if (d.lat !== undefined && (d.lng !== undefined || d.lon !== undefined)) {
+                return { lat: d.lat, lng: d.lng || d.lon };
+            }
+            
+            return null;
+        }
+        
+        // Get name from document
+        function getName(doc, type) {
+            const d = doc.data();
+            return d.name || d.title || d.parishName || 'Unknown';
+        }
+        
+        // Get detail from document
+        function getDetail(doc, type) {
+            const d = doc.data();
+            
+            switch (type) {
+                case 'church': return d.address || d.city || '';
+                case 'missionary': return d.role || d.organization || '';
+                case 'pilgrimage': return d.location || d.city || '';
+                case 'school': return d.location?.formatted || d.city || '';
+                case 'vocation': return d.location || d.order || '';
+                case 'retreat': return d.location || d.city || '';
+                case 'business': return d.subcategory || d.category || '';
+                case 'campus': return d.location || d.university || '';
+                default: return '';
+            }
+        }
+        
+        // Load data from Firebase
+        async function loadData() {
+            const loadingEl = document.getElementById('map-loading');
+            let totalLoaded = 0;
+            
+            const loadPromises = Object.entries(COLLECTIONS).map(async ([type, collectionName]) => {
+                try {
+                    const snapshot = await getDocs(collection(db, collectionName));
+                    let count = 0;
+                    
+                    snapshot.forEach(doc => {
+                        const coords = getCoords(doc, type);
+                        if (coords && coords.lat && coords.lng && 
+                            Math.abs(coords.lat) <= 90 && Math.abs(coords.lng) <= 180) {
+                            const name = getName(doc, type);
+                            const detail = getDetail(doc, type);
+                            const marker = createMarker(coords.lat, coords.lng, type, name, detail);
+                            marker.addTo(layers[type]);
+                            count++;
+                        }
+                    });
+                    
+                    markerCounts[type] = count;
+                    document.getElementById(`count-${type}`).textContent = count.toLocaleString();
+                    totalLoaded += count;
+                    
+                } catch (error) {
+                    console.warn(`Could not load ${collectionName}:`, error.message);
+                }
+            });
+            
+            await Promise.all(loadPromises);
+            
+            updateVisibleCount();
+            
+            // Hide loading
+            loadingEl.classList.add('hidden');
+            setTimeout(() => loadingEl.remove(), 500);
+        }
+        
+        // Update visible count
+        window.updateVisibleCount = function() {
+            let total = 0;
+            document.querySelectorAll('.legend-filter input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) {
+                    total += markerCounts[cb.dataset.type] || 0;
+                }
+            });
+            document.getElementById('total-visible').textContent = total.toLocaleString();
+        };
+        
+        // Filter toggle handlers
+        document.querySelectorAll('.legend-filter input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const type = this.dataset.type;
+                if (this.checked) {
+                    map.addLayer(layers[type]);
+                } else {
+                    map.removeLayer(layers[type]);
+                }
+                updateVisibleCount();
+            });
+        });
+        
+        // Legend toggle
+        window.toggleLegend = function() {
+            const legend = document.getElementById('map-legend');
+            const toggle = document.getElementById('legend-toggle');
+            legend.classList.toggle('collapsed');
+            toggle.classList.toggle('visible', legend.classList.contains('collapsed'));
+        };
+        
+        // Locate me
+        window.locateMe = function() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const { latitude, longitude } = pos.coords;
+                        map.setView([latitude, longitude], 11);
+                        
+                        // Add user location marker
+                        const userMarker = L.circleMarker([latitude, longitude], {
+                            radius: 8,
+                            fillColor: '#007AFF',
+                            color: '#ffffff',
+                            weight: 3,
+                            opacity: 1,
+                            fillOpacity: 1
+                        }).addTo(map);
+                        
+                        userMarker.bindPopup('<div class="popup-content"><div class="popup-name">You are here</div></div>');
+                    },
+                    (err) => {
+                        console.warn('Geolocation error:', err);
+                        alert('Could not determine your location. Please enable location services.');
+                    },
+                    { enableHighAccuracy: true }
+                );
+            }
+        };
+        
+        // Start loading
+        loadData();
+    </script>
+</body>
+</html>
