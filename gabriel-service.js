@@ -324,11 +324,14 @@ async function fetchChurchContext(q) {
                         // Distance score: closer = higher (max 200 for 0 miles, 0 for 30 miles)
                         score = Math.max(0, 200 - Math.round(distanceMiles * (200 / 30)));
 
-                        // State match bonus
-                        if (expectedState && state.toUpperCase() === expectedState) {
-                            score += 20;
-                        } else if (expectedState && state.toUpperCase() && state.toUpperCase() !== expectedState) {
-                            score -= 30;
+                        // State: hard filter — wrong state gets eliminated
+                        if (expectedState) {
+                            const stateUpper = state.toUpperCase();
+                            if (stateUpper === expectedState) {
+                                score += 20; // Boost correct state
+                            } else if (stateUpper && stateUpper !== expectedState) {
+                                score = -1; // Eliminate wrong state entirely
+                            }
                         }
                     }
                 } else {
@@ -341,7 +344,7 @@ async function fetchChurchContext(q) {
 
                     if (score > 0 && expectedState) {
                         if (state.toUpperCase() === expectedState) score += 20;
-                        else if (state.toUpperCase() && state.toUpperCase() !== expectedState) score -= 30;
+                        else if (state.toUpperCase() && state.toUpperCase() !== expectedState) score = -1;
                     }
                 }
             } else {
@@ -726,11 +729,9 @@ I FOUND THESE RELEVANT RESOURCES:
 ${resourceList}
 
 YOUR TASK:
-1. Read the user's question carefully
-2. Pick 1-3 resources from the list above that BEST MATCH what they're asking for (prefer resources whose location matches the user's query)
-3. For EACH resource you recommend, include [RECOMMEND: exact name] using the EXACT name from the list
-4. Write a helpful response explaining why these resources are relevant
-5. Tell them to tap the cards below to learn more
+1. Pick 1-3 resources from the list above that BEST MATCH what they're asking for (prefer resources whose location matches the user's query)
+2. For EACH resource you recommend, include [RECOMMEND: exact name] using the EXACT name from the list
+3. Write a SHORT, concise response — just introduce the results and tell them to tap the cards below
 
 MATCHING GUIDELINES:
 - If asking about a specific city/location → ALWAYS recommend resources in or near that location
@@ -746,17 +747,20 @@ AVAILABLE TYPES: ${availableTypes}
 RULES:
 - ONLY recommend from the list above (1-3 options)
 - Use the EXACT name as written in the list for each [RECOMMEND: name] tag
-- Keep response under 100 words
-- Be warm and conversational
+- Keep response under 50 words
+- Be warm but brief
+- NEVER fabricate or make up details about a resource (like descriptions, services, atmosphere, history) that aren't in the data above
+- If you only have names and locations, just say "Here are the closest [type] near [location]" and let the cards speak for themselves
 - NEVER say you "don't have" resources if there ARE matching items in the list above
-- If the user asked about a location and there are resources listed in that location, confidently recommend them
+- Do NOT number the results — the cards below will show them
 
 CRITICAL: Put a space after EVERY period, comma, and colon.
 CRITICAL: ALWAYS include at least one [RECOMMEND: name] tag when there are relevant resources.
 
-Example response:
-[RECOMMEND: Franciscan Retreat Center]
-The Franciscan Retreat Center offers peaceful spiritual retreats grounded in Franciscan spirituality. Tap the card below to learn more!`;
+Example response for a location query:
+[RECOMMEND: St. Patrick Cathedral]
+[RECOMMEND: Holy Family Parish]
+Here are some parishes near downtown Philadelphia. Tap the cards below to learn more!`;
 }
 
 function buildOrganizationSystemPrompt(orgs, specificName) {
