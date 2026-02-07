@@ -998,8 +998,8 @@ input {
     
     .hero-legend {
         height: auto;
-        padding: var(--spacing-sm) var(--spacing-md);
-        margin: var(--spacing-md) var(--spacing-md) var(--spacing-lg);
+        padding: var(--spacing-sm) var(--spacing-sm);
+        margin: var(--spacing-sm) var(--spacing-sm) var(--spacing-md);
         border-radius: var(--border-radius-lg);
     }
     
