@@ -1043,6 +1043,27 @@
         function getCoords(doc, type) {
             const d = doc.data();
             
+            // Missionaries: coordinates nested in locationPrimary { latitude, longitude }
+            if (type === 'missionary') {
+                if (d.locationPrimary) {
+                    const lp = d.locationPrimary;
+                    if (lp.latitude !== undefined && lp.longitude !== undefined) {
+                        return { lat: lp.latitude, lng: lp.longitude };
+                    }
+                    if (lp.coordinates) {
+                        const c = lp.coordinates;
+                        if (c.latitude !== undefined) return { lat: c.latitude, lng: c.longitude };
+                    }
+                }
+                // Also try locationSecondary if primary has no coords
+                if (d.locationSecondary) {
+                    const ls = d.locationSecondary;
+                    if (ls.latitude !== undefined && ls.longitude !== undefined) {
+                        return { lat: ls.latitude, lng: ls.longitude };
+                    }
+                }
+            }
+            
             // Schools have nested location object
             if (type === 'school') {
                 if (d.location?.coordinates) {
@@ -1089,7 +1110,7 @@
             
             switch (type) {
                 case 'church': return d.address || d.city || '';
-                case 'missionary': return d.role || d.organization || '';
+                case 'missionary': return d.role || d.organization || (d.locationPrimary?.city ? `${d.locationPrimary.city}, ${d.locationPrimary.state || ''}` : '') || '';
                 case 'pilgrimage': return d.location || d.city || '';
                 case 'school': return d.location?.formatted || d.city || '';
                 case 'vocation': return d.location || d.order || '';
