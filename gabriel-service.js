@@ -28,9 +28,28 @@ const EntityType = {
 
 // ── Conversation state ─────────────────────────────────────────────────
 let conversationHistory = []; // { role, content }
+let lastRecommendedEntities = []; // entities from last response (for follow-ups)
+let lastLocationContext = null; // last detected location (for follow-ups)
 
 export function clearConversation() {
     conversationHistory = [];
+    lastRecommendedEntities = [];
+    lastLocationContext = null;
+}
+
+// Detect "tell me more about X" follow-up patterns
+function extractFollowUpEntity(query) {
+    const patterns = [
+        /tell me (?:more )?about\s+(.+)/i,
+        /more (?:info|information|details) (?:on|about)\s+(.+)/i,
+        /what (?:is|about)\s+(.+)/i,
+        /(?:learn|know) more about\s+(.+)/i,
+    ];
+    for (const p of patterns) {
+        const m = query.match(p);
+        if (m) return m[1].trim();
+    }
+    return null;
 }
 
 // ── Main entry: send a message and get Gabriel's response ──────────────
@@ -42,11 +61,38 @@ export async function sendMessage(userQuery) {
     // 1. Add user message to history
     conversationHistory.push({ role: 'user', content: userQuery });
 
-    // 2. RAG: Fetch relevant entities from Firebase
-    const context = await fetchRankedContext(userQuery);
-    console.log(`🎯 [Gabriel] Fetched ${context.length} relevant entities`);
+    // 2. Check if this is a follow-up about a previously recommended entity
+    const followUpName = extractFollowUpEntity(userQuery);
+    let context = [];
+    let isFollowUp = false;
 
-    // 3. Check for organization queries
+    if (followUpName && lastRecommendedEntities.length > 0) {
+        // Try to find the entity in our last recommendations
+        const matchedEntity = lastRecommendedEntities.find(e => {
+            const eName = e.name.toLowerCase();
+            const fName = followUpName.toLowerCase();
+            return eName === fName || eName.includes(fName) || fName.includes(eName);
+        });
+
+        if (matchedEntity) {
+            console.log(`🔗 [Gabriel] Follow-up detected for: "${matchedEntity.name}"`);
+            isFollowUp = true;
+            // Use the matched entity as the sole context — fetch its full data
+            context = await fetchEntityDetails(matchedEntity);
+        }
+    }
+
+    // 3. If not a follow-up, do a normal RAG fetch
+    if (!isFollowUp) {
+        // Track location for future follow-ups
+        const locInfo = detectLocationQuery(userQuery.toLowerCase());
+        if (locInfo) lastLocationContext = locInfo;
+
+        context = await fetchRankedContext(userQuery);
+        console.log(`🎯 [Gabriel] Fetched ${context.length} relevant entities`);
+    }
+
+    // 4. Check for organization queries
     const isOrgQuery = detectOrganizationQuery(userQuery.toLowerCase());
     let orgContexts = [];
     if (isOrgQuery) {
@@ -54,30 +100,106 @@ export async function sendMessage(userQuery) {
         console.log(`📚 [Gabriel] Fetched ${orgContexts.length} organizations`);
     }
 
-    // 4. Build system prompt (matches iOS exactly)
-    let systemPrompt = buildUnifiedSystemPrompt(context, userQuery);
+    // 5. Build system prompt
+    let systemPrompt;
+    if (isFollowUp) {
+        systemPrompt = buildFollowUpPrompt(context, userQuery, followUpName);
+    } else {
+        systemPrompt = buildUnifiedSystemPrompt(context, userQuery);
+    }
 
     if (orgContexts.length > 0) {
         const specificOrgName = extractOrganizationName(userQuery);
         systemPrompt += buildOrganizationSystemPrompt(orgContexts, specificOrgName);
     }
 
-    // 5. Build OpenAI messages
+    // 6. Build OpenAI messages
     const messages = [
         { role: 'system', content: systemPrompt },
         ...conversationHistory
     ];
 
-    // 6. Call OpenAI
+    // 7. Call OpenAI
     const response = await callOpenAI(messages);
 
-    // 7. Parse response (strip RECOMMEND tags)
+    // 8. Parse response (strip RECOMMEND tags)
     const { cleanedResponse, suggestedEntities } = parseRecommendation(response, context, orgContexts);
 
-    // 8. Add assistant response to history
+    // 9. Save recommended entities for follow-ups
+    if (suggestedEntities.length > 0) {
+        lastRecommendedEntities = suggestedEntities;
+    } else if (context.length > 0 && !isFollowUp) {
+        lastRecommendedEntities = context.slice(0, 5);
+    }
+
+    // 10. Add assistant response to history
     conversationHistory.push({ role: 'assistant', content: cleanedResponse });
 
     return { text: cleanedResponse, suggestions: suggestedEntities };
+}
+
+// ── Fetch detailed data for a specific entity (for follow-ups) ────────
+async function fetchEntityDetails(entity) {
+    // Try to find the full document by searching the relevant collection
+    const collectionMap = {
+        [EntityType.CHURCH]: 'Churches',
+        [EntityType.MISSIONARY]: 'missionaries',
+        [EntityType.PILGRIMAGE]: 'pilgrimageSites',
+        [EntityType.RETREAT]: 'retreats',
+        [EntityType.SCHOOL]: 'schools',
+        [EntityType.VOCATION]: 'vocations',
+        [EntityType.BUSINESS]: 'businesses',
+        [EntityType.CAMPUS_MINISTRY]: 'bibleStudies',
+    };
+
+    const colName = collectionMap[entity.type];
+    if (!colName) return [entity]; // fallback to what we have
+
+    try {
+        const snap = await getDocs(collection(db, colName));
+        let bestMatch = null;
+
+        snap.forEach(doc => {
+            const d = doc.data();
+            const name = d.name || d.title || d.parishName || '';
+            if (name.toLowerCase() === entity.name.toLowerCase() ||
+                name.toLowerCase().includes(entity.name.toLowerCase()) ||
+                entity.name.toLowerCase().includes(name.toLowerCase())) {
+
+                // Build a rich context from all available fields
+                const details = [];
+                if (d.address) details.push(`Address: ${d.address}`);
+                if (d.city && d.state) details.push(`Location: ${d.city}, ${d.state}`);
+                if (d.diocese) details.push(`Diocese: ${d.diocese}`);
+                if (d.phone) details.push(`Phone: ${d.phone}`);
+                if (d.website || d.websiteURL) details.push(`Website: ${d.website || d.websiteURL}`);
+                if (d.massSchedule) {
+                    const masses = Object.entries(d.massSchedule).map(([day, times]) => `${day}: ${Array.isArray(times) ? times.join(', ') : times}`).join('; ');
+                    if (masses) details.push(`Mass Schedule: ${masses}`);
+                }
+                if (d.confessionSchedule) details.push(`Confession: ${d.confessionSchedule}`);
+                if (d.events && Array.isArray(d.events) && d.events.length > 0) {
+                    const eventNames = d.events.slice(0, 3).map(e => e.title || e.name || e).join(', ');
+                    details.push(`Upcoming events: ${eventNames}`);
+                }
+                if (d.description) details.push(`Description: ${d.description.substring(0, 200)}`);
+                if (d.schoolType) details.push(`Type: ${d.schoolType}`);
+                if (d.category) details.push(`Category: ${d.category}`);
+                if (d.subcategory) details.push(`Subcategory: ${d.subcategory}`);
+
+                bestMatch = {
+                    ...entity,
+                    description: details.join('\n') || entity.description,
+                    _fullData: true
+                };
+            }
+        });
+
+        return bestMatch ? [bestMatch] : [entity];
+    } catch (e) {
+        console.error('❌ Error fetching entity details:', e);
+        return [entity];
+    }
 }
 
 // ── Context fetching (mirrors fetchRankedContext) ──────────────────────
@@ -761,6 +883,43 @@ Example response for a location query:
 [RECOMMEND: St. Patrick Cathedral]
 [RECOMMEND: Holy Family Parish]
 Here are some parishes near downtown Philadelphia. Tap the cards below to learn more!`;
+}
+
+// ── Follow-up prompt for "tell me more about X" ───────────────────────
+function buildFollowUpPrompt(entities, queryStr, entityName) {
+    if (entities.length === 0) {
+        return `You are Gabriel, a Catholic AI assistant. The user asked about "${entityName}" but I couldn't find detailed information about it. Let them know politely and suggest they try a different query. Keep it brief.`;
+    }
+
+    const entity = entities[0];
+    let details = entity.description || 'No additional details available.';
+
+    return `You are Gabriel, a Catholic AI assistant helping users discover Catholic resources in the Nave app.
+
+THE USER WANTS TO KNOW MORE ABOUT: "${entityName}"
+
+HERE IS WHAT I KNOW ABOUT THIS RESOURCE:
+Name: ${entity.name}
+Type: ${entity.type}
+${entity.location ? `Location: ${entity.location}` : ''}
+${entity.subtitle ? `Category: ${entity.subtitle}` : ''}
+
+DETAILS:
+${details}
+
+YOUR TASK:
+1. Share the available information about this resource in a helpful, conversational way
+2. Include [RECOMMEND: ${entity.name}] so the card appears
+3. If you have limited data, just share what's available — do NOT make up details like mass times, events, descriptions, or history that aren't listed above
+4. Keep response under 80 words
+
+RULES:
+- ONLY share facts from the data above
+- NEVER fabricate descriptions, schedules, history, or services not listed
+- If the data is sparse, say something like "Here's what I have on [name]" and share what's available
+- Be warm and brief
+
+CRITICAL: Put a space after EVERY period, comma, and colon.`;
 }
 
 function buildOrganizationSystemPrompt(orgs, specificName) {
