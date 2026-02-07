@@ -336,8 +336,8 @@
         /* ── iOS-style pulsing current location marker ─── */
         .user-location-marker {
             position: relative;
-            width: 17px;
-            height: 17px;
+            width: 21px;
+            height: 21px;
         }
 
         /* Green pulse wave — radiates outward */
@@ -372,11 +372,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 14px;
-            height: 14px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             background: #0a0a0a;
-            border: 2px solid #ffffff;
+            border: 2.5px solid #ffffff;
             box-shadow: 0 0 14px rgba(0, 220, 80, 0.7), 0 0 5px rgba(0, 220, 80, 0.5);
             z-index: 2;
         }
@@ -1088,8 +1088,8 @@
                         <div class="user-location-dot"></div>
                     </div>
                 `,
-                iconSize: [17, 17],
-                iconAnchor: [9, 9]
+                iconSize: [21, 21],
+                iconAnchor: [11, 11]
             });
 
             userLocationMarker = L.marker([lat, lng], { icon: pulsingIcon, zIndexOffset: 9999 }).addTo(map);
