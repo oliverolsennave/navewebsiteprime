@@ -389,9 +389,10 @@ input {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
+    padding: calc(0.75rem + 1px) 1.5rem;
+    font-size: 0.95rem;
     font-weight: 600;
+    box-sizing: border-box;
     color: var(--color-text);
     background: var(--color-bg-alt);
     border: 1px solid var(--color-border);
@@ -684,14 +685,16 @@ input {
 
 .bulk-buttons {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     gap: var(--spacing-sm);
     flex-wrap: wrap;
 }
 
 .btn-secondary {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 0.75rem 1.5rem;
     font-size: 0.95rem;
     font-weight: 600;
