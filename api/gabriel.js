@@ -36,6 +36,95 @@ setInterval(() => {
     }
 }, 5 * 60 * 1000);
 
+// ── Prompt injection firewall ─────────────────────────────────────
+const MAX_USER_MESSAGE_LENGTH = 500;   // max chars per user message
+const MAX_TOTAL_CONTENT_LENGTH = 8000; // max total chars across all messages
+
+// Patterns that indicate prompt injection attempts
+const INJECTION_PATTERNS = [
+    /ignore\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|prompts|rules|directions)/i,
+    /disregard\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|prompts|rules|directions)/i,
+    /forget\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|prompts|rules|directions)/i,
+    /override\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|prompts|rules|directions)/i,
+    /you\s+are\s+now\s+(a|an|the|my)\s+/i,                   // "you are now a hacker"
+    /new\s+instructions?\s*:/i,                                // "new instructions:"
+    /system\s*:\s*/i,                                          // fake system message in user input
+    /\[system\]/i,                                             // [system] tag injection
+    /\[INST\]/i,                                               // Llama-style instruction injection
+    /<<\s*SYS\s*>>/i,                                          // Llama system tag
+    /```\s*(system|instruction|prompt)/i,                      // code block injection
+    /act\s+as\s+(if\s+)?(you\s+)?(are|were)\s+(a|an|the|my)\s+/i, // "act as if you are..."
+    /pretend\s+(you\s+)?(are|were|to\s+be)\s+/i,              // "pretend you are..."
+    /roleplay\s+as\s+/i,                                      // "roleplay as..."
+    /jailbreak/i,                                              // explicit jailbreak mention
+    /DAN\s*mode/i,                                             // "DAN mode" jailbreak
+    /developer\s+mode/i,                                       // "developer mode" jailbreak
+    /\bdo\s+anything\s+now\b/i,                                // "do anything now" (DAN)
+    /reveal\s+(your|the)\s+(system|initial|original)\s+(prompt|instructions|message)/i,
+    /what\s+(are|is)\s+your\s+(system|initial|original)\s+(prompt|instructions|message)/i,
+    /show\s+(me\s+)?(your|the)\s+(system|initial|original)\s+(prompt|instructions)/i,
+    /repeat\s+(your|the)\s+(system|initial|original)\s+(prompt|instructions|message)/i,
+    /output\s+(your|the)\s+(system|initial|original)\s+(prompt|instructions|message)/i,
+    /print\s+(your|the)\s+(system|initial|original)\s+(prompt|instructions|message)/i,
+];
+
+function detectInjection(text) {
+    for (const pattern of INJECTION_PATTERNS) {
+        if (pattern.test(text)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function validateMessages(messages) {
+    // Must have at least a system message and one user message
+    if (messages.length < 2) {
+        return { valid: false, reason: 'Too few messages' };
+    }
+
+    // First message must be system role (from our backend)
+    if (messages[0].role !== 'system') {
+        return { valid: false, reason: 'Invalid message structure' };
+    }
+
+    // No user-submitted message can have role "system"
+    for (let i = 1; i < messages.length; i++) {
+        const msg = messages[i];
+
+        if (msg.role === 'system') {
+            return { valid: false, reason: 'Unauthorized system message' };
+        }
+
+        if (msg.role !== 'user' && msg.role !== 'assistant') {
+            return { valid: false, reason: 'Invalid message role' };
+        }
+
+        if (typeof msg.content !== 'string') {
+            return { valid: false, reason: 'Invalid message content type' };
+        }
+
+        // Check user messages for injection and length
+        if (msg.role === 'user') {
+            if (msg.content.length > MAX_USER_MESSAGE_LENGTH) {
+                return { valid: false, reason: 'Message too long' };
+            }
+
+            if (detectInjection(msg.content)) {
+                return { valid: false, reason: 'Message blocked by content filter' };
+            }
+        }
+    }
+
+    // Total content length check (prevents cost abuse via large context)
+    const totalLength = messages.reduce((sum, m) => sum + (m.content?.length || 0), 0);
+    if (totalLength > MAX_TOTAL_CONTENT_LENGTH) {
+        return { valid: false, reason: 'Total content too large' };
+    }
+
+    return { valid: true };
+}
+
 export default async function handler(req, res) {
     // CORS headers — restrict to our domain only
     const allowedOrigins = ['https://www.catholicnave.com', 'https://catholicnave.com'];
@@ -77,9 +166,16 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Missing messages array' });
         }
 
-        // Limit message array size to prevent prompt injection / cost abuse
+        // Limit message array size
         if (messages.length > 20) {
             return res.status(400).json({ error: 'Too many messages in conversation' });
+        }
+
+        // ── Prompt injection firewall ─────────────────────────────
+        const validation = validateMessages(messages);
+        if (!validation.valid) {
+            console.warn(`[Gabriel Firewall] Blocked request from ${clientIP}: ${validation.reason}`);
+            return res.status(400).json({ error: validation.reason });
         }
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
