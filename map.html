@@ -604,8 +604,8 @@
         
         Object.keys(PIN_COLORS).forEach(type => {
             // Churches cluster more aggressively since there are so many
-            const clusterRadius = (type === 'church') ? 120 : 50;
-            const unclusterZoom = (type === 'church') ? 11 : 15;
+            const clusterRadius = (type === 'church') ? 200 : 50;
+            const unclusterZoom = (type === 'church') ? 9 : 15;
             
             layers[type] = L.markerClusterGroup({
                 iconCreateFunction: createClusterIcon(type),
