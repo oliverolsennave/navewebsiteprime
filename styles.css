@@ -389,19 +389,25 @@ input {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.875rem 1.75rem;
-    font-size: 1.05rem;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
     font-weight: 600;
-    color: #0a0a0a;
-    background: var(--color-accent);
+    color: var(--color-text);
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
-    transition: background var(--transition), transform var(--transition);
-    margin-bottom: var(--spacing-md);
+    transition: background var(--transition), transform var(--transition), border-color var(--transition);
     text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-map-cta svg {
+    flex-shrink: 0;
 }
 
 .btn-map-cta:hover {
-    background: #e5c04a;
+    background: #222;
+    border-color: #444;
     transform: translateY(-1px);
 }
 
