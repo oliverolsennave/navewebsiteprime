@@ -106,15 +106,69 @@ function isQueryRelevant(queryStr, searchableText) {
     return words.some(w => w.length > 2 && searchableText.includes(w));
 }
 
+// Detect if query is location-based and extract the city/location name
+function detectLocationQuery(q) {
+    const locationPatterns = [
+        /(?:near|in|around|close to|nearby)\s+([A-Za-z\s]+)/i,
+        /([A-Za-z\s]+?)\s+(?:parishes|churches|schools|retreats|businesses|mass)/i,
+        /parishes?\s+(?:near|in|around)\s+([A-Za-z\s]+)/i,
+        /churches?\s+(?:near|in|around)\s+([A-Za-z\s]+)/i,
+    ];
+    for (const pattern of locationPatterns) {
+        const match = q.match(pattern);
+        if (match) return match[1].trim().toLowerCase();
+    }
+    // Also check for well-known city names directly in the query
+    const cities = ['philadelphia', 'new york', 'chicago', 'boston', 'los angeles', 'denver',
+        'pittsburgh', 'dallas', 'houston', 'atlanta', 'miami', 'phoenix', 'san antonio',
+        'san diego', 'san francisco', 'seattle', 'portland', 'minneapolis', 'st. louis',
+        'detroit', 'cleveland', 'cincinnati', 'baltimore', 'washington', 'omaha',
+        'nashville', 'memphis', 'richmond', 'charlotte', 'raleigh', 'orlando',
+        'tampa', 'jacksonville', 'indianapolis', 'columbus', 'milwaukee', 'kansas city',
+        'bridgeport', 'hartford', 'new haven', 'providence', 'buffalo', 'rochester',
+        'albany', 'syracuse', 'newark', 'jersey city', 'trenton', 'camden',
+        'wilmington', 'norristown', 'conshohocken', 'ardmore', 'bryn mawr',
+        'media', 'wayne', 'paoli', 'exton', 'west chester', 'doylestown',
+        'lansdale', 'ambler', 'jenkintown', 'cheltenham', 'abington'];
+    for (const city of cities) {
+        if (q.includes(city)) return city;
+    }
+    return null;
+}
+
 // ── Individual entity fetchers ─────────────────────────────────────────
 
 async function fetchChurchContext(q) {
     try {
-        // Fetch unlocked parishes first (rich data)
-        const unlockedSnap = await getDocs(query(collection(db, 'Churches'), where('isUnlocked', '==', true)));
-        let contexts = [];
+        const detectedCity = detectLocationQuery(q);
+        const isLocationBased = detectedCity !== null;
 
-        unlockedSnap.forEach(doc => {
+        // For location queries, load ALL churches (like the map does) so we can match by city
+        // For non-location queries, use smaller batches
+        let allDocs = [];
+
+        if (isLocationBased) {
+            console.log(`📍 [Gabriel] Location query detected: "${detectedCity}" — loading all churches`);
+            const snap = await getDocs(collection(db, 'Churches'));
+            snap.forEach(doc => allDocs.push(doc));
+        } else {
+            // Non-location: fetch unlocked + some extras
+            const unlockedSnap = await getDocs(query(collection(db, 'Churches'), where('isUnlocked', '==', true)));
+            unlockedSnap.forEach(doc => allDocs.push(doc));
+            const extraSnap = await getDocs(query(collection(db, 'Churches'), limit(50)));
+            extraSnap.forEach(doc => {
+                if (!allDocs.some(d => d.id === doc.id)) allDocs.push(doc);
+            });
+        }
+
+        // Score and rank churches
+        let scored = [];
+        const seenIds = new Set();
+
+        for (const doc of allDocs) {
+            if (seenIds.has(doc.id)) continue;
+            seenIds.add(doc.id);
+
             const d = doc.data();
             const name = d.name || '';
             const city = d.city || '';
@@ -123,48 +177,57 @@ async function fetchChurchContext(q) {
             const address = d.address || '';
             const hasEvents = Array.isArray(d.events) && d.events.length > 0;
             const hasMass = d.massSchedule && Object.keys(d.massSchedule).length > 0;
+            const isUnlocked = d.isUnlocked === true;
+
             let description = 'Catholic parish';
             if (hasEvents && hasMass) description = 'Parish with schedules & events';
             else if (hasMass) description = 'Parish with Mass schedule';
 
-            const searchable = `${name} ${city} ${state} ${diocese} ${address} church parish catholic`.toLowerCase();
-            const relevant = isQueryRelevant(q, searchable);
             const displayCity = city || extractCityFromAddress(address);
+            const searchable = `${name} ${city} ${state} ${diocese} ${address} church parish catholic`.toLowerCase();
 
-            if (relevant || contexts.length < 5) {
-                contexts.push({
-                    id: doc.id, name, type: EntityType.CHURCH,
-                    subtitle: diocese || 'Parish', description,
-                    location: displayCity ? `${displayCity}, ${state}` : state
+            // Relevance scoring
+            let score = 0;
+
+            // City match is the highest priority for location queries
+            if (detectedCity) {
+                const cityLower = city.toLowerCase();
+                const addressLower = address.toLowerCase();
+                if (cityLower === detectedCity) score += 100;
+                else if (cityLower.includes(detectedCity) || detectedCity.includes(cityLower)) score += 80;
+                else if (addressLower.includes(detectedCity)) score += 70;
+                else if (diocese.toLowerCase().includes(detectedCity)) score += 30;
+            }
+
+            // General keyword relevance
+            if (isQueryRelevant(q, searchable)) score += 10;
+
+            // Bonus for rich data
+            if (isUnlocked) score += 5;
+            if (hasEvents) score += 3;
+            if (hasMass) score += 2;
+
+            if (score > 0 || !isLocationBased) {
+                scored.push({
+                    score,
+                    context: {
+                        id: doc.id, name, type: EntityType.CHURCH,
+                        subtitle: diocese || 'Parish', description,
+                        location: displayCity ? `${displayCity}, ${state}` : state
+                    }
                 });
             }
-        });
-
-        // Fetch additional parishes if needed
-        if (contexts.length < 10) {
-            const additionalSnap = await getDocs(query(collection(db, 'Churches'), limit(30)));
-            additionalSnap.forEach(doc => {
-                if (contexts.some(c => c.id === doc.id)) return;
-                const d = doc.data();
-                const name = d.name || '';
-                const city = d.city || '';
-                const state = d.state || '';
-                const diocese = d.diocese || '';
-                const address = d.address || '';
-                const searchable = `${name} ${city} ${state} ${diocese} ${address} church parish catholic`.toLowerCase();
-                if (isQueryRelevant(q, searchable)) {
-                    const displayCity = city || extractCityFromAddress(address);
-                    contexts.push({
-                        id: doc.id, name, type: EntityType.CHURCH,
-                        subtitle: diocese || 'Parish', description: 'Catholic parish',
-                        location: displayCity ? `${displayCity}, ${state}` : state
-                    });
-                }
-                if (contexts.length >= 10) return;
-            });
         }
 
-        return contexts;
+        // Sort by score descending
+        scored.sort((a, b) => b.score - a.score);
+
+        // Return top results
+        const maxResults = isLocationBased ? 15 : 10;
+        const results = scored.slice(0, maxResults).map(s => s.context);
+
+        console.log(`⛪ [Gabriel] Found ${results.length} churches${detectedCity ? ` (${scored.filter(s => s.score >= 70).length} in/near ${detectedCity})` : ''}`);
+        return results;
     } catch (e) {
         console.error('❌ Error fetching churches:', e);
         return [];
@@ -455,11 +518,14 @@ Keep your tone warm, conversational, and helpful. Don't mention databases, queri
         const typeName = type.toUpperCase();
         const suffix = typeName.endsWith('S') ? 'ES' : 'S';
         resourceList += `\n${typeName}${suffix}:\n`;
-        for (const e of items.slice(0, 5)) {
+        for (const e of items.slice(0, 8)) {
             resourceList += `• ${e.name}`;
             if (e.location) resourceList += ` — ${e.location}`;
             if (e.subtitle && e.subtitle !== type && e.subtitle !== 'Retreat') resourceList += ` (${e.subtitle})`;
             resourceList += '\n';
+        }
+        if (items.length > 8) {
+            resourceList += `  (and ${items.length - 8} more)\n`;
         }
     }
 
@@ -474,12 +540,13 @@ ${resourceList}
 
 YOUR TASK:
 1. Read the user's question carefully
-2. Pick 1-3 resources from the list above that BEST MATCH what they're asking for
+2. Pick 1-3 resources from the list above that BEST MATCH what they're asking for (prefer resources whose location matches the user's query)
 3. For EACH resource you recommend, include [RECOMMEND: exact name] using the EXACT name from the list
 4. Write a helpful response explaining why these resources are relevant
 5. Tell them to tap the cards below to learn more
 
 MATCHING GUIDELINES:
+- If asking about a specific city/location → ALWAYS recommend resources in or near that location
 - If asking about "retreat" or "retreat centers" → recommend from RETREATS
 - If asking about "parish" or "church" or "mass" → recommend from CHURCHS
 - If asking about "school" or "education" → recommend from SCHOOLS
@@ -494,8 +561,11 @@ RULES:
 - Use the EXACT name as written in the list for each [RECOMMEND: name] tag
 - Keep response under 100 words
 - Be warm and conversational
+- NEVER say you "don't have" resources if there ARE matching items in the list above
+- If the user asked about a location and there are resources listed in that location, confidently recommend them
 
 CRITICAL: Put a space after EVERY period, comma, and colon.
+CRITICAL: ALWAYS include at least one [RECOMMEND: name] tag when there are relevant resources.
 
 Example response:
 [RECOMMEND: Franciscan Retreat Center]
@@ -538,24 +608,7 @@ CRITICAL: Always include [RECOMMEND_ORG: name] tag to create a tappable card.`;
 // ── Response parsing (strip RECOMMEND tags) ────────────────────────────
 
 function parseRecommendation(response, context, orgContexts) {
-    // Remove all tag types
-    let cleaned = response
-        .replace(/\[RECOMMEND:[^\]]*\]\s*/gi, '')
-        .replace(/\[RECOMMEND_EVENT:[^\]]*\]\s*/gi, '')
-        .replace(/\[RECOMMEND_ORG:[^\]]*\]\s*/gi, '')
-        .trim();
-
-    // Fix spacing issues (mirrors iOS fixSpacing)
-    cleaned = fixSpacing(cleaned);
-
-    // Check if AI says it doesn't have resources
-    const noMatchPhrases = ["don't have", "no matching", "sorry", "can't find", "not found", "no resources", "isn't in"];
-    const admitsNoMatch = noMatchPhrases.some(p => cleaned.toLowerCase().includes(p));
-    if (admitsNoMatch) {
-        return { cleanedResponse: cleaned, suggestedEntities: [] };
-    }
-
-    // Parse entity recommendations
+    // Parse entity recommendations FIRST (before cleaning tags)
     const entityPattern = /\[RECOMMEND:\s*([^\]]+)\]/gi;
     let match;
     let suggestions = [];
@@ -565,11 +618,16 @@ function parseRecommendation(response, context, orgContexts) {
         const recName = match[1].trim();
         if (recName.toLowerCase() === 'none') continue;
 
+        // Try exact match first, then fuzzy
         const found = context.find(e => {
             if (matchedIds.has(e.id)) return false;
-            return e.name.toLowerCase() === recName.toLowerCase() ||
-                   e.name.toLowerCase().includes(recName.toLowerCase()) ||
-                   recName.toLowerCase().includes(e.name.toLowerCase());
+            const eName = e.name.toLowerCase();
+            const rName = recName.toLowerCase();
+            return eName === rName ||
+                   eName.includes(rName) ||
+                   rName.includes(eName) ||
+                   // Also try matching without common prefixes like "St.", "Saint", etc.
+                   eName.replace(/^(st\.?|saint)\s+/i, '').includes(rName.replace(/^(st\.?|saint)\s+/i, ''));
         });
 
         if (found) {
@@ -590,6 +648,26 @@ function parseRecommendation(response, context, orgContexts) {
         );
         if (found) {
             suggestions.push({ id: found.id, name: found.name, type: 'Organization', subtitle: found.type, description: found.description, location: '' });
+        }
+    }
+
+    // Remove all tag types from display text
+    let cleaned = response
+        .replace(/\[RECOMMEND:[^\]]*\]\s*/gi, '')
+        .replace(/\[RECOMMEND_EVENT:[^\]]*\]\s*/gi, '')
+        .replace(/\[RECOMMEND_ORG:[^\]]*\]\s*/gi, '')
+        .trim();
+
+    // Fix spacing issues (mirrors iOS fixSpacing)
+    cleaned = fixSpacing(cleaned);
+
+    // Only suppress suggestions if the AI truly found nothing
+    // (no tags at all AND the response admits no match)
+    if (suggestions.length === 0) {
+        const noMatchPhrases = ["don't have", "no matching", "can't find", "not found", "no resources", "isn't in"];
+        const admitsNoMatch = noMatchPhrases.some(p => cleaned.toLowerCase().includes(p));
+        if (admitsNoMatch) {
+            return { cleanedResponse: cleaned, suggestedEntities: [] };
         }
     }
 
