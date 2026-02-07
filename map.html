@@ -603,13 +603,17 @@
         const markerCounts = {};
         
         Object.keys(PIN_COLORS).forEach(type => {
+            // Churches cluster more aggressively since there are so many
+            const clusterRadius = (type === 'church') ? 80 : 50;
+            const unclusterZoom = (type === 'church') ? 13 : 15;
+            
             layers[type] = L.markerClusterGroup({
                 iconCreateFunction: createClusterIcon(type),
-                maxClusterRadius: 50,
+                maxClusterRadius: clusterRadius,
                 spiderfyOnMaxZoom: true,
                 showCoverageOnHover: false,
                 zoomToBoundsOnClick: true,
-                disableClusteringAtZoom: 15
+                disableClusteringAtZoom: unclusterZoom
             }).addTo(map);
             markerCounts[type] = 0;
         });
