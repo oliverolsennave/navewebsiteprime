@@ -13,6 +13,9 @@
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
@@ -330,6 +333,53 @@
             height: 20px;
         }
         
+        /* Cluster styling overrides */
+        .marker-cluster {
+            background-clip: padding-box;
+        }
+        
+        .marker-cluster div {
+            width: 30px;
+            height: 30px;
+            margin-left: 5px;
+            margin-top: 5px;
+            text-align: center;
+            border-radius: 50%;
+            font: 12px 'Instrument Sans', -apple-system, sans-serif;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .marker-cluster-small {
+            background: rgba(0, 0, 0, 0.25);
+        }
+        .marker-cluster-small div {
+            width: 28px;
+            height: 28px;
+            font-size: 11px;
+        }
+        
+        .marker-cluster-medium {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .marker-cluster-medium div {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+        }
+        
+        .marker-cluster-large {
+            background: rgba(0, 0, 0, 0.35);
+        }
+        .marker-cluster-large div {
+            width: 36px;
+            height: 36px;
+            font-size: 13px;
+        }
+        
         @media (max-width: 768px) {
             .map-legend {
                 top: auto;
@@ -468,6 +518,8 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     
     <!-- Firebase SDK -->
     <script type="module">
@@ -526,12 +578,39 @@
             maxZoom: 19
         }).addTo(map);
         
-        // Layer groups for each type
+        // Create color-coded cluster icon factory
+        function createClusterIcon(type) {
+            return function(cluster) {
+                const count = cluster.getChildCount();
+                let size = 'small';
+                if (count >= 100) size = 'large';
+                else if (count >= 10) size = 'medium';
+                
+                const color = PIN_COLORS[type];
+                const dims = size === 'large' ? 44 : size === 'medium' ? 40 : 36;
+                const innerDims = dims - 8;
+                
+                return L.divIcon({
+                    html: `<div style="background:${color}; width:${innerDims}px; height:${innerDims}px;">${count}</div>`,
+                    className: `marker-cluster marker-cluster-${size}`,
+                    iconSize: L.point(dims, dims)
+                });
+            };
+        }
+        
+        // Cluster layer groups for each type
         const layers = {};
         const markerCounts = {};
         
         Object.keys(PIN_COLORS).forEach(type => {
-            layers[type] = L.layerGroup().addTo(map);
+            layers[type] = L.markerClusterGroup({
+                iconCreateFunction: createClusterIcon(type),
+                maxClusterRadius: 50,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                disableClusteringAtZoom: 15
+            }).addTo(map);
             markerCounts[type] = 0;
         });
         
