@@ -198,6 +198,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Contact form
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('contact-name').value.trim();
+            const email = document.getElementById('contact-email').value.trim();
+            const message = document.getElementById('contact-message').value.trim();
+            if (!name || !email || !message) return;
+            const submitBtn = contactForm.querySelector('.modal-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            try {
+                const contactCollection = collection(db, 'contact-inquiries');
+                await addDoc(contactCollection, {
+                    name,
+                    email,
+                    message,
+                    createdAt: serverTimestamp(),
+                    source: window.location.pathname
+                });
+                contactForm.classList.add('hidden');
+                document.getElementById('contact-success').classList.remove('hidden');
+                setTimeout(() => { if (window.closeContactModal) window.closeContactModal(); }, 2000);
+            } catch (error) {
+                console.error('Error submitting contact form:', error);
+                submitBtn.textContent = 'Error - Try Again';
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
     // Count-up animation for location stat
     const locationCount = document.getElementById('location-count');
     if (locationCount) {
