@@ -636,6 +636,429 @@
                 font-size: 0.88rem;
             }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           Entity Detail Modal (mirrors iOS PrimeDetailViews)
+           ══════════════════════════════════════════════════════════ */
+        .entity-detail-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+            transition: opacity 0.3s;
+        }
+        .entity-detail-overlay.active {
+            display: flex;
+        }
+
+        .entity-detail-panel {
+            background: #141416;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 540px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUpDetail 0.35s ease-out;
+            overscroll-behavior: contain;
+        }
+
+        @keyframes slideUpDetail {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Drag handle */
+        .entity-detail-handle {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0 4px;
+            cursor: grab;
+        }
+        .entity-detail-handle span {
+            width: 36px;
+            height: 4px;
+            border-radius: 2px;
+            background: #444;
+        }
+
+        /* Header */
+        .entity-detail-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 8px 20px 16px;
+        }
+
+        .entity-detail-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            background: #1e1e1e;
+        }
+
+        .entity-detail-header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .entity-detail-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f5f5f5;
+            line-height: 1.3;
+            margin: 0 0 2px;
+        }
+
+        .entity-detail-type-badge {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #999;
+            background: #1e1e1e;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-detail-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #2a2a2a;
+            color: #999;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+            transition: background 0.2s;
+        }
+        .entity-detail-close:hover { background: #3a3a3a; }
+
+        /* Rainbow card for parishes (mirrors iOS rainbow border) */
+        .entity-detail-card {
+            margin: 0 16px 16px;
+            padding: 16px;
+            border-radius: 16px;
+            background: #1a1a1a;
+            position: relative;
+        }
+        .entity-detail-card.rainbow {
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .entity-detail-card.rainbow::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6);
+            z-index: -1;
+        }
+
+        /* Location row */
+        .entity-detail-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #999;
+            font-size: 0.88rem;
+            margin-bottom: 12px;
+        }
+        .entity-detail-location svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Description */
+        .entity-detail-description {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #ccc;
+            margin-bottom: 12px;
+        }
+
+        /* Quick actions row */
+        .entity-detail-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .entity-detail-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            background: #1e1e1e;
+            color: #6699ff;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .entity-detail-action-btn:hover {
+            background: #252525;
+            transform: translateY(-1px);
+        }
+        .entity-detail-action-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Section headers */
+        .entity-detail-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 12px 20px 6px;
+        }
+
+        /* Schedule rows */
+        .entity-detail-schedule {
+            margin: 0 16px 8px;
+            padding: 12px 14px;
+            background: #1a1a1a;
+            border-radius: 12px;
+        }
+        .entity-detail-schedule-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #f5f5f5;
+            margin-bottom: 8px;
+        }
+        .entity-detail-schedule-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: #aaa;
+            padding: 3px 0;
+        }
+        .entity-detail-schedule-row .day {
+            color: #ccc;
+            font-weight: 500;
+        }
+        .entity-detail-schedule-row .times {
+            text-align: right;
+            color: #999;
+        }
+
+        /* Events list */
+        .entity-detail-events {
+            margin: 0 16px 12px;
+        }
+        .entity-detail-event-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 14px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            position: relative;
+            border: 1.5px solid transparent;
+        }
+        .entity-detail-event-item::before {
+            content: '';
+            position: absolute;
+            inset: -1.5px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6);
+            z-index: -1;
+        }
+        .entity-detail-event-date {
+            width: 44px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .entity-detail-event-date .month {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #EF4444;
+        }
+        .entity-detail-event-date .day-num {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f5f5f5;
+        }
+        .entity-detail-event-info {
+            flex: 1;
+        }
+        .entity-detail-event-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #f5f5f5;
+        }
+        .entity-detail-event-time {
+            font-size: 0.78rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Programs pills */
+        .entity-detail-programs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 0 16px 16px;
+        }
+        .entity-detail-program-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 8px;
+            color: #22C55E;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Contact info */
+        .entity-detail-contact {
+            margin: 0 16px 16px;
+            padding: 12px 14px;
+            background: #1a1a1a;
+            border-radius: 12px;
+        }
+        .entity-detail-contact-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 0.85rem;
+        }
+        .entity-detail-contact-row svg {
+            width: 14px;
+            height: 14px;
+            color: #666;
+            flex-shrink: 0;
+        }
+        .entity-detail-contact-row a {
+            color: #6699ff;
+            text-decoration: none;
+        }
+        .entity-detail-contact-row span {
+            color: #ccc;
+        }
+
+        /* Footer action */
+        .entity-detail-footer {
+            padding: 12px 16px 24px;
+            display: flex;
+            gap: 8px;
+        }
+        .entity-detail-footer-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .entity-detail-footer-btn:hover {
+            transform: translateY(-1px);
+        }
+        .entity-detail-footer-btn.primary {
+            background: #3366CC;
+            color: #fff;
+        }
+        .entity-detail-footer-btn.secondary {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            color: #ccc;
+        }
+        .entity-detail-footer-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Loading spinner in detail modal */
+        .entity-detail-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 12px;
+        }
+        .entity-detail-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #333;
+            border-top-color: #3366CC;
+            border-radius: 50%;
+            animation: detailSpin 0.8s linear infinite;
+        }
+        @keyframes detailSpin {
+            to { transform: rotate(360deg); }
+        }
+        .entity-detail-loading-text {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* Desktop: center the panel */
+        @media (min-width: 769px) {
+            .entity-detail-overlay {
+                align-items: center;
+            }
+            .entity-detail-panel {
+                border-radius: 20px;
+                max-height: 80vh;
+            }
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .entity-detail-panel {
+                max-height: 90vh;
+            }
+            .entity-detail-header {
+                padding: 6px 16px 12px;
+            }
+            .entity-detail-name {
+                font-size: 1.15rem;
+            }
+            .entity-detail-card {
+                margin: 0 12px 12px;
+            }
+            .entity-detail-footer {
+                padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            }
+        }
     </style>
 </head>
 <body class="ask-page">
@@ -725,8 +1148,18 @@
     </div>
 
 
+    <!-- Entity Detail Modal -->
+    <div class="entity-detail-overlay" id="entity-detail-overlay">
+        <div class="entity-detail-panel" id="entity-detail-panel">
+            <div class="entity-detail-handle"><span></span></div>
+            <div id="entity-detail-content">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
     <script type="module">
-        import { sendMessage as gabrielSend, clearConversation } from './gabriel-service.js';
+        import { sendMessage as gabrielSend, clearConversation, fetchEntityFullDetails } from './gabriel-service.js';
 
         // ── DOM ────────────────────────────────────────────────
         const input = document.getElementById('ask-input');
@@ -757,6 +1190,321 @@
 
         window.handleSend = handleSend;
         window.startNewChat = startNewChat;
+
+        // ── Entity Detail Modal ──────────────────────────────────
+        const detailOverlay = document.getElementById('entity-detail-overlay');
+        const detailContent = document.getElementById('entity-detail-content');
+        const detailPanel = document.getElementById('entity-detail-panel');
+
+        // Store suggestion data globally for card taps
+        window._entitySuggestions = [];
+
+        window.openEntityDetail = async function(index) {
+            const entity = window._entitySuggestions[index];
+            if (!entity) return;
+
+            // Show modal with loading state
+            detailOverlay.classList.add('active');
+            detailContent.innerHTML = `
+                <div class="entity-detail-loading">
+                    <div class="entity-detail-spinner"></div>
+                    <div class="entity-detail-loading-text">Loading details...</div>
+                </div>
+            `;
+
+            // Fetch full details from Firebase
+            try {
+                const details = await fetchEntityFullDetails(entity);
+                if (details) {
+                    renderEntityDetail(details);
+                } else {
+                    // Fallback: render with what we have
+                    renderEntityDetail({
+                        ...entity,
+                        address: '', city: '', state: '', diocese: '',
+                        phone: '', email: '', website: '',
+                        description: entity.description || '',
+                        category: entity.subtitle || '',
+                        coordinates: null,
+                        massSchedule: null, confessionSchedule: null, adorationSchedule: null,
+                        events: [], isUnlocked: false,
+                        hasOCIA: false, hasConfirmation: false, hasFirstEucharist: false, hasMarriagePrep: false,
+                        organization: '', memberCount: 0, features: []
+                    });
+                }
+            } catch (err) {
+                console.error('Detail fetch error:', err);
+                renderEntityDetail({
+                    ...entity,
+                    address: '', city: '', state: '', description: entity.description || '',
+                    coordinates: null, massSchedule: null, confessionSchedule: null, adorationSchedule: null,
+                    events: [], website: '', phone: '', email: '', diocese: '', category: entity.subtitle || '',
+                    isUnlocked: false, hasOCIA: false, hasConfirmation: false, hasFirstEucharist: false, hasMarriagePrep: false,
+                    organization: '', memberCount: 0, features: []
+                });
+            }
+        };
+
+        window.closeEntityDetail = function() {
+            detailOverlay.classList.remove('active');
+        };
+
+        // Close on overlay click
+        detailOverlay.addEventListener('click', (e) => {
+            if (e.target === detailOverlay) window.closeEntityDetail();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && detailOverlay.classList.contains('active')) window.closeEntityDetail();
+        });
+
+        // Swipe-to-dismiss on detail panel
+        let detailTouchStartY = 0;
+        detailPanel.addEventListener('touchstart', (e) => {
+            if (detailPanel.scrollTop <= 0) {
+                detailTouchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+        detailPanel.addEventListener('touchmove', (e) => {
+            if (detailPanel.scrollTop <= 0) {
+                const dy = e.touches[0].clientY - detailTouchStartY;
+                if (dy > 80) window.closeEntityDetail();
+            }
+        }, { passive: true });
+
+        // ── Render entity detail ──
+        function renderEntityDetail(d) {
+            const icon = getEntityIcon(d.type);
+            const isChurch = d.type === 'Church';
+            const isSchool = d.type === 'School';
+            const isBusiness = d.type === 'Business';
+            const isRetreat = d.type === 'Retreat';
+            const isPilgrimage = d.type === 'Pilgrimage';
+            const isMissionary = d.type === 'Missionary';
+            const isOrganization = d.type === 'Organization';
+
+            // Location display
+            const locationParts = [];
+            if (d.address) locationParts.push(d.address);
+            if (d.city && d.state) locationParts.push(`${d.city}, ${d.state}`);
+            else if (d.city) locationParts.push(d.city);
+            else if (d.state) locationParts.push(d.state);
+            const locationDisplay = locationParts.join(' · ');
+
+            // Category / subtitle display
+            let categoryDisplay = d.subtitle || d.category || d.type || '';
+            if (d.diocese && isChurch) categoryDisplay = d.diocese;
+
+            // Build Maps URL
+            let mapsUrl = '';
+            if (d.coordinates && d.coordinates.lat && d.coordinates.lng) {
+                mapsUrl = `https://maps.google.com/maps?q=${d.coordinates.lat},${d.coordinates.lng}`;
+            } else if (d.address && d.city) {
+                mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(d.address + ', ' + d.city + ' ' + d.state)}`;
+            }
+
+            // Build "Visit on Map" URL
+            let naveMapUrl = '';
+            if (d.coordinates && d.coordinates.lat && d.coordinates.lng) {
+                naveMapUrl = `map?lat=${d.coordinates.lat}&lng=${d.coordinates.lng}&z=15`;
+            }
+
+            // ── Start building HTML ──
+            let html = '';
+
+            // Header
+            html += `
+                <div class="entity-detail-header">
+                    <div class="entity-detail-icon">${icon}</div>
+                    <div class="entity-detail-header-info">
+                        <div class="entity-detail-name">${escapeHTML(d.name)}</div>
+                        <span class="entity-detail-type-badge">${escapeHTML(categoryDisplay)}</span>
+                    </div>
+                    <button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button>
+                </div>
+            `;
+
+            // Main card (rainbow border for parishes)
+            const cardClass = isChurch && d.isUnlocked ? 'entity-detail-card rainbow' : 'entity-detail-card';
+            let cardHTML = '';
+
+            // Location
+            if (locationDisplay) {
+                cardHTML += `
+                    <div class="entity-detail-location">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        <span>${escapeHTML(locationDisplay)}</span>
+                    </div>
+                `;
+            }
+
+            // Description
+            if (d.description) {
+                const desc = d.description.length > 300 ? d.description.substring(0, 297) + '...' : d.description;
+                cardHTML += `<div class="entity-detail-description">${escapeHTML(desc)}</div>`;
+            }
+
+            // Quick action buttons
+            let actionsHTML = '';
+            if (mapsUrl) {
+                actionsHTML += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                    Open in Maps
+                </a>`;
+            }
+            if (d.website) {
+                const url = d.website.startsWith('http') ? d.website : 'https://' + d.website;
+                actionsHTML += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-action-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>
+                    Visit Website
+                </a>`;
+            }
+            if (d.phone) {
+                actionsHTML += `<a href="tel:${d.phone}" class="entity-detail-action-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                    Call
+                </a>`;
+            }
+            if (actionsHTML) {
+                cardHTML += `<div class="entity-detail-actions">${actionsHTML}</div>`;
+            }
+
+            if (cardHTML) {
+                html += `<div class="${cardClass}">${cardHTML}</div>`;
+            }
+
+            // ── Parish-specific: Mass Schedule ──
+            if (isChurch && d.massSchedule && Object.keys(d.massSchedule).length > 0) {
+                html += `<div class="entity-detail-section-title">⛪ Mass Schedule</div>`;
+                html += `<div class="entity-detail-schedule">`;
+                html += renderScheduleRows(d.massSchedule);
+                html += `</div>`;
+            }
+
+            // ── Parish-specific: Confession Schedule ──
+            if (isChurch && d.confessionSchedule && Object.keys(d.confessionSchedule).length > 0) {
+                html += `<div class="entity-detail-section-title">🙏 Confession</div>`;
+                html += `<div class="entity-detail-schedule">`;
+                html += renderScheduleRows(d.confessionSchedule);
+                html += `</div>`;
+            }
+
+            // ── Parish-specific: Adoration ──
+            if (isChurch && d.adorationSchedule && Object.keys(d.adorationSchedule).length > 0) {
+                html += `<div class="entity-detail-section-title">✝️ Adoration</div>`;
+                html += `<div class="entity-detail-schedule">`;
+                html += renderScheduleRows(d.adorationSchedule);
+                html += `</div>`;
+            }
+
+            // ── Parish-specific: Events ──
+            if (isChurch && d.events && d.events.length > 0) {
+                html += `<div class="entity-detail-section-title">📅 Upcoming Events</div>`;
+                html += `<div class="entity-detail-events">`;
+                for (const evt of d.events) {
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    const evtDate = evt.date instanceof Date ? evt.date : new Date(evt.date);
+                    const monthStr = months[evtDate.getMonth()] || '';
+                    const dayNum = evtDate.getDate() || '';
+                    html += `
+                        <div class="entity-detail-event-item">
+                            <div class="entity-detail-event-date">
+                                <div class="month">${monthStr}</div>
+                                <div class="day-num">${dayNum}</div>
+                            </div>
+                            <div class="entity-detail-event-info">
+                                <div class="entity-detail-event-title">${escapeHTML(evt.title)}</div>
+                                ${evt.time ? `<div class="entity-detail-event-time">${escapeHTML(evt.time)}${evt.location ? ' · ' + escapeHTML(evt.location) : ''}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            // ── Parish-specific: Programs & Sacraments ──
+            if (isChurch && (d.hasOCIA || d.hasConfirmation || d.hasFirstEucharist || d.hasMarriagePrep)) {
+                html += `<div class="entity-detail-section-title">📋 Programs & Sacraments</div>`;
+                html += `<div class="entity-detail-programs">`;
+                if (d.hasOCIA) html += `<div class="entity-detail-program-pill">✓ OCIA</div>`;
+                if (d.hasConfirmation) html += `<div class="entity-detail-program-pill">✓ Confirmation</div>`;
+                if (d.hasFirstEucharist) html += `<div class="entity-detail-program-pill">✓ First Eucharist</div>`;
+                if (d.hasMarriagePrep) html += `<div class="entity-detail-program-pill">✓ Marriage Prep</div>`;
+                html += `</div>`;
+            }
+
+            // ── Contact info ──
+            if (d.phone || d.email || d.website) {
+                html += `<div class="entity-detail-section-title">Contact</div>`;
+                html += `<div class="entity-detail-contact">`;
+                if (d.phone) {
+                    html += `<div class="entity-detail-contact-row">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        <a href="tel:${d.phone}">${escapeHTML(d.phone)}</a>
+                    </div>`;
+                }
+                if (d.email) {
+                    html += `<div class="entity-detail-contact-row">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        <a href="mailto:${d.email}">${escapeHTML(d.email)}</a>
+                    </div>`;
+                }
+                if (d.website) {
+                    const url = d.website.startsWith('http') ? d.website : 'https://' + d.website;
+                    const displayUrl = d.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+                    html += `<div class="entity-detail-contact-row">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>
+                        <a href="${url}" target="_blank" rel="noopener">${escapeHTML(displayUrl)}</a>
+                    </div>`;
+                }
+                html += `</div>`;
+            }
+
+            // ── Organization features ──
+            if (isOrganization && d.features && d.features.length > 0) {
+                html += `<div class="entity-detail-section-title">Features</div>`;
+                html += `<div class="entity-detail-programs">`;
+                for (const f of d.features) {
+                    html += `<div class="entity-detail-program-pill">✓ ${escapeHTML(f)}</div>`;
+                }
+                html += `</div>`;
+            }
+
+            // ── Footer actions ──
+            html += `<div class="entity-detail-footer">`;
+            if (naveMapUrl) {
+                html += `<a href="${naveMapUrl}" class="entity-detail-footer-btn primary" style="text-decoration:none;">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                    View on Map
+                </a>`;
+            }
+            html += `<button class="entity-detail-footer-btn secondary" onclick="askGabrielAbout('${escapeHTML(d.name).replace(/'/g, "\\'")}')">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Ask Gabriel
+            </button>`;
+            html += `</div>`;
+
+            detailContent.innerHTML = html;
+        }
+
+        function renderScheduleRows(schedule) {
+            const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Monday-Friday'];
+            let html = '';
+            for (const day of dayOrder) {
+                if (schedule[day] && schedule[day].length > 0) {
+                    html += `<div class="entity-detail-schedule-row">
+                        <span class="day">${day}</span>
+                        <span class="times">${schedule[day].map(t => escapeHTML(t)).join(', ')}</span>
+                    </div>`;
+                }
+            }
+            return html;
+        }
+
+        window.askGabrielAbout = function(name) {
+            window.closeEntityDetail();
+            input.value = `Tell me more about ${name}`;
+            handleSend();
+        };
 
         // ── Send message ───────────────────────────────────────
         async function handleSend() {
@@ -805,10 +1553,15 @@
                 // Entity suggestion cards
                 let suggestionsHTML = '';
                 if (suggestions && suggestions.length > 0) {
-                    const cards = suggestions.map(s => {
+                    // Store suggestions globally so the detail modal can access them
+                    const startIdx = window._entitySuggestions.length;
+                    suggestions.forEach(s => window._entitySuggestions.push(s));
+
+                    const cards = suggestions.map((s, i) => {
                         const typeLabel = s.subtitle || s.type || '';
                         const icon = getEntityIcon(s.type);
-                        return `<div class="ask-suggestion-card" onclick="window.submitChip({textContent:'Tell me more about ${s.name.replace(/'/g, "\\'")}'})">
+                        const idx = startIdx + i;
+                        return `<div class="ask-suggestion-card" onclick="window.openEntityDetail(${idx})">
                             <div class="ask-suggestion-card-icon">${icon}</div>
                             <div class="ask-suggestion-card-info">
                                 <div class="ask-suggestion-card-name">${escapeHTML(s.name)}</div>
@@ -931,6 +1684,7 @@
             messagesEl.innerHTML = '';
             messagesEl.style.display = 'none';
             welcomeEl.style.display = 'flex';
+            window._entitySuggestions = [];
         }
 
     </script>

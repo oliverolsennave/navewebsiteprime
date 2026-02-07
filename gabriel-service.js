@@ -1813,6 +1813,125 @@ async function fetchOrganizations(queryStr) {
     }
 }
 
+// ── Fetch full Firebase document for entity detail modal (public) ──────
+export async function fetchEntityFullDetails(entity) {
+    const collectionMap = {
+        [EntityType.CHURCH]: 'Churches',
+        'Church': 'Churches',
+        [EntityType.MISSIONARY]: 'missionaries',
+        'Missionary': 'missionaries',
+        [EntityType.PILGRIMAGE]: 'pilgrimageSites',
+        'Pilgrimage': 'pilgrimageSites',
+        [EntityType.RETREAT]: 'retreats',
+        'Retreat': 'retreats',
+        [EntityType.SCHOOL]: 'schools',
+        'School': 'schools',
+        [EntityType.VOCATION]: 'vocations',
+        'Vocation': 'vocations',
+        [EntityType.BUSINESS]: 'businesses',
+        'Business': 'businesses',
+        [EntityType.CAMPUS_MINISTRY]: 'bibleStudies',
+        'Campus Ministry': 'bibleStudies',
+        'Organization': 'organizations',
+    };
+
+    const colName = collectionMap[entity.type];
+    if (!colName) return null;
+
+    try {
+        const snap = await getDocs(collection(db, colName));
+        let bestMatch = null;
+
+        snap.forEach(doc => {
+            const d = doc.data();
+            const name = d.name || d.title || d.parishName || '';
+            if (name.toLowerCase() === entity.name.toLowerCase() ||
+                name.toLowerCase().includes(entity.name.toLowerCase()) ||
+                entity.name.toLowerCase().includes(name.toLowerCase())) {
+
+                // Build rich details object
+                const result = {
+                    id: doc.id,
+                    name: d.name || d.title || entity.name,
+                    type: entity.type,
+                    subtitle: entity.subtitle || '',
+                    // Address / Location
+                    address: d.address || '',
+                    city: d.city || d.addressCity || '',
+                    state: d.state || d.addressState || '',
+                    diocese: d.diocese || '',
+                    // Contact
+                    phone: d.phone || '',
+                    email: d.email || '',
+                    website: d.website || d.websiteURL || d.link || '',
+                    // Description
+                    description: d.description || d.bio || '',
+                    // Categories
+                    category: d.category || d.schoolType || d.retreatType || d.type || '',
+                    subcategory: d.subcategory || '',
+                    // Coordinates
+                    coordinates: null,
+                    // Schedules (parishes)
+                    massSchedule: null,
+                    confessionSchedule: null,
+                    adorationSchedule: null,
+                    // Events (parishes)
+                    events: [],
+                    // Programs (parishes)
+                    hasOCIA: d.hasOCIA === true || !!d.prepClassSignupURL,
+                    hasConfirmation: d.hasConfirmation !== false,
+                    hasFirstEucharist: d.hasFirstEucharist !== false,
+                    hasMarriagePrep: d.hasMarriagePrep !== false,
+                    isUnlocked: d.isUnlocked === true,
+                    // Organization-specific
+                    memberCount: d.memberCount || 0,
+                    features: d.features || [],
+                    // Extra
+                    organization: d.organization || '',
+                };
+
+                // Coordinates
+                const coords = extractCoords(d);
+                if (coords) result.coordinates = coords;
+
+                // Parse schedules
+                if (d.massSchedule) result.massSchedule = parseSchedule(d.massSchedule);
+                if (d.confessionSchedule) result.confessionSchedule = parseSchedule(d.confessionSchedule);
+                if (d.adorationSchedule) result.adorationSchedule = parseSchedule(d.adorationSchedule);
+
+                // Parse events
+                if (Array.isArray(d.events)) {
+                    const now = new Date();
+                    for (const evt of d.events) {
+                        const parsed = parseEventData(evt);
+                        if (parsed && parsed.date >= now) {
+                            result.events.push(parsed);
+                        }
+                    }
+                    result.events.sort((a, b) => a.date - b.date);
+                    result.events = result.events.slice(0, 5);
+                }
+
+                // Missionary-specific location
+                if (d.locationPrimary) {
+                    result.city = d.locationPrimary.city || result.city;
+                    result.state = d.locationPrimary.state || result.state;
+                    if (d.locationPrimary.latitude) {
+                        result.coordinates = { lat: d.locationPrimary.latitude, lng: d.locationPrimary.longitude };
+                    }
+                }
+
+                bestMatch = result;
+            }
+        });
+
+        return bestMatch;
+    } catch (e) {
+        console.error('❌ Error fetching entity full details:', e);
+        return null;
+    }
+}
+
 // ── Fetch detailed data for a specific entity (for follow-ups) ────────
 async function fetchEntityDetails(entity) {
     const collectionMap = {
