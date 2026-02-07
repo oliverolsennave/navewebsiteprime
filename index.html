@@ -33,6 +33,9 @@
     
     <!-- Favicon (adaptive: white in dark mode, black in light mode) -->
     <link rel="icon" href="assets/favicon-adaptive.svg" type="image/svg+xml">
+
+    <!-- Preload hero video so it appears instantly -->
+    <link rel="preload" href="assets/mainscreen.mp4" as="video" type="video/mp4">
 </head>
 <body>
     <!-- Navigation -->
@@ -55,7 +58,7 @@
     <section class="hero">
         <!-- Full-width video (visible on mobile) -->
         <div class="hero-bg-video">
-            <video autoplay loop muted playsinline>
+            <video autoplay loop muted playsinline preload="auto">
                 <source src="assets/mainscreen.mp4" type="video/mp4">
             </video>
         </div>
@@ -139,7 +142,7 @@
                 <div class="hero-phone">
                     <div class="iphone-frame">
                         <div class="iphone-screen">
-                            <video autoplay loop muted playsinline class="iphone-video">
+                            <video autoplay loop muted playsinline preload="auto" class="iphone-video">
                                 <source src="assets/mainscreen.mp4" type="video/mp4">
                             </video>
                         </div>
