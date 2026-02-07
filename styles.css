@@ -145,8 +145,10 @@ input {
     font-weight: 600;
     color: #000;
     background: #fff;
+    border: none;
     border-radius: 100px;
     text-decoration: none;
+    cursor: pointer;
     transition: background var(--transition), transform var(--transition);
     white-space: nowrap;
     margin-left: 0.5rem;

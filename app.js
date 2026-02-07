@@ -170,6 +170,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (partnerForm) {
         partnerForm.addEventListener('submit', handlePartnerFormSubmit);
     }
+
+    // Waitlist modal form
+    const waitlistModalForm = document.getElementById('waitlist-modal-form');
+    if (waitlistModalForm) {
+        waitlistModalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('waitlist-modal-email').value.trim();
+            if (!email) return;
+            const submitBtn = waitlistModalForm.querySelector('.modal-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            try {
+                await addDoc(waitlistCollection, {
+                    email: email,
+                    createdAt: serverTimestamp(),
+                    source: 'nav_modal'
+                });
+                waitlistModalForm.classList.add('hidden');
+                document.getElementById('waitlist-modal-success').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error adding to waitlist:', error);
+                submitBtn.textContent = 'Error - Try Again';
+                submitBtn.disabled = false;
+            }
+        });
+    }
     
     // Count-up animation for location stat
     const locationCount = document.getElementById('location-count');
