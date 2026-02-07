@@ -371,146 +371,6 @@
             height: 36px;
         }
 
-        /* Settings (gear) button */
-        .ask-settings-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: none;
-            background: #f2f2f7;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-            padding: 0;
-            flex-shrink: 0;
-        }
-
-        .ask-settings-btn:hover {
-            background: #e5e5ea;
-        }
-
-        .ask-settings-btn svg {
-            width: 18px;
-            height: 18px;
-            color: #8e8e93;
-        }
-
-        /* API Key Modal */
-        .ask-key-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .ask-key-modal.active {
-            display: flex;
-        }
-
-        .ask-key-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-        }
-
-        .ask-key-card {
-            position: relative;
-            background: #fff;
-            border-radius: 16px;
-            padding: 2rem;
-            max-width: 420px;
-            width: 90%;
-            z-index: 1;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-        }
-
-        .ask-key-card h3 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #1c1c1e;
-            margin-bottom: 0.5rem;
-        }
-
-        .ask-key-card p {
-            font-size: 0.85rem;
-            color: #8e8e93;
-            margin-bottom: 1.25rem;
-            line-height: 1.5;
-        }
-
-        .ask-key-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e5e5ea;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-family: 'Courier New', monospace;
-            color: #1c1c1e;
-            background: #f8f8fa;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        .ask-key-input:focus {
-            border-color: #3366CC;
-            box-shadow: 0 0 0 3px rgba(51, 102, 204, 0.15);
-        }
-
-        .ask-key-actions {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1.25rem;
-            justify-content: flex-end;
-        }
-
-        .ask-key-actions button {
-            padding: 0.6rem 1.25rem;
-            border-radius: 10px;
-            border: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .ask-key-cancel {
-            background: #f2f2f7;
-            color: #1c1c1e;
-        }
-
-        .ask-key-cancel:hover {
-            background: #e5e5ea;
-        }
-
-        .ask-key-save {
-            background: #3366CC;
-            color: #fff;
-        }
-
-        .ask-key-save:hover {
-            background: #2952a3;
-        }
-
-        .ask-key-status {
-            font-size: 0.8rem;
-            margin-top: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-
-        .ask-key-status.connected {
-            color: #34C759;
-        }
-
-        .ask-key-status.disconnected {
-            color: #FF3B30;
-        }
 
         /* Error banner */
         .ask-error-banner {
@@ -645,12 +505,6 @@
         <!-- Input Area -->
         <div class="ask-input-area">
             <div class="ask-input-row">
-                <button class="ask-settings-btn" title="Settings" onclick="openKeyModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                </button>
                 <input 
                     type="text" 
                     class="ask-input" 
@@ -668,29 +522,9 @@
         </div>
     </div>
 
-    <!-- API Key Modal -->
-    <div class="ask-key-modal" id="ask-key-modal">
-        <div class="ask-key-overlay" onclick="closeKeyModal()"></div>
-        <div class="ask-key-card">
-            <h3>Gabriel AI Settings</h3>
-            <p>Enter your OpenAI API key to power Gabriel's responses. Your key is stored locally in your browser — it is never sent to Nave servers.</p>
-            <input 
-                type="password" 
-                class="ask-key-input" 
-                id="ask-key-input" 
-                placeholder="sk-..."
-                autocomplete="off"
-            >
-            <div class="ask-key-status" id="ask-key-status"></div>
-            <div class="ask-key-actions">
-                <button class="ask-key-cancel" onclick="closeKeyModal()">Cancel</button>
-                <button class="ask-key-save" onclick="saveKey()">Save Key</button>
-            </div>
-        </div>
-    </div>
 
     <script type="module">
-        import { sendMessage as gabrielSend, clearConversation, hasAPIKey, setAPIKey } from './gabriel-service.js';
+        import { sendMessage as gabrielSend, clearConversation, hasAPIKey } from './gabriel-service.js';
 
         // ── DOM ────────────────────────────────────────────────
         const input = document.getElementById('ask-input');
@@ -698,14 +532,8 @@
         const welcomeEl = document.getElementById('ask-welcome');
         const messagesEl = document.getElementById('ask-messages');
         const chatArea = document.getElementById('ask-chat-area');
-        const keyModal = document.getElementById('ask-key-modal');
-        const keyInput = document.getElementById('ask-key-input');
-        const keyStatus = document.getElementById('ask-key-status');
 
         let isSending = false;
-
-        // ── Init ───────────────────────────────────────────────
-        updateKeyStatus();
 
         // Enable/disable send button
         input.addEventListener('input', () => {
@@ -726,21 +554,12 @@
         };
 
         window.handleSend = handleSend;
-        window.openKeyModal = openKeyModal;
-        window.closeKeyModal = closeKeyModal;
-        window.saveKey = saveKey;
         window.startNewChat = startNewChat;
 
         // ── Send message ───────────────────────────────────────
         async function handleSend() {
             const text = input.value.trim();
             if (!text || isSending) return;
-
-            // Check for API key
-            if (!hasAPIKey()) {
-                openKeyModal();
-                return;
-            }
 
             // Hide welcome, show messages
             welcomeEl.style.display = 'none';
@@ -763,11 +582,7 @@
                 typingEl.remove();
                 console.error('Gabriel error:', err);
 
-                if (err.message === 'MISSING_KEY') {
-                    addErrorBanner('OpenAI API key not configured.', 'Set Up', openKeyModal);
-                } else if (err.message.startsWith('API_ERROR_401')) {
-                    addErrorBanner('Invalid API key. Check your OpenAI key.', 'Update Key', openKeyModal);
-                } else if (err.message.startsWith('API_ERROR_429')) {
+                if (err.message.startsWith('API_ERROR_429')) {
                     addErrorBanner('Rate limited — please wait a moment and try again.');
                 } else {
                     addErrorBanner('Something went wrong. Please try again.');
@@ -895,36 +710,6 @@
             welcomeEl.style.display = 'flex';
         }
 
-        // ── API Key modal ──────────────────────────────────────
-        function openKeyModal() {
-            keyModal.classList.add('active');
-            keyInput.value = localStorage.getItem('gabriel_openai_key') || '';
-            updateKeyStatus();
-            setTimeout(() => keyInput.focus(), 100);
-        }
-
-        function closeKeyModal() {
-            keyModal.classList.remove('active');
-        }
-
-        function saveKey() {
-            const key = keyInput.value.trim();
-            if (key) {
-                setAPIKey(key);
-                updateKeyStatus();
-                closeKeyModal();
-            }
-        }
-
-        function updateKeyStatus() {
-            if (hasAPIKey()) {
-                keyStatus.className = 'ask-key-status connected';
-                keyStatus.innerHTML = '● Connected — key is stored locally';
-            } else {
-                keyStatus.className = 'ask-key-status disconnected';
-                keyStatus.innerHTML = '● No key configured';
-            }
-        }
     </script>
 </body>
 </html>

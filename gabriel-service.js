@@ -6,19 +6,12 @@ import { db } from './firebase-config.js';
 import { collection, getDocs, query, where, limit, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // ── OpenAI config ──────────────────────────────────────────────────────
-const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
-const OPENAI_MODEL = 'gpt-4o-mini';
-
-function getAPIKey() {
-    return localStorage.getItem('gabriel_openai_key') || '';
-}
-
-export function setAPIKey(key) {
-    localStorage.setItem('gabriel_openai_key', key);
-}
+// API key is stored server-side as a Vercel env variable.
+// Client calls /api/gabriel which proxies to OpenAI.
+const GABRIEL_ENDPOINT = '/api/gabriel';
 
 export function hasAPIKey() {
-    return getAPIKey().length > 0;
+    return true; // key is server-side, always available
 }
 
 // ── Entity types (mirrors UnifiedEntityType) ───────────────────────────
@@ -614,36 +607,24 @@ function fixSpacing(text) {
     return r;
 }
 
-// ── OpenAI API call ────────────────────────────────────────────────────
+// ── OpenAI API call (via Vercel serverless proxy) ──────────────────────
 
 async function callOpenAI(messages) {
-    const apiKey = getAPIKey();
-    if (!apiKey) throw new Error('MISSING_KEY');
-
-    const res = await fetch(OPENAI_ENDPOINT, {
+    const res = await fetch(GABRIEL_ENDPOINT, {
         method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: OPENAI_MODEL,
-            messages,
-            temperature: 0.7,
-            max_tokens: 1000
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages })
     });
 
     if (!res.ok) {
         const errBody = await res.text();
-        console.error('❌ OpenAI error:', errBody);
+        console.error('❌ Gabriel API error:', errBody);
         throw new Error(`API_ERROR_${res.status}`);
     }
 
     const data = await res.json();
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) throw new Error('NO_RESPONSE');
-    return content;
+    if (!data.content) throw new Error('NO_RESPONSE');
+    return data.content;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
