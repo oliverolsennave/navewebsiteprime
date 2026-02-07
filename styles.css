@@ -1230,7 +1230,7 @@ input {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 24px rgba(0, 122, 255, 0.35);
     z-index: 999;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
