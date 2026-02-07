@@ -137,6 +137,30 @@ input {
     color: var(--color-text);
 }
 
+.nav-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #000;
+    background: #fff;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: background var(--transition), transform var(--transition);
+    white-space: nowrap;
+    margin-left: 0.5rem;
+}
+
+.nav-cta:hover {
+    background: #e5e5e5;
+    transform: translateY(-1px);
+}
+
+.nav-cta:active {
+    transform: translateY(0);
+}
+
 /* Nav — mobile */
 @media (max-width: 768px) {
     .nav-container {
@@ -149,6 +173,12 @@ input {
 
     .nav-link {
         font-size: 0.9rem;
+    }
+
+    .nav-cta {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        margin-left: 0.25rem;
     }
 
     .logo-img {
