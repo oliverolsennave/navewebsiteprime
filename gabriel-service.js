@@ -106,7 +106,37 @@ function isQueryRelevant(queryStr, searchableText) {
     return words.some(w => w.length > 2 && searchableText.includes(w));
 }
 
-// Detect if query is location-based and extract the city/location name
+// Major city → expected state mapping (the "obvious" state when no state is specified)
+const CITY_STATE_MAP = {
+    'philadelphia': 'PA', 'pittsburgh': 'PA', 'harrisburg': 'PA', 'allentown': 'PA',
+    'new york': 'NY', 'brooklyn': 'NY', 'queens': 'NY', 'bronx': 'NY', 'manhattan': 'NY',
+    'buffalo': 'NY', 'rochester': 'NY', 'albany': 'NY', 'syracuse': 'NY',
+    'chicago': 'IL', 'boston': 'MA', 'los angeles': 'CA', 'san francisco': 'CA',
+    'san diego': 'CA', 'san jose': 'CA', 'sacramento': 'CA',
+    'denver': 'CO', 'colorado springs': 'CO',
+    'dallas': 'TX', 'houston': 'TX', 'san antonio': 'TX', 'austin': 'TX', 'fort worth': 'TX',
+    'atlanta': 'GA', 'miami': 'FL', 'orlando': 'FL', 'tampa': 'FL', 'jacksonville': 'FL',
+    'phoenix': 'AZ', 'tucson': 'AZ',
+    'seattle': 'WA', 'portland': 'OR',
+    'minneapolis': 'MN', 'st. paul': 'MN',
+    'st. louis': 'MO', 'kansas city': 'MO',
+    'detroit': 'MI', 'grand rapids': 'MI',
+    'cleveland': 'OH', 'columbus': 'OH', 'cincinnati': 'OH',
+    'baltimore': 'MD', 'washington': 'DC',
+    'omaha': 'NE', 'nashville': 'TN', 'memphis': 'TN',
+    'richmond': 'VA', 'charlotte': 'NC', 'raleigh': 'NC',
+    'indianapolis': 'IN', 'milwaukee': 'WI',
+    'new orleans': 'LA', 'baton rouge': 'LA',
+    'bridgeport': 'CT', 'hartford': 'CT', 'new haven': 'CT',
+    'providence': 'RI', 'newark': 'NJ', 'jersey city': 'NJ', 'trenton': 'NJ', 'camden': 'NJ',
+    'wilmington': 'DE',
+    'norristown': 'PA', 'conshohocken': 'PA', 'ardmore': 'PA', 'bryn mawr': 'PA',
+    'media': 'PA', 'wayne': 'PA', 'paoli': 'PA', 'exton': 'PA', 'west chester': 'PA',
+    'doylestown': 'PA', 'lansdale': 'PA', 'ambler': 'PA', 'jenkintown': 'PA',
+    'cheltenham': 'PA', 'abington': 'PA'
+};
+
+// Detect if query is location-based and extract city + expected state
 function detectLocationQuery(q) {
     const locationPatterns = [
         /(?:near|in|around|close to|nearby)\s+([A-Za-z\s]+)/i,
@@ -114,41 +144,44 @@ function detectLocationQuery(q) {
         /parishes?\s+(?:near|in|around)\s+([A-Za-z\s]+)/i,
         /churches?\s+(?:near|in|around)\s+([A-Za-z\s]+)/i,
     ];
+
+    let cityName = null;
     for (const pattern of locationPatterns) {
         const match = q.match(pattern);
-        if (match) return match[1].trim().toLowerCase();
+        if (match) { cityName = match[1].trim().toLowerCase(); break; }
     }
-    // Also check for well-known city names directly in the query
-    const cities = ['philadelphia', 'new york', 'chicago', 'boston', 'los angeles', 'denver',
-        'pittsburgh', 'dallas', 'houston', 'atlanta', 'miami', 'phoenix', 'san antonio',
-        'san diego', 'san francisco', 'seattle', 'portland', 'minneapolis', 'st. louis',
-        'detroit', 'cleveland', 'cincinnati', 'baltimore', 'washington', 'omaha',
-        'nashville', 'memphis', 'richmond', 'charlotte', 'raleigh', 'orlando',
-        'tampa', 'jacksonville', 'indianapolis', 'columbus', 'milwaukee', 'kansas city',
-        'bridgeport', 'hartford', 'new haven', 'providence', 'buffalo', 'rochester',
-        'albany', 'syracuse', 'newark', 'jersey city', 'trenton', 'camden',
-        'wilmington', 'norristown', 'conshohocken', 'ardmore', 'bryn mawr',
-        'media', 'wayne', 'paoli', 'exton', 'west chester', 'doylestown',
-        'lansdale', 'ambler', 'jenkintown', 'cheltenham', 'abington'];
-    for (const city of cities) {
-        if (q.includes(city)) return city;
+
+    if (!cityName) {
+        for (const city of Object.keys(CITY_STATE_MAP)) {
+            if (q.includes(city)) { cityName = city; break; }
+        }
     }
-    return null;
+
+    if (!cityName) return null;
+
+    // Check if user explicitly mentioned a state (e.g., "Philadelphia DE" or "Philadelphia, PA")
+    const statePattern = new RegExp(cityName + '[,\\s]+([A-Z]{2})\\b', 'i');
+    const stateMatch = q.match(statePattern);
+    const expectedState = stateMatch ? stateMatch[1].toUpperCase() : (CITY_STATE_MAP[cityName] || null);
+
+    return { city: cityName, expectedState };
 }
 
 // ── Individual entity fetchers ─────────────────────────────────────────
 
 async function fetchChurchContext(q) {
     try {
-        const detectedCity = detectLocationQuery(q);
-        const isLocationBased = detectedCity !== null;
+        const locationInfo = detectLocationQuery(q);
+        const isLocationBased = locationInfo !== null;
+        const detectedCity = locationInfo?.city || null;
+        const expectedState = locationInfo?.expectedState || null;
 
         // For location queries, load ALL churches (like the map does) so we can match by city
         // For non-location queries, use smaller batches
         let allDocs = [];
 
         if (isLocationBased) {
-            console.log(`📍 [Gabriel] Location query detected: "${detectedCity}" — loading all churches`);
+            console.log(`📍 [Gabriel] Location query detected: "${detectedCity}"${expectedState ? ` (expected state: ${expectedState})` : ''} — loading all churches`);
             const snap = await getDocs(collection(db, 'Churches'));
             snap.forEach(doc => allDocs.push(doc));
         } else {
@@ -189,14 +222,33 @@ async function fetchChurchContext(q) {
             // Relevance scoring
             let score = 0;
 
-            // City match is the highest priority for location queries
+            // City + state matching for location queries
             if (detectedCity) {
                 const cityLower = city.toLowerCase();
+                const stateLower = state.toLowerCase();
                 const addressLower = address.toLowerCase();
-                if (cityLower === detectedCity) score += 100;
-                else if (cityLower.includes(detectedCity) || detectedCity.includes(cityLower)) score += 80;
-                else if (addressLower.includes(detectedCity)) score += 70;
-                else if (diocese.toLowerCase().includes(detectedCity)) score += 30;
+                const cityMatches = cityLower === detectedCity ||
+                                    cityLower.includes(detectedCity) ||
+                                    detectedCity.includes(cityLower);
+                const addressMatches = addressLower.includes(detectedCity);
+
+                if (cityMatches || addressMatches) {
+                    let baseScore = cityLower === detectedCity ? 100 : (cityMatches ? 80 : 70);
+
+                    // State bonus/penalty: strongly prefer the expected state
+                    if (expectedState) {
+                        const stateUpper = state.toUpperCase();
+                        if (stateUpper === expectedState) {
+                            baseScore += 50; // Big boost for correct state
+                        } else if (stateUpper && stateUpper !== expectedState) {
+                            baseScore -= 60; // Penalize wrong state heavily
+                        }
+                    }
+
+                    score += baseScore;
+                } else if (diocese.toLowerCase().includes(detectedCity)) {
+                    score += 20;
+                }
             }
 
             // General keyword relevance
@@ -348,7 +400,11 @@ async function fetchRetreatContext(q) {
 
 async function fetchSchoolContext(q) {
     try {
-        const snap = await getDocs(query(collection(db, 'schools'), limit(30)));
+        const locationInfo = detectLocationQuery(q);
+        const isLocationBased = locationInfo !== null;
+        // For location queries, load more schools
+        const maxFetch = isLocationBased ? 100 : 30;
+        const snap = await getDocs(query(collection(db, 'schools'), limit(maxFetch)));
         let contexts = [];
         snap.forEach(doc => {
             const d = doc.data();
@@ -358,7 +414,18 @@ async function fetchSchoolContext(q) {
             const desc = (d.description || '').substring(0, 100);
             const sType = d.schoolType || '';
             const searchable = `${name} ${city} ${state} ${desc} ${sType} school catholic education`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 3) {
+
+            let relevant = isQueryRelevant(q, searchable);
+
+            // Boost location-matched schools
+            if (locationInfo) {
+                const cityMatch = city.toLowerCase() === locationInfo.city;
+                const stateMatch = locationInfo.expectedState && state.toUpperCase() === locationInfo.expectedState;
+                if (cityMatch && stateMatch) relevant = true;
+                else if (cityMatch) relevant = true;
+            }
+
+            if (relevant || contexts.length < 3) {
                 contexts.push({ id: doc.id, name, type: EntityType.SCHOOL, subtitle: sType || 'Catholic School', description: desc, location: `${city}, ${state}` });
             }
         });
@@ -393,7 +460,10 @@ async function fetchVocationContext(q) {
 
 async function fetchBusinessContext(q) {
     try {
-        const snap = await getDocs(query(collection(db, 'businesses'), limit(50)));
+        const locationInfo = detectLocationQuery(q);
+        const isLocationBased = locationInfo !== null;
+        const maxFetch = isLocationBased ? 100 : 50;
+        const snap = await getDocs(query(collection(db, 'businesses'), limit(maxFetch)));
         let contexts = [];
         snap.forEach(doc => {
             const d = doc.data();
@@ -404,7 +474,17 @@ async function fetchBusinessContext(q) {
             const city = d.addressCity || d.city || '';
             const state = d.addressState || d.state || '';
             const searchable = `${name} ${cat} ${sub} ${desc} ${city} ${state} business`.toLowerCase();
-            if (isQueryRelevant(q, searchable) || contexts.length < 5) {
+
+            let relevant = isQueryRelevant(q, searchable);
+
+            if (locationInfo) {
+                const cityMatch = city.toLowerCase() === locationInfo.city;
+                const stateMatch = locationInfo.expectedState && state.toUpperCase() === locationInfo.expectedState;
+                if (cityMatch && stateMatch) relevant = true;
+                else if (cityMatch) relevant = true;
+            }
+
+            if (relevant || contexts.length < 5) {
                 contexts.push({ id: doc.id, name, type: EntityType.BUSINESS, subtitle: sub || cat, description: desc, location: `${city}, ${state}` });
             }
         });
