@@ -106,43 +106,123 @@ function isQueryRelevant(queryStr, searchableText) {
     return words.some(w => w.length > 2 && searchableText.includes(w));
 }
 
-// Major city → expected state mapping (the "obvious" state when no state is specified)
-const CITY_STATE_MAP = {
-    'philadelphia': 'PA', 'pittsburgh': 'PA', 'harrisburg': 'PA', 'allentown': 'PA',
-    'new york': 'NY', 'brooklyn': 'NY', 'queens': 'NY', 'bronx': 'NY', 'manhattan': 'NY',
-    'buffalo': 'NY', 'rochester': 'NY', 'albany': 'NY', 'syracuse': 'NY',
-    'chicago': 'IL', 'boston': 'MA', 'los angeles': 'CA', 'san francisco': 'CA',
-    'san diego': 'CA', 'san jose': 'CA', 'sacramento': 'CA',
-    'denver': 'CO', 'colorado springs': 'CO',
-    'dallas': 'TX', 'houston': 'TX', 'san antonio': 'TX', 'austin': 'TX', 'fort worth': 'TX',
-    'atlanta': 'GA', 'miami': 'FL', 'orlando': 'FL', 'tampa': 'FL', 'jacksonville': 'FL',
-    'phoenix': 'AZ', 'tucson': 'AZ',
-    'seattle': 'WA', 'portland': 'OR',
-    'minneapolis': 'MN', 'st. paul': 'MN',
-    'st. louis': 'MO', 'kansas city': 'MO',
-    'detroit': 'MI', 'grand rapids': 'MI',
-    'cleveland': 'OH', 'columbus': 'OH', 'cincinnati': 'OH',
-    'baltimore': 'MD', 'washington': 'DC',
-    'omaha': 'NE', 'nashville': 'TN', 'memphis': 'TN',
-    'richmond': 'VA', 'charlotte': 'NC', 'raleigh': 'NC',
-    'indianapolis': 'IN', 'milwaukee': 'WI',
-    'new orleans': 'LA', 'baton rouge': 'LA',
-    'bridgeport': 'CT', 'hartford': 'CT', 'new haven': 'CT',
-    'providence': 'RI', 'newark': 'NJ', 'jersey city': 'NJ', 'trenton': 'NJ', 'camden': 'NJ',
-    'wilmington': 'DE',
-    'norristown': 'PA', 'conshohocken': 'PA', 'ardmore': 'PA', 'bryn mawr': 'PA',
-    'media': 'PA', 'wayne': 'PA', 'paoli': 'PA', 'exton': 'PA', 'west chester': 'PA',
-    'doylestown': 'PA', 'lansdale': 'PA', 'ambler': 'PA', 'jenkintown': 'PA',
-    'cheltenham': 'PA', 'abington': 'PA'
+// Major city → { state, lat, lng } — center coordinates + expected state
+const CITY_DATA = {
+    'philadelphia':    { state: 'PA', lat: 39.9526, lng: -75.1652 },
+    'pittsburgh':      { state: 'PA', lat: 40.4406, lng: -79.9959 },
+    'harrisburg':      { state: 'PA', lat: 40.2732, lng: -76.8867 },
+    'allentown':       { state: 'PA', lat: 40.6084, lng: -75.4902 },
+    'norristown':      { state: 'PA', lat: 40.1218, lng: -75.3399 },
+    'conshohocken':    { state: 'PA', lat: 40.0782, lng: -75.3016 },
+    'ardmore':         { state: 'PA', lat: 40.0068, lng: -75.2846 },
+    'bryn mawr':       { state: 'PA', lat: 40.0210, lng: -75.3163 },
+    'media':           { state: 'PA', lat: 39.9168, lng: -75.3877 },
+    'wayne':           { state: 'PA', lat: 40.0440, lng: -75.3877 },
+    'paoli':           { state: 'PA', lat: 40.0421, lng: -75.4813 },
+    'exton':           { state: 'PA', lat: 40.0290, lng: -75.6210 },
+    'west chester':    { state: 'PA', lat: 39.9607, lng: -75.6055 },
+    'doylestown':      { state: 'PA', lat: 40.3101, lng: -75.1299 },
+    'lansdale':        { state: 'PA', lat: 40.2415, lng: -75.2835 },
+    'ambler':          { state: 'PA', lat: 40.1543, lng: -75.2213 },
+    'jenkintown':      { state: 'PA', lat: 40.0960, lng: -75.1252 },
+    'cheltenham':      { state: 'PA', lat: 40.0590, lng: -75.1077 },
+    'abington':        { state: 'PA', lat: 40.1140, lng: -75.1177 },
+    'new york':        { state: 'NY', lat: 40.7128, lng: -74.0060 },
+    'brooklyn':        { state: 'NY', lat: 40.6782, lng: -73.9442 },
+    'queens':          { state: 'NY', lat: 40.7282, lng: -73.7949 },
+    'bronx':           { state: 'NY', lat: 40.8448, lng: -73.8648 },
+    'manhattan':       { state: 'NY', lat: 40.7831, lng: -73.9712 },
+    'buffalo':         { state: 'NY', lat: 42.8864, lng: -78.8784 },
+    'rochester':       { state: 'NY', lat: 43.1566, lng: -77.6088 },
+    'albany':          { state: 'NY', lat: 42.6526, lng: -73.7562 },
+    'syracuse':        { state: 'NY', lat: 43.0481, lng: -76.1474 },
+    'chicago':         { state: 'IL', lat: 41.8781, lng: -87.6298 },
+    'boston':           { state: 'MA', lat: 42.3601, lng: -71.0589 },
+    'los angeles':     { state: 'CA', lat: 34.0522, lng: -118.2437 },
+    'san francisco':   { state: 'CA', lat: 37.7749, lng: -122.4194 },
+    'san diego':       { state: 'CA', lat: 32.7157, lng: -117.1611 },
+    'san jose':        { state: 'CA', lat: 37.3382, lng: -121.8863 },
+    'sacramento':      { state: 'CA', lat: 38.5816, lng: -121.4944 },
+    'denver':          { state: 'CO', lat: 39.7392, lng: -104.9903 },
+    'colorado springs':{ state: 'CO', lat: 38.8339, lng: -104.8214 },
+    'dallas':          { state: 'TX', lat: 32.7767, lng: -96.7970 },
+    'houston':         { state: 'TX', lat: 29.7604, lng: -95.3698 },
+    'san antonio':     { state: 'TX', lat: 29.4241, lng: -98.4936 },
+    'austin':          { state: 'TX', lat: 30.2672, lng: -97.7431 },
+    'fort worth':      { state: 'TX', lat: 32.7555, lng: -97.3308 },
+    'atlanta':         { state: 'GA', lat: 33.7490, lng: -84.3880 },
+    'miami':           { state: 'FL', lat: 25.7617, lng: -80.1918 },
+    'orlando':         { state: 'FL', lat: 28.5383, lng: -81.3792 },
+    'tampa':           { state: 'FL', lat: 27.9506, lng: -82.4572 },
+    'jacksonville':    { state: 'FL', lat: 30.3322, lng: -81.6557 },
+    'phoenix':         { state: 'AZ', lat: 33.4484, lng: -112.0740 },
+    'tucson':          { state: 'AZ', lat: 32.2226, lng: -110.9747 },
+    'seattle':         { state: 'WA', lat: 47.6062, lng: -122.3321 },
+    'portland':        { state: 'OR', lat: 45.5152, lng: -122.6784 },
+    'minneapolis':     { state: 'MN', lat: 44.9778, lng: -93.2650 },
+    'st. paul':        { state: 'MN', lat: 44.9537, lng: -93.0900 },
+    'st. louis':       { state: 'MO', lat: 38.6270, lng: -90.1994 },
+    'kansas city':     { state: 'MO', lat: 39.0997, lng: -94.5786 },
+    'detroit':         { state: 'MI', lat: 42.3314, lng: -83.0458 },
+    'grand rapids':    { state: 'MI', lat: 42.9634, lng: -85.6681 },
+    'cleveland':       { state: 'OH', lat: 41.4993, lng: -81.6944 },
+    'columbus':        { state: 'OH', lat: 39.9612, lng: -82.9988 },
+    'cincinnati':      { state: 'OH', lat: 39.1031, lng: -84.5120 },
+    'baltimore':       { state: 'MD', lat: 39.2904, lng: -76.6122 },
+    'washington':      { state: 'DC', lat: 38.9072, lng: -77.0369 },
+    'omaha':           { state: 'NE', lat: 41.2565, lng: -95.9345 },
+    'nashville':       { state: 'TN', lat: 36.1627, lng: -86.7816 },
+    'memphis':         { state: 'TN', lat: 35.1495, lng: -90.0490 },
+    'richmond':        { state: 'VA', lat: 37.5407, lng: -77.4360 },
+    'charlotte':       { state: 'NC', lat: 35.2271, lng: -80.8431 },
+    'raleigh':         { state: 'NC', lat: 35.7796, lng: -78.6382 },
+    'indianapolis':    { state: 'IN', lat: 39.7684, lng: -86.1581 },
+    'milwaukee':       { state: 'WI', lat: 43.0389, lng: -87.9065 },
+    'new orleans':     { state: 'LA', lat: 29.9511, lng: -90.0715 },
+    'baton rouge':     { state: 'LA', lat: 30.4515, lng: -91.1871 },
+    'bridgeport':      { state: 'CT', lat: 41.1865, lng: -73.1952 },
+    'hartford':        { state: 'CT', lat: 41.7658, lng: -72.6734 },
+    'new haven':       { state: 'CT', lat: 41.3083, lng: -72.9279 },
+    'providence':      { state: 'RI', lat: 41.8240, lng: -71.4128 },
+    'newark':          { state: 'NJ', lat: 40.7357, lng: -74.1724 },
+    'jersey city':     { state: 'NJ', lat: 40.7178, lng: -74.0431 },
+    'trenton':         { state: 'NJ', lat: 40.2171, lng: -74.7429 },
+    'camden':          { state: 'NJ', lat: 39.9259, lng: -75.1196 },
+    'wilmington':      { state: 'DE', lat: 39.7391, lng: -75.5398 },
 };
 
-// Detect if query is location-based and extract city + expected state
+// Haversine distance in miles between two lat/lng points
+function haversineDistance(lat1, lng1, lat2, lng2) {
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Extract coordinates from a Firebase church document
+function extractCoords(docData) {
+    const d = docData;
+    if (d.coordinates) {
+        const c = d.coordinates;
+        if (c.latitude !== undefined) return { lat: c.latitude, lng: c.longitude };
+        if (c._latitude !== undefined) return { lat: c._latitude, lng: c._longitude };
+        if (Array.isArray(c)) return { lat: c[0], lng: c[1] };
+    }
+    if (d.latitude !== undefined && d.longitude !== undefined) return { lat: d.latitude, lng: d.longitude };
+    if (d.lat !== undefined && (d.lng !== undefined || d.lon !== undefined)) return { lat: d.lat, lng: d.lng || d.lon };
+    return null;
+}
+
+// Detect if query is location-based and extract city + expected state + center coords
 function detectLocationQuery(q) {
     const locationPatterns = [
-        /(?:near|in|around|close to|nearby)\s+([A-Za-z\s]+)/i,
-        /([A-Za-z\s]+?)\s+(?:parishes|churches|schools|retreats|businesses|mass)/i,
-        /parishes?\s+(?:near|in|around)\s+([A-Za-z\s]+)/i,
-        /churches?\s+(?:near|in|around)\s+([A-Za-z\s]+)/i,
+        /(?:near|in|around|close to|nearby)\s+([A-Za-z\s.]+)/i,
+        /([A-Za-z\s.]+?)\s+(?:parishes|churches|schools|retreats|businesses|mass)/i,
+        /parishes?\s+(?:near|in|around)\s+([A-Za-z\s.]+)/i,
+        /churches?\s+(?:near|in|around)\s+([A-Za-z\s.]+)/i,
     ];
 
     let cityName = null;
@@ -152,7 +232,9 @@ function detectLocationQuery(q) {
     }
 
     if (!cityName) {
-        for (const city of Object.keys(CITY_STATE_MAP)) {
+        // Check longest city names first to match "new york" before "york"
+        const sorted = Object.keys(CITY_DATA).sort((a, b) => b.length - a.length);
+        for (const city of sorted) {
             if (q.includes(city)) { cityName = city; break; }
         }
     }
@@ -160,11 +242,14 @@ function detectLocationQuery(q) {
     if (!cityName) return null;
 
     // Check if user explicitly mentioned a state (e.g., "Philadelphia DE" or "Philadelphia, PA")
-    const statePattern = new RegExp(cityName + '[,\\s]+([A-Z]{2})\\b', 'i');
+    const statePattern = new RegExp(cityName.replace('.', '\\.') + '[,\\s]+([A-Z]{2})\\b', 'i');
     const stateMatch = q.match(statePattern);
-    const expectedState = stateMatch ? stateMatch[1].toUpperCase() : (CITY_STATE_MAP[cityName] || null);
+    const cityData = CITY_DATA[cityName];
+    const expectedState = stateMatch ? stateMatch[1].toUpperCase() : (cityData?.state || null);
+    const centerLat = cityData?.lat || null;
+    const centerLng = cityData?.lng || null;
 
-    return { city: cityName, expectedState };
+    return { city: cityName, expectedState, centerLat, centerLng };
 }
 
 // ── Individual entity fetchers ─────────────────────────────────────────
@@ -194,6 +279,11 @@ async function fetchChurchContext(q) {
             });
         }
 
+        // Get city center coords for distance calculation
+        const centerLat = locationInfo?.centerLat;
+        const centerLng = locationInfo?.centerLng;
+        const hasCenter = centerLat !== null && centerLng !== null && centerLat !== undefined && centerLng !== undefined;
+
         // Score and rank churches
         let scored = [];
         const seenIds = new Set();
@@ -221,38 +311,43 @@ async function fetchChurchContext(q) {
 
             // Relevance scoring
             let score = 0;
+            let distanceMiles = Infinity;
 
-            // City + state matching for location queries
-            if (detectedCity) {
-                const cityLower = city.toLowerCase();
-                const stateLower = state.toLowerCase();
-                const addressLower = address.toLowerCase();
-                const cityMatches = cityLower === detectedCity ||
-                                    cityLower.includes(detectedCity) ||
-                                    detectedCity.includes(cityLower);
-                const addressMatches = addressLower.includes(detectedCity);
+            if (isLocationBased && hasCenter) {
+                // PRIMARY: Distance-based scoring (closest to city center wins)
+                const coords = extractCoords(d);
+                if (coords && coords.lat && coords.lng) {
+                    distanceMiles = haversineDistance(centerLat, centerLng, coords.lat, coords.lng);
 
-                if (cityMatches || addressMatches) {
-                    let baseScore = cityLower === detectedCity ? 100 : (cityMatches ? 80 : 70);
+                    // Only consider churches within 30 miles of city center
+                    if (distanceMiles <= 30) {
+                        // Distance score: closer = higher (max 200 for 0 miles, 0 for 30 miles)
+                        score = Math.max(0, 200 - Math.round(distanceMiles * (200 / 30)));
 
-                    // State bonus/penalty: strongly prefer the expected state
-                    if (expectedState) {
-                        const stateUpper = state.toUpperCase();
-                        if (stateUpper === expectedState) {
-                            baseScore += 50; // Big boost for correct state
-                        } else if (stateUpper && stateUpper !== expectedState) {
-                            baseScore -= 60; // Penalize wrong state heavily
+                        // State match bonus
+                        if (expectedState && state.toUpperCase() === expectedState) {
+                            score += 20;
+                        } else if (expectedState && state.toUpperCase() && state.toUpperCase() !== expectedState) {
+                            score -= 30;
                         }
                     }
+                } else {
+                    // No coordinates — fall back to city name matching
+                    const cityLower = city.toLowerCase();
+                    const addressLower = address.toLowerCase();
+                    if (cityLower === detectedCity) score = 80;
+                    else if (cityLower.includes(detectedCity) || addressLower.includes(detectedCity)) score = 60;
+                    else if (diocese.toLowerCase().includes(detectedCity)) score = 20;
 
-                    score += baseScore;
-                } else if (diocese.toLowerCase().includes(detectedCity)) {
-                    score += 20;
+                    if (score > 0 && expectedState) {
+                        if (state.toUpperCase() === expectedState) score += 20;
+                        else if (state.toUpperCase() && state.toUpperCase() !== expectedState) score -= 30;
+                    }
                 }
+            } else {
+                // Non-location: general keyword relevance
+                if (isQueryRelevant(q, searchable)) score += 10;
             }
-
-            // General keyword relevance
-            if (isQueryRelevant(q, searchable)) score += 10;
 
             // Bonus for rich data
             if (isUnlocked) score += 5;
@@ -262,6 +357,7 @@ async function fetchChurchContext(q) {
             if (score > 0 || !isLocationBased) {
                 scored.push({
                     score,
+                    distanceMiles,
                     context: {
                         id: doc.id, name, type: EntityType.CHURCH,
                         subtitle: diocese || 'Parish', description,
@@ -271,14 +367,25 @@ async function fetchChurchContext(q) {
             }
         }
 
-        // Sort by score descending
-        scored.sort((a, b) => b.score - a.score);
+        // Sort by score descending, then by distance ascending
+        scored.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.distanceMiles - b.distanceMiles;
+        });
 
         // Return top results
         const maxResults = isLocationBased ? 15 : 10;
         const results = scored.slice(0, maxResults).map(s => s.context);
 
-        console.log(`⛪ [Gabriel] Found ${results.length} churches${detectedCity ? ` (${scored.filter(s => s.score >= 70).length} in/near ${detectedCity})` : ''}`);
+        if (isLocationBased && scored.length > 0) {
+            const within5 = scored.filter(s => s.distanceMiles <= 5).length;
+            const within15 = scored.filter(s => s.distanceMiles <= 15).length;
+            console.log(`⛪ [Gabriel] Found ${results.length} churches near ${detectedCity} (${within5} within 5mi, ${within15} within 15mi)`);
+            // Log top 3 for debugging
+            scored.slice(0, 3).forEach((s, i) => console.log(`   ${i + 1}. ${s.context.name} — ${s.distanceMiles === Infinity ? 'no coords' : s.distanceMiles.toFixed(1) + 'mi'} (score: ${s.score})`));
+        } else {
+            console.log(`⛪ [Gabriel] Found ${results.length} churches`);
+        }
         return results;
     } catch (e) {
         console.error('❌ Error fetching churches:', e);
