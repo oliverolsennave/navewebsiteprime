@@ -1221,9 +1221,9 @@ input {
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
+    width: 112px;
+    height: 112px;
+    border-radius: 26px;
     background: #007AFF;
     border: none;
     cursor: pointer;
@@ -1252,13 +1252,13 @@ input {
     .fab-gabriel {
         bottom: 1.25rem;
         right: 1.25rem;
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        width: 96px;
+        height: 96px;
+        border-radius: 22px;
     }
     .fab-gabriel svg {
-        width: 26px;
-        height: 26px;
+        width: 52px;
+        height: 52px;
     }
 }
 
