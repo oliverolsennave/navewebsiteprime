@@ -183,7 +183,6 @@
                 <svg width="48" height="48" viewBox="0 0 20 20" fill="none" style="margin:0 auto 12px;display:block;"><path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z" fill="#d4af37"/></svg>
                 <p style="color:#f5f5f5;font-size:1rem;">You're on the list! We'll be in touch.</p>
             </div>
-            <button onclick="closeWaitlistPopup()" style="margin-top:12px;background:none;border:none;color:#555;font-size:0.85rem;cursor:pointer;">Maybe later</button>
         </div>
     </div>
     <script>
@@ -215,6 +214,7 @@
                 await addDoc(collection(db, 'waitlist'), { email, createdAt: serverTimestamp(), source: 'about_30s' });
                 document.getElementById('waitlist-popup-form').style.display = 'none';
                 document.getElementById('waitlist-popup-success').style.display = 'block';
+                setTimeout(() => closeWaitlistPopup(), 2000);
             } catch (err) {
                 console.error('Waitlist error:', err);
                 btn.textContent = 'Error - Try Again';

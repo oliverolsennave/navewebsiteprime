@@ -999,7 +999,6 @@
                 </svg>
                 <p style="color:#f5f5f5;font-size:1rem;">You're on the list! We'll be in touch.</p>
             </div>
-            <button onclick="closeMapWaitlist()" style="margin-top:12px;background:none;border:none;color:#555;font-size:0.85rem;cursor:pointer;">Maybe later</button>
         </div>
     </div>
 
@@ -1508,6 +1507,7 @@
                 });
                 document.getElementById('map-waitlist-form').classList.add('hidden');
                 document.getElementById('map-waitlist-success').classList.remove('hidden');
+                setTimeout(() => closeMapWaitlist(), 2000);
             } catch (err) {
                 console.error('Waitlist error:', err);
                 btn.textContent = 'Error - Try Again';

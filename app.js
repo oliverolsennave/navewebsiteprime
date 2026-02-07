@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 waitlistModalForm.classList.add('hidden');
                 document.getElementById('waitlist-modal-success').classList.remove('hidden');
+                setTimeout(() => { if (window.closeWaitlistModal) window.closeWaitlistModal(); }, 2000);
             } catch (error) {
                 console.error('Error adding to waitlist:', error);
                 submitBtn.textContent = 'Error - Try Again';
