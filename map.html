@@ -829,6 +829,83 @@
                 padding: 6px 12px;
             }
         }
+
+        /* ═══════════════════════════════════════════════════════
+           Entity Detail Panel (matches iOS Prime Detail Views)
+           ═══════════════════════════════════════════════════════ */
+        .entity-detail-overlay { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-end; transition: opacity 0.3s; }
+        .entity-detail-overlay.active { display: flex; }
+        .entity-detail-panel { background: #141416; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; overflow-y: auto; animation: slideUpDetail 0.35s ease-out; overscroll-behavior: contain; }
+        @keyframes slideUpDetail { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .entity-detail-handle { display: flex; justify-content: center; padding: 10px 0 4px; cursor: grab; }
+        .entity-detail-handle span { width: 36px; height: 4px; border-radius: 2px; background: #444; }
+        .entity-detail-header { display: flex; align-items: flex-start; gap: 14px; padding: 8px 20px 16px; }
+        .entity-detail-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; background: #1e1e1e; }
+        .entity-detail-header-info { flex: 1; min-width: 0; }
+        .entity-detail-name { font-size: 1.25rem; font-weight: 700; color: #f5f5f5; line-height: 1.3; margin: 0 0 2px; }
+        .entity-detail-type-badge { display: inline-block; font-size: 0.72rem; font-weight: 600; color: #999; background: #1e1e1e; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .entity-detail-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: #2a2a2a; color: #999; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: background 0.2s; }
+        .entity-detail-close:hover { background: #3a3a3a; }
+        .entity-detail-card { margin: 0 16px 16px; padding: 16px; border-radius: 16px; background: #1a1a1a; position: relative; }
+        .entity-detail-card.rainbow { border: 2px solid transparent; background-clip: padding-box; }
+        .entity-detail-card.rainbow::before { content: ''; position: absolute; inset: -2px; border-radius: 18px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
+        .entity-detail-location { display: flex; align-items: center; gap: 6px; color: #999; font-size: 0.88rem; margin-bottom: 12px; }
+        .entity-detail-location svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .entity-detail-description { font-size: 0.9rem; line-height: 1.6; color: #ccc; margin-bottom: 12px; }
+        .entity-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .entity-detail-action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid #333; background: #1e1e1e; color: #6699ff; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s, transform 0.1s; }
+        .entity-detail-action-btn:hover { background: #252525; transform: translateY(-1px); }
+        .entity-detail-action-btn svg { width: 14px; height: 14px; }
+        .entity-detail-action-btn.primary-action { background: rgba(51,102,204,0.15); border-color: rgba(51,102,204,0.3); color: #6699ff; }
+        .entity-detail-section-title { font-size: 0.75rem; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 20px 6px; }
+        .entity-detail-schedule { margin: 0 16px 8px; padding: 12px 14px; background: #1a1a1a; border-radius: 12px; }
+        .entity-detail-schedule-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: #aaa; padding: 3px 0; }
+        .entity-detail-schedule-row .day { color: #ccc; font-weight: 500; }
+        .entity-detail-schedule-row .times { text-align: right; color: #999; }
+        .entity-detail-events { margin: 0 16px 12px; }
+        .entity-detail-event-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #1a1a1a; border-radius: 12px; margin-bottom: 6px; position: relative; border: 1.5px solid transparent; }
+        .entity-detail-event-item::before { content: ''; position: absolute; inset: -1.5px; border-radius: 14px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
+        .entity-detail-event-date { width: 44px; text-align: center; flex-shrink: 0; }
+        .entity-detail-event-date .month { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #EF4444; }
+        .entity-detail-event-date .day-num { font-size: 1.1rem; font-weight: 700; color: #f5f5f5; }
+        .entity-detail-event-info { flex: 1; }
+        .entity-detail-event-title { font-size: 0.85rem; font-weight: 600; color: #f5f5f5; }
+        .entity-detail-event-time { font-size: 0.78rem; color: #888; margin-top: 2px; }
+        .entity-detail-programs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 16px 16px; }
+        .entity-detail-program-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 8px; color: #22C55E; font-size: 0.75rem; font-weight: 600; }
+        .entity-detail-info-grid { margin: 0 16px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .entity-detail-info-item { padding: 10px 12px; background: #1a1a1a; border-radius: 10px; }
+        .entity-detail-info-label { font-size: 0.68rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .entity-detail-info-value { font-size: 0.88rem; color: #f5f5f5; font-weight: 500; }
+        .entity-detail-info-full { margin: 0 16px 8px; padding: 12px 14px; background: #1a1a1a; border-radius: 12px; }
+        .entity-detail-info-full .info-title { font-size: 0.82rem; font-weight: 600; color: #ccc; margin-bottom: 4px; }
+        .entity-detail-info-full .info-text { font-size: 0.82rem; color: #999; line-height: 1.5; }
+        .entity-detail-stats { display: flex; gap: 8px; margin: 0 16px 12px; }
+        .entity-detail-stat { flex: 1; padding: 12px; background: #1a1a1a; border-radius: 12px; text-align: center; }
+        .entity-detail-stat .stat-value { font-size: 1.25rem; font-weight: 700; color: #d4af37; }
+        .entity-detail-stat .stat-label { font-size: 0.68rem; color: #888; margin-top: 2px; }
+        .entity-detail-contact { margin: 0 16px 16px; padding: 12px 14px; background: #1a1a1a; border-radius: 12px; }
+        .entity-detail-contact-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.85rem; }
+        .entity-detail-contact-row svg { width: 14px; height: 14px; color: #666; flex-shrink: 0; }
+        .entity-detail-contact-row a { color: #6699ff; text-decoration: none; }
+        .entity-detail-contact-row span { color: #ccc; }
+        .entity-detail-footer { padding: 12px 16px 24px; display: flex; gap: 8px; }
+        .entity-detail-footer-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s, transform 0.1s; }
+        .entity-detail-footer-btn:hover { transform: translateY(-1px); }
+        .entity-detail-footer-btn.primary { background: #3366CC; color: #fff; }
+        .entity-detail-footer-btn.secondary { background: #1e1e1e; border: 1px solid #333; color: #ccc; }
+        .entity-detail-footer-btn svg { width: 16px; height: 16px; }
+        .entity-detail-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 12px; }
+        .entity-detail-spinner { width: 32px; height: 32px; border: 3px solid #333; border-top-color: #3366CC; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .entity-detail-loading-text { font-size: 0.85rem; color: #888; }
+        .entity-detail-hours { margin: 0 16px 12px; padding: 12px 14px; background: #1a1a1a; border-radius: 12px; }
+        .entity-detail-hours-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: #aaa; padding: 3px 0; }
+        .entity-detail-hours-row .day { color: #ccc; font-weight: 500; }
+        .entity-detail-hours-row .time { color: #999; text-align: right; }
+        .entity-detail-social { display: flex; gap: 8px; margin: 0 16px 16px; flex-wrap: wrap; }
+        .entity-detail-social a { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #6699ff; font-size: 0.78rem; font-weight: 600; text-decoration: none; }
+        @media (min-width: 769px) { .entity-detail-overlay { align-items: center; } .entity-detail-panel { border-radius: 20px; max-height: 80vh; } }
+        @media (max-width: 768px) { .entity-detail-panel { max-height: 90vh; } .entity-detail-header { padding: 6px 16px 12px; } .entity-detail-name { font-size: 1.15rem; } .entity-detail-card { margin: 0 12px 12px; } .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } }
     </style>
 </head>
 <body class="map-page">
@@ -985,6 +1062,14 @@
         </div>
     </div>
 
+    <!-- Entity Detail Panel -->
+    <div class="entity-detail-overlay" id="entity-detail-overlay">
+        <div class="entity-detail-panel" id="entity-detail-panel">
+            <div class="entity-detail-handle"><span></span></div>
+            <div id="entity-detail-content"></div>
+        </div>
+    </div>
+
     <!-- Waitlist Popup (30s) -->
     <div id="map-waitlist-overlay" class="location-prompt-overlay hidden" style="z-index: 1100;">
         <div class="location-prompt" style="text-align: center;">
@@ -1112,8 +1197,11 @@
             markerCounts[type] = 0;
         });
         
-        // Create circle marker
-        function createMarker(lat, lng, type, name, detail) {
+        // ── Entity data store ─────────────────────────────────
+        const entityDataMap = new Map();
+
+        // Create circle marker — click opens detail panel
+        function createMarker(lat, lng, type, name, detail, docId) {
             const marker = L.circleMarker([lat, lng], {
                 radius: 6,
                 fillColor: PIN_COLORS[type],
@@ -1122,17 +1210,9 @@
                 opacity: 0.9,
                 fillOpacity: 0.85
             });
-            
-            const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-            const bgColor = PIN_COLORS[type];
-            
-            marker.bindPopup(`
-                <div class="popup-content">
-                    <span class="popup-type" style="background: ${bgColor}22; color: ${bgColor};">${typeLabel}</span>
-                    <div class="popup-name">${name}</div>
-                    ${detail ? `<div class="popup-detail">${detail}</div>` : ''}
-                </div>
-            `, { maxWidth: 250 });
+
+            // Click → open full detail panel
+            marker.on('click', () => openMapEntityDetail(docId));
             
             return marker;
         }
@@ -1235,7 +1315,10 @@
                             Math.abs(coords.lat) <= 90 && Math.abs(coords.lng) <= 180) {
                             const name = getName(doc, type);
                             const detail = getDetail(doc, type);
-                            const marker = createMarker(coords.lat, coords.lng, type, name, detail);
+                            // Store full document data for the detail panel
+                            const docId = `${type}_${doc.id}`;
+                            entityDataMap.set(docId, { ...doc.data(), _docId: doc.id, _type: type, _coords: coords });
+                            const marker = createMarker(coords.lat, coords.lng, type, name, detail, docId);
                             marker.addTo(layers[type]);
                             count++;
                         }
@@ -1477,6 +1560,607 @@
             }
         };
         
+        // ══════════════════════════════════════════════════════
+        // ENTITY DETAIL PANEL — iOS Prime Detail Views parity
+        // ══════════════════════════════════════════════════════
+
+        const detailOverlay = document.getElementById('entity-detail-overlay');
+        const detailContent = document.getElementById('entity-detail-content');
+        const detailPanel = document.getElementById('entity-detail-panel');
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        function getEntityIcon(type) {
+            const icons = { church:'⛪', missionary:'✝️', pilgrimage:'🗺️', retreat:'🙏', school:'🎓', vocation:'📿', business:'🏪', campus:'🎒' };
+            return icons[type] || '📍';
+        }
+
+        function getTypeLabel(type) {
+            const labels = { church:'Church', missionary:'Missionary', pilgrimage:'Pilgrimage', retreat:'Retreat', school:'School', vocation:'Vocation', business:'Business', campus:'Campus Ministry' };
+            return labels[type] || type;
+        }
+
+        // ── Open detail panel ──────────────────────────────
+        function openMapEntityDetail(docId) {
+            const data = entityDataMap.get(docId);
+            if (!data) return;
+            detailOverlay.classList.add('active');
+            renderMapEntityDetail(data);
+        }
+
+        window.closeEntityDetail = function() {
+            detailOverlay.classList.remove('active');
+        };
+
+        detailOverlay.addEventListener('click', (e) => { if (e.target === detailOverlay) closeEntityDetail(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && detailOverlay.classList.contains('active')) closeEntityDetail(); });
+
+        // Swipe-to-dismiss
+        let detailTouchY = 0;
+        detailPanel.addEventListener('touchstart', (e) => { if (detailPanel.scrollTop <= 0) detailTouchY = e.touches[0].clientY; }, { passive: true });
+        detailPanel.addEventListener('touchmove', (e) => { if (detailPanel.scrollTop <= 0 && e.touches[0].clientY - detailTouchY > 80) closeEntityDetail(); }, { passive: true });
+
+        // ── Schedule parser ────────────────────────────────
+        function parseSchedule(scheduleData) {
+            if (!scheduleData || typeof scheduleData !== 'object' || Array.isArray(scheduleData)) return {};
+            const result = {};
+            for (const [day, value] of Object.entries(scheduleData)) {
+                if (Array.isArray(value)) {
+                    const times = [];
+                    for (const v of value) {
+                        if (typeof v === 'string') times.push(v);
+                        else if (typeof v === 'object' && v.time) {
+                            let t = v.time;
+                            if (v.language && v.language !== 'English') t += ` (${v.language})`;
+                            times.push(t);
+                        }
+                    }
+                    if (times.length > 0) result[day] = times;
+                } else if (typeof value === 'string') {
+                    result[day] = [value];
+                }
+            }
+            return result;
+        }
+
+        function renderScheduleRows(schedule) {
+            const dayOrder = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Monday-Friday'];
+            let html = '';
+            for (const day of dayOrder) {
+                if (schedule[day] && schedule[day].length > 0) {
+                    html += `<div class="entity-detail-schedule-row"><span class="day">${day}</span><span class="times">${schedule[day].map(t => escapeHTML(t)).join(', ')}</span></div>`;
+                }
+            }
+            return html;
+        }
+
+        // ── Event parser ───────────────────────────────────
+        function parseEvent(data) {
+            const title = data.title || data.name || '';
+            if (!title) return null;
+            let eventDate = new Date();
+            if (data.date && data.date.toDate) eventDate = data.date.toDate();
+            else if (data.date && data.date.seconds) eventDate = new Date(data.date.seconds * 1000);
+            else if (typeof data.date === 'string') eventDate = new Date(data.date);
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return { title, date: eventDate, time: data.time || null, location: data.location || null,
+                month: months[eventDate.getMonth()] || '', dayNum: eventDate.getDate() || '' };
+        }
+
+        // ── Shared builders ────────────────────────────────
+        function buildHeader(d, type) {
+            const icon = getEntityIcon(type);
+            const name = d.name || d.title || d.parishName || 'Unknown';
+            const badge = d.diocese || d.category || d.type || d.schoolType || d.retreatType || d.organization || getTypeLabel(type);
+            return `<div class="entity-detail-header"><div class="entity-detail-icon">${icon}</div><div class="entity-detail-header-info"><div class="entity-detail-name">${escapeHTML(name)}</div><span class="entity-detail-type-badge">${escapeHTML(badge)}</span></div><button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button></div>`;
+        }
+
+        function buildLocation(d) {
+            const parts = [];
+            if (d.address) parts.push(d.address);
+            if (d.city && d.state) parts.push(`${d.city}, ${d.state}`);
+            else if (d.city) parts.push(d.city);
+            else if (d.state) parts.push(d.state);
+            else if (d.location && typeof d.location === 'string') parts.push(d.location);
+            // Missionaries
+            if (!parts.length && d.locationPrimary) {
+                if (d.locationPrimary.city) parts.push(d.locationPrimary.city + (d.locationPrimary.state ? ', ' + d.locationPrimary.state : ''));
+            }
+            const loc = parts.join(' · ');
+            if (!loc) return '';
+            return `<div class="entity-detail-location"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg><span>${escapeHTML(loc)}</span></div>`;
+        }
+
+        function buildDescription(d) {
+            const desc = d.description || d.bio || '';
+            if (!desc) return '';
+            const truncated = desc.length > 400 ? desc.substring(0, 397) + '...' : desc;
+            return `<div class="entity-detail-description">${escapeHTML(truncated)}</div>`;
+        }
+
+        function buildMapsUrl(d) {
+            if (d._coords) return `https://maps.google.com/maps?q=${d._coords.lat},${d._coords.lng}`;
+            if (d.address && d.city) return `https://maps.google.com/maps?q=${encodeURIComponent(d.address + ', ' + d.city + ' ' + (d.state || ''))}`;
+            return '';
+        }
+
+        function buildActions(d, type) {
+            let html = '';
+            const mapsUrl = buildMapsUrl(d);
+            if (mapsUrl) html += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>Maps</a>`;
+            const website = d.website || d.websiteURL || d.link || d.contactInfo?.website || '';
+            if (website) { const url = website.startsWith('http') ? website : 'https://' + website; html += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Website</a>`; }
+            const phone = d.phone || d.phoneNumber || d.contactInfo?.phone || '';
+            if (phone) html += `<a href="tel:${phone}" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>Call</a>`;
+            // Type-specific actions
+            if (type === 'missionary' && d.donationLink) { html += `<a href="${d.donationLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Donate</a>`; }
+            if (type === 'missionary' && d.calendlyLink) { html += `<a href="${d.calendlyLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Schedule</a>`; }
+            if (type === 'retreat') { const regUrl = d.registrationURL || ''; if (regUrl) html += `<a href="${regUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Register</a>`; }
+            if (type === 'vocation' && d.applicationLink) { html += `<a href="${d.applicationLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Apply</a>`; }
+            if (type === 'school') { const enrollUrl = d.enrollmentURL || ''; if (enrollUrl) html += `<a href="${enrollUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Enroll</a>`; }
+            return html ? `<div class="entity-detail-actions">${html}</div>` : '';
+        }
+
+        function buildContact(d) {
+            const phone = d.phone || d.phoneNumber || d.contactInfo?.phone || '';
+            const email = d.email || d.contactInfo?.email || '';
+            const website = d.website || d.websiteURL || d.link || d.contactInfo?.website || '';
+            if (!phone && !email && !website) return '';
+            let html = '<div class="entity-detail-contact">';
+            if (phone) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg><a href="tel:${phone}">${escapeHTML(phone)}</a></div>`;
+            if (email) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg><a href="mailto:${email}">${escapeHTML(email)}</a></div>`;
+            if (website) { const url = website.startsWith('http') ? website : 'https://' + website; const display = website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg><a href="${url}" target="_blank" rel="noopener">${escapeHTML(display)}</a></div>`; }
+            html += '</div>';
+            return html;
+        }
+
+        function buildFooter(d) {
+            let html = '<div class="entity-detail-footer">';
+            const mapsUrl = buildMapsUrl(d);
+            if (mapsUrl) html += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-footer-btn primary" style="text-decoration:none;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>Open in Maps</a>`;
+            html += `<button class="entity-detail-footer-btn secondary" onclick="closeEntityDetail()">Close</button>`;
+            html += '</div>';
+            return html;
+        }
+
+        function buildInfoItem(label, value) {
+            if (!value) return '';
+            return `<div class="entity-detail-info-item"><div class="entity-detail-info-label">${escapeHTML(label)}</div><div class="entity-detail-info-value">${escapeHTML(String(value))}</div></div>`;
+        }
+
+        function buildInfoFull(title, text) {
+            if (!text) return '';
+            return `<div class="entity-detail-info-full"><div class="info-title">${escapeHTML(title)}</div><div class="info-text">${escapeHTML(String(text))}</div></div>`;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // MASTER RENDER FUNCTION
+        // ══════════════════════════════════════════════════════
+
+        function renderMapEntityDetail(d) {
+            const type = d._type;
+            let html = buildHeader(d, type);
+
+            // Main card
+            const isChurch = type === 'church';
+            const cardClass = isChurch && d.isUnlocked ? 'entity-detail-card rainbow' : 'entity-detail-card';
+            let cardHTML = buildLocation(d) + buildDescription(d);
+
+            // Founding year / rating / subtitle
+            if (d.foundingYear) cardHTML += `<div style="font-size:0.82rem;color:#999;margin-bottom:8px;">Since ${escapeHTML(String(d.foundingYear))}</div>`;
+            if (d.rating) cardHTML += `<div style="font-size:0.82rem;color:#d4af37;margin-bottom:8px;">★ ${d.rating}${d.reviewCount ? ` (${d.reviewCount} reviews)` : ''}</div>`;
+
+            cardHTML += buildActions(d, type);
+            if (cardHTML) html += `<div class="${cardClass}">${cardHTML}</div>`;
+
+            // ── Type-specific sections ──
+            switch (type) {
+                case 'church': html += renderChurch(d); break;
+                case 'business': html += renderBusiness(d); break;
+                case 'school': html += renderSchool(d); break;
+                case 'missionary': html += renderMissionary(d); break;
+                case 'retreat': html += renderRetreat(d); break;
+                case 'pilgrimage': html += renderPilgrimage(d); break;
+                case 'vocation': html += renderVocation(d); break;
+                case 'campus': html += renderCampus(d); break;
+            }
+
+            // Contact + footer
+            html += `<div class="entity-detail-section-title">Contact</div>`;
+            html += buildContact(d);
+            html += buildFooter(d);
+
+            detailContent.innerHTML = html;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // CHURCH — PrimeParishDetailView
+        // ══════════════════════════════════════════════════════
+
+        function renderChurch(d) {
+            let html = '';
+
+            // Mass schedule
+            if (d.massSchedule && typeof d.massSchedule === 'object') {
+                const schedule = parseSchedule(d.massSchedule);
+                if (Object.keys(schedule).length) {
+                    html += `<div class="entity-detail-section-title">Mass Schedule</div>`;
+                    html += `<div class="entity-detail-schedule">${renderScheduleRows(schedule)}</div>`;
+                }
+            }
+
+            // Confession
+            if (d.confessionSchedule && typeof d.confessionSchedule === 'object') {
+                const schedule = parseSchedule(d.confessionSchedule);
+                if (Object.keys(schedule).length) {
+                    html += `<div class="entity-detail-section-title">Confession</div>`;
+                    html += `<div class="entity-detail-schedule">${renderScheduleRows(schedule)}</div>`;
+                }
+            }
+
+            // Adoration
+            if (d.adorationSchedule && typeof d.adorationSchedule === 'object') {
+                const schedule = parseSchedule(d.adorationSchedule);
+                if (Object.keys(schedule).length) {
+                    html += `<div class="entity-detail-section-title">Adoration</div>`;
+                    html += `<div class="entity-detail-schedule">${renderScheduleRows(schedule)}</div>`;
+                }
+            }
+
+            // Events
+            if (Array.isArray(d.events) && d.events.length > 0) {
+                const now = new Date();
+                const upcoming = d.events.map(e => parseEvent(e)).filter(e => e && e.date >= now).sort((a, b) => a.date - b.date).slice(0, 5);
+                if (upcoming.length) {
+                    html += `<div class="entity-detail-section-title">Upcoming Events</div><div class="entity-detail-events">`;
+                    for (const evt of upcoming) {
+                        html += `<div class="entity-detail-event-item"><div class="entity-detail-event-date"><div class="month">${evt.month}</div><div class="day-num">${evt.dayNum}</div></div><div class="entity-detail-event-info"><div class="entity-detail-event-title">${escapeHTML(evt.title)}</div>${evt.time ? `<div class="entity-detail-event-time">${escapeHTML(evt.time)}${evt.location ? ' · ' + escapeHTML(evt.location) : ''}</div>` : ''}</div></div>`;
+                    }
+                    html += '</div>';
+                }
+            }
+
+            // Programs & Sacraments
+            const programs = [];
+            if (d.hasOCIA === true || d.prepClassSignupURL) programs.push('OCIA');
+            if (d.hasConfirmation !== false && d.hasConfirmation !== undefined) programs.push('Confirmation');
+            if (d.hasFirstEucharist !== false && d.hasFirstEucharist !== undefined) programs.push('First Eucharist');
+            if (d.hasMarriagePrep !== false && d.hasMarriagePrep !== undefined) programs.push('Marriage Prep');
+            if (programs.length > 0) {
+                html += `<div class="entity-detail-section-title">Programs & Sacraments</div><div class="entity-detail-programs">`;
+                programs.forEach(p => { html += `<div class="entity-detail-program-pill">${escapeHTML(p)}</div>`; });
+                html += '</div>';
+            }
+
+            return html;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // BUSINESS — BusinessDetailViewPrime
+        // ══════════════════════════════════════════════════════
+
+        function renderBusiness(d) {
+            let html = '';
+
+            // Features
+            if (Array.isArray(d.features) && d.features.length > 0) {
+                html += `<div class="entity-detail-section-title">Highlights</div><div class="entity-detail-programs">`;
+                d.features.slice(0, 5).forEach(f => { html += `<div class="entity-detail-program-pill">${escapeHTML(f)}</div>`; });
+                html += '</div>';
+            }
+
+            // Hours
+            if (Array.isArray(d.hours) && d.hours.length > 0) {
+                html += `<div class="entity-detail-section-title">Hours</div><div class="entity-detail-hours">`;
+                d.hours.forEach(h => {
+                    const day = h.day || h.dayOfWeek || '';
+                    const time = h.hours || h.time || h.open || '';
+                    if (day && time) html += `<div class="entity-detail-hours-row"><span class="day">${escapeHTML(day)}</span><span class="time">${escapeHTML(time)}</span></div>`;
+                });
+                html += '</div>';
+            } else if (typeof d.hours === 'object' && d.hours && !Array.isArray(d.hours)) {
+                html += `<div class="entity-detail-section-title">Hours</div><div class="entity-detail-hours">`;
+                for (const [day, time] of Object.entries(d.hours)) {
+                    html += `<div class="entity-detail-hours-row"><span class="day">${escapeHTML(day)}</span><span class="time">${escapeHTML(String(time))}</span></div>`;
+                }
+                html += '</div>';
+            }
+
+            // Philanthropy
+            const hasPhilanthropy = d.communityPartnerships || d.communityInvolvement || d.additionalEventsSummary;
+            if (hasPhilanthropy) {
+                html += `<div class="entity-detail-section-title">Community & Philanthropy</div>`;
+                html += buildInfoFull('Parish Support', d.communityPartnerships);
+                html += buildInfoFull('Nonprofit Partnerships', d.communityInvolvement);
+                html += buildInfoFull('Event Sponsorships', d.additionalEventsSummary);
+            }
+
+            // Events
+            if (d.eventTitle) {
+                html += `<div class="entity-detail-section-title">Events</div>`;
+                html += `<div class="entity-detail-info-full"><div class="info-title">${escapeHTML(d.eventTitle)}${d.eventSubtitle ? ' — ' + escapeHTML(d.eventSubtitle) : ''}</div><div class="info-text">${d.eventDate ? escapeHTML(d.eventDate) : ''}${d.eventTime ? ' at ' + escapeHTML(d.eventTime) : ''}</div></div>`;
+            }
+
+            // Awards & Reviews
+            if (d.awardsRecognition) html += buildInfoFull('Awards & Recognition', d.awardsRecognition);
+            if (d.customerReviewsSummary) html += buildInfoFull('Customer Reviews', d.customerReviewsSummary);
+
+            // Newsletter
+            if (d.marketingNewsletter) html += buildInfoFull('Newsletter', d.marketingNewsletter);
+
+            // Social Media
+            const social = d.socialMedia || d.contactInfo?.socialMedia;
+            if (social && typeof social === 'object') {
+                html += `<div class="entity-detail-section-title">Social Media</div><div class="entity-detail-social">`;
+                for (const [platform, url] of Object.entries(social)) {
+                    if (url) { const link = String(url).startsWith('http') ? url : 'https://' + url; html += `<a href="${link}" target="_blank" rel="noopener">${escapeHTML(platform)}</a>`; }
+                }
+                html += '</div>';
+            }
+
+            return html;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // SCHOOL — SchoolDetailViewPrime
+        // ══════════════════════════════════════════════════════
+
+        function renderSchool(d) {
+            let html = '';
+
+            // Academics grid
+            const academicFields = [
+                ['Grade Levels', d.gradeLevels], ['Enrollment', d.enrollment],
+                ['Class Size', d.classSize], ['Tuition', d.tuition],
+                ['Financial Aid', d.financialAid], ['Admissions', d.admissionsProcess]
+            ].filter(([, v]) => v);
+
+            if (academicFields.length) {
+                html += `<div class="entity-detail-section-title">Academics</div><div class="entity-detail-info-grid">`;
+                academicFields.forEach(([label, value]) => { html += buildInfoItem(label, value); });
+                html += '</div>';
+                if (d.parentInvolvement) html += buildInfoFull('Parent Involvement', d.parentInvolvement);
+                if (d.enrollmentURL) html += `<div style="margin:0 16px 12px;"><a href="${d.enrollmentURL}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action" style="display:inline-flex;">Apply / Enroll</a></div>`;
+            }
+
+            // Classical Education
+            const classicalFields = [
+                ['Trivium & Quadrivium', d.triviumQuadrivium], ['Latin & Greek', d.latinGreekStudies],
+                ['Great Books', d.greatBooks], ['Socratic Method', d.socraticMethod]
+            ].filter(([, v]) => v);
+
+            if (classicalFields.length) {
+                html += `<div class="entity-detail-section-title">Classical Education</div>`;
+                classicalFields.forEach(([label, value]) => { html += buildInfoFull(label, value); });
+            }
+
+            // Catholic Formation
+            const formationFields = [
+                ['Religious Education', d.religiousEducation], ['Sacramental Preparation', d.sacramentalPreparation],
+                ['Daily Mass', d.dailyMass], ['Confession', d.confessionSchedule],
+                ['Adoration', d.adoration], ['Virtue Formation', d.virtueFormation]
+            ].filter(([, v]) => v);
+
+            if (formationFields.length) {
+                html += `<div class="entity-detail-section-title">Catholic Formation</div>`;
+                formationFields.forEach(([label, value]) => {
+                    if (typeof value === 'object') html += buildInfoFull(label, JSON.stringify(value));
+                    else html += buildInfoFull(label, value);
+                });
+            }
+
+            return html;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // MISSIONARY — MissionaryDetailViewPrime
+        // ══════════════════════════════════════════════════════
+
+        function renderMissionary(d) {
+            let html = '';
+
+            // Organization & Campus
+            if (d.organization) html += buildInfoFull('Organization', d.organization);
+            if (d.campus) html += buildInfoFull('Campus', d.campus);
+
+            // Impact Stats
+            const stats = d.impactStats;
+            if (stats && (stats.studentsReached || stats.campusesCovered || stats.yearsOfService)) {
+                html += `<div class="entity-detail-section-title">Impact</div><div class="entity-detail-stats">`;
+                if (stats.studentsReached) html += `<div class="entity-detail-stat"><div class="stat-value">${escapeHTML(String(stats.studentsReached))}</div><div class="stat-label">Students Reached</div></div>`;
+                if (stats.campusesCovered) html += `<div class="entity-detail-stat"><div class="stat-value">${escapeHTML(String(stats.campusesCovered))}</div><div class="stat-label">Campuses</div></div>`;
+                if (stats.yearsOfService) html += `<div class="entity-detail-stat"><div class="stat-value">${escapeHTML(String(stats.yearsOfService))}</div><div class="stat-label">Years</div></div>`;
+                html += '</div>';
+            }
+
+            // FOCUS Bible Studies
+            if (Array.isArray(d.bibleStudies) && d.bibleStudies.length > 0) {
+                html += `<div class="entity-detail-section-title">Bible Studies</div><div class="entity-detail-schedule">`;
+                d.bibleStudies.forEach(bs => {
+                    const day = bs.dayOfWeek || '';
+                    const time = bs.time || '';
+                    const participants = bs.currentParticipants && bs.maxParticipants ? `${bs.currentParticipants}/${bs.maxParticipants}` : '';
+                    html += `<div class="entity-detail-schedule-row"><span class="day">${escapeHTML(day)} ${escapeHTML(time)}</span><span class="times">${participants ? escapeHTML(participants) + ' spots' : ''}</span></div>`;
+                });
+                html += '</div>';
+            }
+
+            return html;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // RETREAT — RetreatDetailViewPrime
+        // ══════════════════════════════════════════════════════
+
+        function renderRetreat(d) {
+            let html = '';
+
+            // Dates & Pricing
+            const dateFields = [
+                ['Date', d.date ? (typeof d.date === 'string' ? d.date : '') : ''],
+                ['Duration', d.duration], ['Price', d.price], ['Capacity', d.capacity]
+            ].filter(([, v]) => v);
+            if (dateFields.length) {
+                html += `<div class="entity-detail-section-title">Details</div><div class="entity-detail-info-grid">`;
+                dateFields.forEach(([label, value]) => { html += buildInfoItem(label, value); });
+                html += '</div>';
+            }
+
+            // Organization
+            if (d.organizationName) {
+                html += `<div class="entity-detail-section-title">Organization</div>`;
+                html += buildInfoFull(d.organizationName, d.organizationDescription);
+                if (d.organizationWebsite) {
+                    const url = d.organizationWebsite.startsWith('http') ? d.organizationWebsite : 'https://' + d.organizationWebsite;
+                    html += `<div style="margin:0 16px 12px;"><a href="${url}" target="_blank" rel="noopener" class="entity-detail-action-btn">Organization Website</a></div>`;
+                }
+            }
+
+            // Program
+            const programFields = [
+                ['Topics & Themes', d.retreatTopics], ['Speaker Info', d.speakerInfo],
+                ['Schedule & Structure', d.scheduleStructure], ['Pricing Details', d.pricing]
+            ].filter(([, v]) => v);
+            if (programFields.length) {
+                html += `<div class="entity-detail-section-title">Program</div>`;
+                programFields.forEach(([label, value]) => { html += buildInfoFull(label, value); });
+            }
+
+            // Spiritual Life
+            const spirFields = [
+                ['Mass Schedule', d.massSchedule], ['Confession', d.confessionAvailability],
+                ['Adoration', d.adorationOpportunities], ['Spiritual Direction', d.spiritualDirection],
+                ['Prayer Formats', d.prayerFormats]
+            ].filter(([, v]) => v);
+            if (spirFields.length) {
+                html += `<div class="entity-detail-section-title">Spiritual Life</div>`;
+                spirFields.forEach(([label, value]) => {
+                    if (typeof value === 'object' && !Array.isArray(value)) {
+                        const schedule = parseSchedule(value);
+                        if (Object.keys(schedule).length) html += `<div class="entity-detail-schedule">${renderScheduleRows(schedule)}</div>`;
+                        else html += buildInfoFull(label, JSON.stringify(value));
+                    } else {
+                        html += buildInfoFull(label, value);
+                    }
+                });
+            }
+
+            // Logistics
+            const logFields = [
+                ['Director', d.directorName], ['Accommodation', d.accommodationInfo],
+                ['Frequency', d.retreatFrequency]
+            ].filter(([, v]) => v);
+            if (logFields.length) {
+                html += `<div class="entity-detail-section-title">Logistics</div>`;
+                logFields.forEach(([label, value]) => { html += buildInfoFull(label, value); });
+            }
+
+            // Address
+            const addr = [d.address, d.city, d.state, d.zipCode].filter(Boolean).join(', ');
+            if (addr && !d.address) html += buildInfoFull('Address', addr);
+
+            // Testimonials
+            if (d.testimonials) html += buildInfoFull('Testimonials', d.testimonials);
+
+            // Social
+            if (d.socialMedia && typeof d.socialMedia === 'object') {
+                html += `<div class="entity-detail-section-title">Social Media</div><div class="entity-detail-social">`;
+                for (const [platform, url] of Object.entries(d.socialMedia)) {
+                    if (url) { const link = String(url).startsWith('http') ? url : 'https://' + url; html += `<a href="${link}" target="_blank" rel="noopener">${escapeHTML(platform)}</a>`; }
+                }
+                html += '</div>';
+            }
+
+            return html;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // PILGRIMAGE — PilgrimageDetailViewPrime
+        // ══════════════════════════════════════════════════════
+
+        function renderPilgrimage(d) {
+            let html = '';
+
+            // Site info
+            if (d.siteName || d.siteDescription) {
+                html += `<div class="entity-detail-section-title">Site Information</div>`;
+                if (d.siteName) html += buildInfoFull(d.siteName, d.siteDescription);
+                if (d.siteHistoricalSignificance) html += buildInfoFull('Historical Significance', d.siteHistoricalSignificance);
+                if (d.siteVisitingHours) html += buildInfoFull('Visiting Hours', d.siteVisitingHours);
+                if (d.siteAdmissionInfo) html += buildInfoFull('Admission', d.siteAdmissionInfo);
+            }
+
+            // Travel facilitations (trips)
+            if (Array.isArray(d.travelFacilitations) && d.travelFacilitations.length > 0) {
+                html += `<div class="entity-detail-section-title">Upcoming Trips</div><div class="entity-detail-events">`;
+                d.travelFacilitations.forEach(trip => {
+                    const date = trip.date || '';
+                    const price = trip.price || '';
+                    const spots = trip.spots || '';
+                    html += `<div class="entity-detail-event-item"><div class="entity-detail-event-date"><div class="month">${price ? '$' : ''}</div><div class="day-num">${escapeHTML(String(price || ''))}</div></div><div class="entity-detail-event-info"><div class="entity-detail-event-title">${escapeHTML(String(date))}${trip.endDate ? ' — ' + escapeHTML(String(trip.endDate)) : ''}</div>${spots ? `<div class="entity-detail-event-time">${escapeHTML(String(spots))} spots available</div>` : ''}</div></div>`;
+                });
+                html += '</div>';
+            }
+
+            // Pilgrimage type
+            if (d.type && d.type !== d._type) html += buildInfoFull('Pilgrimage Type', d.type);
+
+            return html;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // VOCATION — VocationDetailViewPrime
+        // ══════════════════════════════════════════════════════
+
+        function renderVocation(d) {
+            let html = '';
+
+            // Director & Community
+            const infoFields = [
+                ['Vocation Director', d.directorName], ['Community', d.communityName],
+                ['Vocation Type', d.type && d.type !== d._type ? d.type : '']
+            ].filter(([, v]) => v);
+            if (infoFields.length) {
+                html += `<div class="entity-detail-section-title">Overview</div><div class="entity-detail-info-grid">`;
+                infoFields.forEach(([label, value]) => { html += buildInfoItem(label, value); });
+                html += '</div>';
+            }
+
+            // Formation
+            const formFields = [
+                ['Formation Process', d.formationProcess],
+                ['Requirements', d.requirements],
+                ['Discernment Opportunities', d.discernmentOpportunities]
+            ].filter(([, v]) => v);
+            if (formFields.length) {
+                html += `<div class="entity-detail-section-title">Formation & Discernment</div>`;
+                formFields.forEach(([label, value]) => { html += buildInfoFull(label, value); });
+            }
+
+            // Location details
+            const addr = [d.address, d.city, d.state, d.zipCode].filter(Boolean).join(', ');
+            if (addr) html += buildInfoFull('Location', addr);
+
+            return html;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // CAMPUS — follows Missionary pattern
+        // ══════════════════════════════════════════════════════
+
+        function renderCampus(d) {
+            let html = '';
+            if (d.university) html += buildInfoFull('University', d.university);
+            if (d.organization) html += buildInfoFull('Organization', d.organization);
+            if (d.type) html += buildInfoFull('Type', d.type);
+            return html;
+        }
+
         // Start loading
         loadData();
 
