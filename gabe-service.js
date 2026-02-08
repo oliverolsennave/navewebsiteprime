@@ -12,7 +12,7 @@
 // ==========================================================================
 
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, where, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const GABE_ENDPOINT = '/api/ask-gabe';
 
@@ -459,31 +459,153 @@ function resolveLocationCenter(locationStr) {
     return null;
 }
 
-// ── Fuzzy matching helpers ──────────────────────────────────────
-// Stems a word to its root (simple: strip common suffixes)
+// ── Fuzzy matching helpers (ported from iOS RelevanceService) ──
+
+// Stop words — shared across all matching functions
+const STOP_WORDS = new Set([
+    'a','an','the','in','on','at','to','for','of','with','by','from','up','about','into','over','after',
+    'and','but','or','nor','so','yet',
+    'i','me','my','myself','we','our','ours','you','your','he','him','his','she','her','it','its','they','them','their',
+    'is','am','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','must','can',
+    'this','that','these','those','what','which','who','whom','when','where','why','how',
+    'all','each','every','both','few','more','most','other','some','such','no','not','only','own','same','than','too','very',
+    'just','also','now','here','there','then',
+    'near','nearby','find','visit','looking','want','see','tell','know','help','get','need'
+]);
+
+// Stems a word to its root (Porter-like, matching iOS RelevanceService.stem())
 function stemWord(w) {
-    return w.replace(/(ing|tion|ness|ment|ies|es|ed|ly|er|s)$/i, '');
+    let s = w.toLowerCase();
+    const suffixes = [
+        'ingly','ation','ition','ement','ment','ness','able','ible',
+        'ting','sing','ling','ally','ful','less','ous','ive',
+        'ing','ies','ied','ion','ed','er','es','ly','al','s'
+    ];
+    for (const sfx of suffixes) {
+        if (s.length > sfx.length + 2 && s.endsWith(sfx)) {
+            return s.slice(0, -sfx.length);
+        }
+    }
+    return s;
 }
 
-// Returns true if any meaningful query word fuzzy-matches any word in the target string
-function fuzzyMatchQuery(queryStr, targetStr) {
-    const stopWords = new Set(['the','a','an','is','are','was','were','be','been','being',
-        'have','has','had','do','does','did','will','would','could','should','may','might',
-        'shall','can','need','dare','ought','there','their','they','them','this','that',
-        'what','which','who','whom','how','where','when','why','and','but','or','nor','not',
-        'for','with','about','into','through','during','before','after','above','below',
-        'from','any','some','all','each','every','both','few','more','most','other','such',
-        'only','own','same','than','too','very','just','because','here','now','then','also',
-        'back','even','still','well','new','old','just','long','just','like','much','many',
-        'near','nearby','find','visit','looking','want','see','tell','know','help','get','me','my','in','to','of','at']);
-    const queryWords = queryStr.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
-    if (queryWords.length === 0) return false;
+// Tokenize text — split on non-alphanumeric, remove stop words and short words
+function tokenize(text) {
+    return text.toLowerCase()
+        .split(/[^a-zA-Z0-9]+/)
+        .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+}
 
-    return queryWords.some(qw => {
-        const stemQ = stemWord(qw);
-        if (stemQ.length < 3) return false;
-        return targetStr.includes(stemQ);
-    });
+// Levenshtein distance (edit distance for typo tolerance, ported from iOS)
+function levenshteinDistance(s1, s2) {
+    const m = s1.length, n = s2.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (s1[i - 1] === s2[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+            else dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+        }
+    }
+    return dp[m][n];
+}
+
+// Catholic-specific synonym groups (ported from iOS RelevanceService+FuzzyMatching)
+const SYNONYM_GROUPS = [
+    ['church','parish','chapel','cathedral','basilica','sanctuary'],
+    ['school','academy','university','college','institute','seminary'],
+    ['retreat','getaway','reflection','meditation','renewal'],
+    ['pilgrimage','shrine','holy','sacred','sanctuary'],
+    ['missionary','mission','apostolate','evangelist','outreach'],
+    ['vocation','calling','religious','consecrated','priesthood','sisterhood'],
+    ['business','company','shop','store','service','firm','enterprise'],
+    ['campus','college','university','student','young adult'],
+    ['coffee','cafe','coffeeshop','espresso','latte','bakery'],
+    ['restaurant','dining','food','eatery','bistro'],
+    ['bar','pub','brewery','drinks'],
+    ['book','bookstore','library','reading','literature'],
+    ['help','assist','support','aid'],
+    ['find','search','discover','locate'],
+    ['near','nearby','close','local','around'],
+    ['best','top','great','excellent','recommended'],
+    ['mass','liturgy','eucharist','worship'],
+    ['confession','reconciliation','penance'],
+    ['adoration','prayer','devotion','rosary','benediction'],
+    ['priest','father','pastor','clergy','deacon'],
+    ['nun','sister','brother','friar','monk'],
+];
+
+// Find the synonym group containing a word (checks stemmed forms too)
+function findSynonymGroup(word) {
+    const stemmed = stemWord(word);
+    return SYNONYM_GROUPS.find(group =>
+        group.includes(word) || group.includes(stemmed) ||
+        group.some(g => stemWord(g) === stemmed)
+    ) || null;
+}
+
+// ── Scored fuzzy matching (replaces simple boolean fuzzyMatchQuery) ──
+// Returns a score 0.0–1.0 indicating match quality.
+// Matching tiers (weighted like iOS): exact 1.0, prefix 0.8, synonym 0.7, levenshtein 0.5
+function fuzzyMatchScore(queryStr, targetStr) {
+    const queryTokens = tokenize(queryStr);
+    if (queryTokens.length === 0) return 0;
+
+    const targetTokens = tokenize(targetStr);
+    const targetJoined = targetStr.toLowerCase();
+
+    let exactMatches = 0, prefixMatches = 0, fuzzyMatches = 0, synonymMatches = 0;
+
+    for (const qt of queryTokens) {
+        const stemQ = stemWord(qt);
+
+        // 1. Exact match (token or stemmed)
+        if (targetTokens.includes(qt) || targetTokens.includes(stemQ)) {
+            exactMatches++;
+            continue;
+        }
+
+        // 2. Prefix match
+        if (targetTokens.some(tt => tt.startsWith(qt) || tt.startsWith(stemQ))) {
+            prefixMatches++;
+            continue;
+        }
+
+        // 3. Levenshtein (typo tolerance ≤ 2 edits, only for words > 3 chars)
+        if (qt.length > 3 && targetTokens.some(tt => tt.length > 3 && levenshteinDistance(tt, qt) <= 2)) {
+            fuzzyMatches++;
+            continue;
+        }
+
+        // 4. Synonym match
+        const synGroup = findSynonymGroup(qt);
+        if (synGroup) {
+            const hasSyn = synGroup.some(syn =>
+                targetTokens.includes(syn) || targetTokens.some(tt => tt.startsWith(syn))
+            );
+            if (hasSyn) {
+                synonymMatches++;
+                continue;
+            }
+        }
+
+        // 5. Substring fallback (handles compound words and partial matches)
+        if (stemQ.length >= 3 && targetJoined.includes(stemQ)) {
+            prefixMatches += 0.5; // lower weight than full prefix
+        }
+    }
+
+    const weightedScore = exactMatches * 1.0 + prefixMatches * 0.8 + synonymMatches * 0.7 + fuzzyMatches * 0.5;
+    const maxScore = queryTokens.length;
+    return maxScore > 0 ? Math.min(weightedScore / maxScore, 1.0) : 0;
+}
+
+// Boolean backward-compatible wrapper (used where only true/false is needed)
+function fuzzyMatchQuery(queryStr, targetStr) {
+    return fuzzyMatchScore(queryStr, targetStr) > 0.15;
 }
 
 // Fuzzy city matching — handles abbreviations and partial matches
@@ -501,132 +623,182 @@ function extractCityFromAddress(address) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// SECTION 7 — FIREBASE DATA FETCHING PER EXPERT
+// SECTION 7 — ENTITY CACHE + FIREBASE DATA FETCHING
 // ══════════════════════════════════════════════════════════════════
+// Fetch all entities ONCE on first query, then reuse the cache.
+// No more limit() — every entity is scored and ranked properly.
 
-// Master fetch: runs all expert fetches in parallel, returns { church: [...], missionary: [...], ... }
+const entityCache = {
+    data: null,       // { church: [{id, ...rawDoc}], missionary: [...], ... }
+    loadedAt: null,
+    loading: null,    // Promise while loading
+    TTL: 10 * 60 * 1000  // 10-minute cache TTL
+};
+
+// Collection name mapping per expert type
+const CACHE_COLLECTIONS = {
+    church:     ['Churches'],
+    missionary: ['missionaries'],
+    pilgrimage: ['pilgrimageSites', 'pilgrimageOfferings'],
+    retreat:    ['retreats', 'retreatOfferings', 'retreatOrganizations'],
+    school:     ['schools'],
+    vocation:   ['vocations'],
+    business:   ['businesses'],
+    campus:     ['bibleStudies']
+};
+
+// Load ALL collections into cache (runs once, parallel)
+async function loadEntityCache() {
+    // Return existing cache if fresh
+    if (entityCache.data && entityCache.loadedAt && (Date.now() - entityCache.loadedAt < entityCache.TTL)) {
+        return entityCache.data;
+    }
+    // Return in-progress load if one is happening
+    if (entityCache.loading) return entityCache.loading;
+
+    console.log('📦 [Gabe Cache] Loading all entity data from Firebase...');
+    const startTime = Date.now();
+
+    entityCache.loading = (async () => {
+        const cache = {};
+        const allPromises = [];
+
+        for (const [expertKey, collNames] of Object.entries(CACHE_COLLECTIONS)) {
+            cache[expertKey] = [];
+            for (const colName of collNames) {
+                allPromises.push(
+                    getDocs(collection(db, colName)).then(snap => {
+                        snap.forEach(doc => {
+                            cache[expertKey].push({ _id: doc.id, _collection: colName, ...doc.data() });
+                        });
+                    }).catch(err => {
+                        console.error(`❌ [Gabe Cache] Error loading ${colName}:`, err);
+                    })
+                );
+            }
+        }
+
+        await Promise.all(allPromises);
+        entityCache.data = cache;
+        entityCache.loadedAt = Date.now();
+        entityCache.loading = null;
+
+        const totalCount = Object.values(cache).reduce((sum, arr) => sum + arr.length, 0);
+        console.log(`✅ [Gabe Cache] Loaded ${totalCount} entities in ${Date.now() - startTime}ms`);
+        for (const [key, arr] of Object.entries(cache)) {
+            console.log(`   ${key}: ${arr.length}`);
+        }
+
+        return cache;
+    })();
+
+    return entityCache.loading;
+}
+
+// Force-refresh cache (call after data changes)
+export function invalidateEntityCache() {
+    entityCache.data = null;
+    entityCache.loadedAt = null;
+}
+
+// ── Master fetch: scores cached data for activated experts ──────
 async function fetchAllExpertData(queryStr, classification) {
     const ql = queryStr.toLowerCase();
     const locationCenter = resolveLocationCenter(classification.location);
     const userLoc = (classification.intent === 'nearby') ? await getUserLocation() : null;
     const center = userLoc || (locationCenter ? { lat: locationCenter.lat, lng: locationCenter.lng } : null);
 
-    const fetchers = {
-        church: () => fetchChurchData(ql, center, classification),
-        missionary: () => fetchMissionaryData(ql, center),
-        pilgrimage: () => fetchPilgrimageData(ql),
-        retreat: () => fetchRetreatData(ql, center),
-        school: () => fetchSchoolData(ql, center, classification),
-        vocation: () => fetchVocationData(ql),
-        business: () => fetchBusinessData(ql, center, classification),
-        campus: () => fetchCampusData(ql),
+    // Ensure cache is warm
+    const cache = await loadEntityCache();
+
+    const scorers = {
+        church:     () => scoreChurchData(cache.church, ql, center, classification),
+        missionary: () => scoreMissionaryData(cache.missionary, ql, center),
+        pilgrimage: () => scorePilgrimageData(cache.pilgrimage, ql),
+        retreat:    () => scoreRetreatData(cache.retreat, ql, center),
+        school:     () => scoreSchoolData(cache.school, ql, center, classification),
+        vocation:   () => scoreVocationData(cache.vocation, ql),
+        business:   () => scoreBusinessData(cache.business, ql, center, classification),
+        campus:     () => scoreCampusData(cache.campus, ql),
     };
 
-    // Only fetch for activated experts
     const results = {};
-    const promises = classification.experts.map(async (key) => {
-        if (fetchers[key]) {
-            results[key] = await fetchers[key]();
-            console.log(`📦 [Gabe ${key}] Fetched ${results[key].length} entities`);
+    for (const key of classification.experts) {
+        if (scorers[key]) {
+            results[key] = scorers[key]();
+            console.log(`📦 [Gabe ${key}] Scored ${results[key].length} results from ${cache[key]?.length || 0} cached entities`);
         }
-    });
-
-    await Promise.all(promises);
+    }
     return results;
 }
 
-// ── Church fetcher ──────────────────────────────────────────────
-async function fetchChurchData(ql, center, classification) {
-    try {
-        const isLocationBased = !!center;
-        let allDocs = [];
+// ── Church scorer (uses fuzzyMatchScore for ranked relevance) ───
+function scoreChurchData(docs, ql, center, classification) {
+    if (!docs || docs.length === 0) return [];
+    const isLocationBased = !!center;
+    let scored = [];
+
+    for (const d of docs) {
+        const name = d.name || '';
+        const city = d.city || '';
+        const state = d.state || '';
+        const diocese = d.diocese || '';
+        const address = d.address || '';
+        const isUnlocked = d.isUnlocked === true;
+        const hasEvents = Array.isArray(d.events) && d.events.length > 0;
+        const hasMass = d.massSchedule && Object.keys(d.massSchedule).length > 0;
+
+        let description = 'Catholic parish';
+        if (hasEvents && hasMass) description = 'Parish with schedules & events';
+        else if (hasMass) description = 'Parish with Mass schedule';
+
+        const displayCity = city || extractCityFromAddress(address);
+        let score = 0;
+        let distanceMiles = Infinity;
 
         if (isLocationBased) {
-            const snap = await getDocs(collection(db, 'Churches'));
-            snap.forEach(doc => allDocs.push(doc));
-        } else {
-            const unlockedSnap = await getDocs(query(collection(db, 'Churches'), where('isUnlocked', '==', true)));
-            unlockedSnap.forEach(doc => allDocs.push(doc));
-            const extraSnap = await getDocs(query(collection(db, 'Churches'), limit(50)));
-            extraSnap.forEach(doc => {
-                if (!allDocs.some(d => d.id === doc.id)) allDocs.push(doc);
-            });
-        }
-
-        let scored = [];
-        const seenIds = new Set();
-
-        for (const doc of allDocs) {
-            if (seenIds.has(doc.id)) continue;
-            seenIds.add(doc.id);
-
-            const d = doc.data();
-            const name = d.name || '';
-            const city = d.city || '';
-            const state = d.state || '';
-            const diocese = d.diocese || '';
-            const address = d.address || '';
-            const isUnlocked = d.isUnlocked === true;
-            const hasEvents = Array.isArray(d.events) && d.events.length > 0;
-            const hasMass = d.massSchedule && Object.keys(d.massSchedule).length > 0;
-
-            let description = 'Catholic parish';
-            if (hasEvents && hasMass) description = 'Parish with schedules & events';
-            else if (hasMass) description = 'Parish with Mass schedule';
-
-            const displayCity = city || extractCityFromAddress(address);
-            let score = 0;
-            let distanceMiles = Infinity;
-
-            if (isLocationBased) {
-                const coords = extractCoords(d);
-                if (coords && coords.lat && coords.lng) {
-                    distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
-                    if (distanceMiles <= 30) {
-                        score = Math.max(0, 200 - Math.round(distanceMiles * (200 / 30)));
-                    }
-                } else {
-                    const cityLower = city.toLowerCase();
-                    const locCity = (classification.location || '').toLowerCase();
-                    if (locCity && fuzzyMatchCity(locCity, cityLower)) score = 80;
-                    else if (locCity && diocese.toLowerCase().includes(CITY_ALIASES[locCity] || locCity)) score = 20;
+            const coords = extractCoords(d);
+            if (coords && coords.lat && coords.lng) {
+                distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                if (distanceMiles <= 30) {
+                    score = Math.max(0, 200 - Math.round(distanceMiles * (200 / 30)));
                 }
             } else {
-                const searchable = `${name} ${city} ${state} ${diocese} ${address}`.toLowerCase();
-                if (fuzzyMatchQuery(ql, searchable)) score = 10;
-                else score = 1; // still include with low score — orchestrator activated this expert
+                const cityLower = city.toLowerCase();
+                const locCity = (classification.location || '').toLowerCase();
+                if (locCity && fuzzyMatchCity(locCity, cityLower)) score = 80;
+                else if (locCity && diocese.toLowerCase().includes(CITY_ALIASES[locCity] || locCity)) score = 20;
             }
-
-            if (score > 0) {
-                if (isUnlocked) score += 10;
-                if (hasEvents) score += 5;
-                if (hasMass) score += 3;
-
-                // Build rich context string for unlocked parishes
-                let richContext = '';
-                if (isUnlocked) {
-                    richContext = buildRichParishString(d, distanceMiles);
-                }
-
-                scored.push({
-                    score, distanceMiles,
-                    entity: {
-                        id: doc.id, name, type: EntityType.CHURCH,
-                        subtitle: diocese || 'Parish', description,
-                        location: displayCity ? `${displayCity}, ${state}` : state,
-                        distanceMiles: distanceMiles < Infinity ? distanceMiles : undefined,
-                        richContext
-                    }
-                });
-            }
+        } else {
+            // Name-weighted: name repeated 3x for higher match weight (matching iOS buildIndexableText)
+            const searchable = `${name} ${name} ${name} ${city} ${state} ${diocese} ${address}`.toLowerCase();
+            const ms = fuzzyMatchScore(ql, searchable);
+            score = ms > 0 ? Math.round(ms * 50) : 1; // still include with low score if orchestrator activated
         }
 
-        scored.sort((a, b) => b.score !== a.score ? b.score - a.score : a.distanceMiles - b.distanceMiles);
-        return scored.slice(0, 15).map(s => s.entity);
-    } catch (e) {
-        console.error('❌ Error fetching churches:', e);
-        return [];
+        if (score > 0) {
+            if (isUnlocked) score += 10;
+            if (hasEvents) score += 5;
+            if (hasMass) score += 3;
+
+            let richContext = '';
+            if (isUnlocked) richContext = buildRichParishString(d, distanceMiles);
+
+            scored.push({
+                score, distanceMiles,
+                entity: {
+                    id: d._id, name, type: EntityType.CHURCH,
+                    subtitle: diocese || 'Parish', description,
+                    location: displayCity ? `${displayCity}, ${state}` : state,
+                    distanceMiles: distanceMiles < Infinity ? distanceMiles : undefined,
+                    richContext
+                }
+            });
+        }
     }
+
+    scored.sort((a, b) => b.score !== a.score ? b.score - a.score : a.distanceMiles - b.distanceMiles);
+    return scored.slice(0, 15).map(s => s.entity);
 }
 
 function buildRichParishString(d, distanceMiles) {
@@ -639,21 +811,16 @@ function buildRichParishString(d, distanceMiles) {
     if (Object.keys(confession).length) s += `  Confession: ${formatScheduleCompact(confession)}\n`;
     if (Object.keys(adoration).length) s += `  Adoration: ${formatScheduleCompact(adoration)}\n`;
 
-    // Events
     if (Array.isArray(d.events) && d.events.length > 0) {
         const now = new Date();
-        const upcoming = d.events
-            .map(e => parseEventData(e))
-            .filter(e => e && e.date >= now)
-            .sort((a, b) => a.date - b.date)
-            .slice(0, 3);
+        const upcoming = d.events.map(e => parseEventData(e)).filter(e => e && e.date >= now)
+            .sort((a, b) => a.date - b.date).slice(0, 3);
         if (upcoming.length) {
             s += `  Upcoming Events:\n`;
             upcoming.forEach(e => { s += `    - ${e.formattedString}\n`; });
         }
     }
 
-    // Programs
     const programs = [];
     if (d.hasOCIA === true || d.prepClassSignupURL) programs.push('OCIA');
     if (d.hasConfirmation !== false) programs.push('Confirmation');
@@ -664,260 +831,220 @@ function buildRichParishString(d, distanceMiles) {
     return s;
 }
 
-// ── Missionary fetcher ──────────────────────────────────────────
-async function fetchMissionaryData(ql, center) {
-    try {
-        const snap = await getDocs(query(collection(db, 'missionaries'), limit(30)));
-        let results = [];
-        snap.forEach(doc => {
-            const d = doc.data();
-            const name = d.name || '';
-            const org = d.organization || '';
-            const desc = (d.bio || d.description || '').substring(0, 150);
-            const city = d.city || (d.locationPrimary?.city) || '';
-            const country = d.country || (d.locationPrimary?.country) || '';
-
-            let score = 1; // always include — orchestrator already activated this expert
-            const searchable = `${name} ${org} ${desc} ${city} ${country}`.toLowerCase();
-            if (fuzzyMatchQuery(ql, searchable)) score += 5;
-
-            let distanceMiles;
-            if (center) {
-                const coords = extractCoords(d);
-                if (coords) {
-                    distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
-                    if (distanceMiles <= 50) score += Math.max(0, 50 - distanceMiles);
-                }
-            }
-
-            results.push({
-                id: doc.id, name, type: EntityType.MISSIONARY,
-                subtitle: org, description: desc,
-                location: country ? `${city}, ${country}` : city,
-                distanceMiles, _score: score
-            });
-        });
-        results.sort((a, b) => b._score - a._score);
-        return results.slice(0, 8);
-    } catch (e) {
-        console.error('❌ Error fetching missionaries:', e);
-        return [];
-    }
-}
-
-// ── Pilgrimage fetcher ──────────────────────────────────────────
-async function fetchPilgrimageData(ql) {
+// ── Missionary scorer ───────────────────────────────────────────
+function scoreMissionaryData(docs, ql, center) {
+    if (!docs || docs.length === 0) return [];
     let results = [];
-    try {
-        const sitesSnap = await getDocs(query(collection(db, 'pilgrimageSites'), limit(20)));
-        sitesSnap.forEach(doc => {
-            const d = doc.data();
-            const name = d.name || '';
-            const location = d.location || '';
-            const desc = (d.description || '').substring(0, 150);
-            let score = 1;
-            if (fuzzyMatchQuery(ql, `${name} ${location} ${desc}`.toLowerCase())) score += 5;
-            results.push({ id: doc.id, name, type: EntityType.PILGRIMAGE, subtitle: 'Pilgrimage Site', description: desc, location, _score: score });
-        });
-    } catch (e) { console.error('❌ Error fetching pilgrimage sites:', e); }
+    for (const d of docs) {
+        const name = d.name || '';
+        const org = d.organization || '';
+        const desc = (d.bio || d.description || '').substring(0, 150);
+        const city = d.city || (d.locationPrimary?.city) || '';
+        const country = d.country || (d.locationPrimary?.country) || '';
 
-    try {
-        const offSnap = await getDocs(query(collection(db, 'pilgrimageOfferings'), limit(20)));
-        offSnap.forEach(doc => {
-            const d = doc.data();
-            const title = d.title || '';
-            const location = d.location || '';
-            const desc = (d.description || '').substring(0, 150);
-            let score = 1;
-            if (fuzzyMatchQuery(ql, `${title} ${location} ${desc}`.toLowerCase())) score += 5;
-            results.push({ id: doc.id, name: title, type: EntityType.PILGRIMAGE, subtitle: 'Pilgrimage Trip', description: desc, location, _score: score });
-        });
-    } catch (e) { console.error('❌ Error fetching pilgrimage offerings:', e); }
+        const searchable = `${name} ${name} ${name} ${org} ${org} ${desc} ${city} ${country}`.toLowerCase();
+        const ms = fuzzyMatchScore(ql, searchable);
+        let score = ms > 0 ? Math.round(ms * 50) : 1;
 
+        let distanceMiles;
+        if (center) {
+            const coords = extractCoords(d);
+            if (coords) {
+                distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                if (distanceMiles <= 50) score += Math.max(0, 50 - Math.round(distanceMiles));
+            }
+        }
+
+        results.push({
+            id: d._id, name, type: EntityType.MISSIONARY,
+            subtitle: org, description: desc,
+            location: country ? `${city}, ${country}` : city,
+            distanceMiles, _score: score
+        });
+    }
     results.sort((a, b) => b._score - a._score);
     return results.slice(0, 8);
 }
 
-// ── Retreat fetcher ─────────────────────────────────────────────
-async function fetchRetreatData(ql, center) {
+// ── Pilgrimage scorer ───────────────────────────────────────────
+function scorePilgrimageData(docs, ql) {
+    if (!docs || docs.length === 0) return [];
     let results = [];
-    const collections = ['retreats', 'retreatOfferings', 'retreatOrganizations'];
-    const subtitles = ['Retreat Center', 'Retreat', 'Retreat Organization'];
+    for (const d of docs) {
+        const name = d.name || d.title || '';
+        const location = d.location || '';
+        const desc = (d.description || '').substring(0, 150);
+        const subtype = d._collection === 'pilgrimageOfferings' ? 'Pilgrimage Trip' : 'Pilgrimage Site';
 
-    for (let i = 0; i < collections.length; i++) {
-        try {
-            const snap = await getDocs(query(collection(db, collections[i]), limit(20)));
-            snap.forEach(doc => {
-                const d = doc.data();
-                const name = d.name || d.title || '';
-                if (!name) return;
-                const location = d.location || '';
-                const desc = (d.description || '').substring(0, 150);
-                const rType = d.retreatType || d.type || '';
+        const searchable = `${name} ${name} ${name} ${location} ${desc}`.toLowerCase();
+        const ms = fuzzyMatchScore(ql, searchable);
+        let score = ms > 0 ? Math.round(ms * 50) : 1;
 
-                let score = 1;
-                if (fuzzyMatchQuery(ql, `${name} ${location} ${desc} ${rType}`.toLowerCase())) score += 5;
-
-                let distanceMiles;
-                if (center) {
-                    const coords = extractCoords(d);
-                    if (coords) {
-                        distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
-                        if (distanceMiles <= 50) score += Math.max(0, 50 - distanceMiles);
-                    }
-                }
-
-                results.push({
-                    id: doc.id, name, type: EntityType.RETREAT,
-                    subtitle: rType || subtitles[i], description: desc, location, distanceMiles, _score: score
-                });
-            });
-        } catch (e) { console.error(`❌ Error fetching ${collections[i]}:`, e); }
+        results.push({
+            id: d._id, name, type: EntityType.PILGRIMAGE,
+            subtitle: subtype, description: desc, location, _score: score
+        });
     }
-
     results.sort((a, b) => b._score - a._score);
     return results.slice(0, 8);
 }
 
-// ── School fetcher ──────────────────────────────────────────────
-async function fetchSchoolData(ql, center, classification) {
-    try {
-        const maxFetch = center ? 100 : 50;
-        const snap = await getDocs(query(collection(db, 'schools'), limit(maxFetch)));
-        let results = [];
-        snap.forEach(doc => {
-            const d = doc.data();
-            const name = d.name || '';
-            const city = d.city || '';
-            const state = d.state || '';
-            const desc = (d.description || '').substring(0, 150);
-            const sType = d.schoolType || '';
+// ── Retreat scorer ──────────────────────────────────────────────
+function scoreRetreatData(docs, ql, center) {
+    if (!docs || docs.length === 0) return [];
+    const subtitleMap = { 'retreats': 'Retreat Center', 'retreatOfferings': 'Retreat', 'retreatOrganizations': 'Retreat Organization' };
+    let results = [];
+    for (const d of docs) {
+        const name = d.name || d.title || '';
+        if (!name) continue;
+        const location = d.location || '';
+        const desc = (d.description || '').substring(0, 150);
+        const rType = d.retreatType || d.type || '';
 
-            let score = 1; // always include — orchestrator already activated this expert
-            if (fuzzyMatchQuery(ql, `${name} ${city} ${state} ${desc} ${sType}`.toLowerCase())) score += 5;
-            const locCity = (classification.location || '').toLowerCase();
-            if (locCity && fuzzyMatchCity(locCity, city.toLowerCase())) score += 10;
+        const searchable = `${name} ${name} ${name} ${location} ${desc} ${rType}`.toLowerCase();
+        const ms = fuzzyMatchScore(ql, searchable);
+        let score = ms > 0 ? Math.round(ms * 50) : 1;
 
-            let distanceMiles;
-            if (center) {
-                const coords = extractCoords(d);
-                if (coords) {
-                    distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
-                    if (distanceMiles <= 50) score += Math.max(0, 50 - distanceMiles);
-                }
+        let distanceMiles;
+        if (center) {
+            const coords = extractCoords(d);
+            if (coords) {
+                distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                if (distanceMiles <= 50) score += Math.max(0, 50 - Math.round(distanceMiles));
             }
+        }
 
-            results.push({
-                id: doc.id, name, type: EntityType.SCHOOL,
-                subtitle: sType || 'Catholic School', description: desc,
-                location: `${city}, ${state}`, distanceMiles, _score: score
-            });
+        results.push({
+            id: d._id, name, type: EntityType.RETREAT,
+            subtitle: rType || subtitleMap[d._collection] || 'Retreat',
+            description: desc, location, distanceMiles, _score: score
         });
-        results.sort((a, b) => b._score - a._score);
-        return results.slice(0, 8);
-    } catch (e) {
-        console.error('❌ Error fetching schools:', e);
-        return [];
     }
+    results.sort((a, b) => b._score - a._score);
+    return results.slice(0, 8);
 }
 
-// ── Vocation fetcher ────────────────────────────────────────────
-async function fetchVocationData(ql) {
-    try {
-        const snap = await getDocs(query(collection(db, 'vocations'), limit(30)));
-        let results = [];
-        snap.forEach(doc => {
-            const d = doc.data();
-            const title = d.title || '';
-            const location = d.location || '';
-            const desc = (d.description || '').substring(0, 150);
-            const vType = d.type || '';
+// ── School scorer ───────────────────────────────────────────────
+function scoreSchoolData(docs, ql, center, classification) {
+    if (!docs || docs.length === 0) return [];
+    let results = [];
+    for (const d of docs) {
+        const name = d.name || '';
+        const city = d.city || '';
+        const state = d.state || '';
+        const desc = (d.description || '').substring(0, 150);
+        const sType = d.schoolType || '';
 
-            let score = 1;
-            if (fuzzyMatchQuery(ql, `${title} ${location} ${desc} ${vType}`.toLowerCase())) score += 5;
+        const searchable = `${name} ${name} ${name} ${city} ${state} ${desc} ${sType} ${sType}`.toLowerCase();
+        const ms = fuzzyMatchScore(ql, searchable);
+        let score = ms > 0 ? Math.round(ms * 50) : 1;
 
-            results.push({
-                id: doc.id, name: title, type: EntityType.VOCATION,
-                subtitle: vType || 'Religious Vocation', description: desc, location, _score: score
-            });
-        });
-        results.sort((a, b) => b._score - a._score);
-        return results.slice(0, 8);
-    } catch (e) {
-        console.error('❌ Error fetching vocations:', e);
-        return [];
-    }
-}
+        const locCity = (classification.location || '').toLowerCase();
+        if (locCity && fuzzyMatchCity(locCity, city.toLowerCase())) score += 20;
 
-// ── Business fetcher ────────────────────────────────────────────
-async function fetchBusinessData(ql, center, classification) {
-    try {
-        const maxFetch = center ? 100 : 50;
-        const snap = await getDocs(query(collection(db, 'businesses'), limit(maxFetch)));
-        let results = [];
-        snap.forEach(doc => {
-            const d = doc.data();
-            const name = d.name || '';
-            const cat = d.category || '';
-            const sub = d.subcategory || '';
-            const desc = (d.description || '').substring(0, 150);
-            const city = d.addressCity || d.city || '';
-            const state = d.addressState || d.state || '';
-
-            let score = 1; // always include — orchestrator already activated this expert
-            if (fuzzyMatchQuery(ql, `${name} ${cat} ${sub} ${desc} ${city} ${state}`.toLowerCase())) score += 5;
-            const locCity = (classification.location || '').toLowerCase();
-            if (locCity && fuzzyMatchCity(locCity, city.toLowerCase())) score += 10;
-
-            let distanceMiles;
-            if (center) {
-                const coords = extractCoords(d);
-                if (coords) {
-                    distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
-                    if (distanceMiles <= 50) score += Math.max(0, 50 - distanceMiles);
-                }
+        let distanceMiles;
+        if (center) {
+            const coords = extractCoords(d);
+            if (coords) {
+                distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                if (distanceMiles <= 50) score += Math.max(0, 50 - Math.round(distanceMiles));
             }
+        }
 
-            results.push({
-                id: doc.id, name, type: EntityType.BUSINESS,
-                subtitle: sub || cat, description: desc,
-                location: `${city}, ${state}`, distanceMiles, _score: score
-            });
+        results.push({
+            id: d._id, name, type: EntityType.SCHOOL,
+            subtitle: sType || 'Catholic School', description: desc,
+            location: `${city}, ${state}`, distanceMiles, _score: score
         });
-        results.sort((a, b) => b._score - a._score);
-        return results.slice(0, 10);
-    } catch (e) {
-        console.error('❌ Error fetching businesses:', e);
-        return [];
     }
+    results.sort((a, b) => b._score - a._score);
+    return results.slice(0, 8);
 }
 
-// ── Campus Ministry fetcher ─────────────────────────────────────
-async function fetchCampusData(ql) {
-    try {
-        const snap = await getDocs(query(collection(db, 'bibleStudies'), limit(30)));
-        let results = [];
-        snap.forEach(doc => {
-            const d = doc.data();
-            const title = d.title || '';
-            const location = d.location || '';
-            const desc = (d.description || '').substring(0, 150);
-            const t = d.type || '';
+// ── Vocation scorer ─────────────────────────────────────────────
+function scoreVocationData(docs, ql) {
+    if (!docs || docs.length === 0) return [];
+    let results = [];
+    for (const d of docs) {
+        const title = d.title || '';
+        const location = d.location || '';
+        const desc = (d.description || '').substring(0, 150);
+        const vType = d.type || '';
+        const community = d.communityName || '';
 
-            let score = 1;
-            if (fuzzyMatchQuery(ql, `${title} ${location} ${desc} ${t}`.toLowerCase())) score += 5;
+        const searchable = `${title} ${title} ${title} ${community} ${location} ${desc} ${vType}`.toLowerCase();
+        const ms = fuzzyMatchScore(ql, searchable);
+        let score = ms > 0 ? Math.round(ms * 50) : 1;
 
-            results.push({
-                id: doc.id, name: title, type: EntityType.CAMPUS_MINISTRY,
-                subtitle: t || 'Campus Ministry', description: desc, location, _score: score
-            });
+        results.push({
+            id: d._id, name: title, type: EntityType.VOCATION,
+            subtitle: vType || 'Religious Vocation', description: desc, location, _score: score
         });
-        results.sort((a, b) => b._score - a._score);
-        return results.slice(0, 8);
-    } catch (e) {
-        console.error('❌ Error fetching campus ministries:', e);
-        return [];
     }
+    results.sort((a, b) => b._score - a._score);
+    return results.slice(0, 8);
+}
+
+// ── Business scorer ─────────────────────────────────────────────
+function scoreBusinessData(docs, ql, center, classification) {
+    if (!docs || docs.length === 0) return [];
+    let results = [];
+    for (const d of docs) {
+        const name = d.name || '';
+        const cat = d.category || '';
+        const sub = d.subcategory || '';
+        const desc = (d.description || '').substring(0, 150);
+        const city = d.addressCity || d.city || '';
+        const state = d.addressState || d.state || '';
+
+        const searchable = `${name} ${name} ${name} ${cat} ${cat} ${sub} ${sub} ${desc} ${city} ${state}`.toLowerCase();
+        const ms = fuzzyMatchScore(ql, searchable);
+        let score = ms > 0 ? Math.round(ms * 50) : 1;
+
+        const locCity = (classification.location || '').toLowerCase();
+        if (locCity && fuzzyMatchCity(locCity, city.toLowerCase())) score += 20;
+
+        let distanceMiles;
+        if (center) {
+            const coords = extractCoords(d);
+            if (coords) {
+                distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                if (distanceMiles <= 50) score += Math.max(0, 50 - Math.round(distanceMiles));
+            }
+        }
+
+        results.push({
+            id: d._id, name, type: EntityType.BUSINESS,
+            subtitle: sub || cat, description: desc,
+            location: `${city}, ${state}`, distanceMiles, _score: score
+        });
+    }
+    results.sort((a, b) => b._score - a._score);
+    return results.slice(0, 10);
+}
+
+// ── Campus Ministry scorer ──────────────────────────────────────
+function scoreCampusData(docs, ql) {
+    if (!docs || docs.length === 0) return [];
+    let results = [];
+    for (const d of docs) {
+        const title = d.title || '';
+        const location = d.location || '';
+        const desc = (d.description || '').substring(0, 150);
+        const t = d.type || '';
+        const university = d.university || '';
+
+        const searchable = `${title} ${title} ${title} ${university} ${university} ${location} ${desc} ${t}`.toLowerCase();
+        const ms = fuzzyMatchScore(ql, searchable);
+        let score = ms > 0 ? Math.round(ms * 50) : 1;
+
+        results.push({
+            id: d._id, name: title, type: EntityType.CAMPUS_MINISTRY,
+            subtitle: t || 'Campus Ministry', description: desc, location, _score: score
+        });
+    }
+    results.sort((a, b) => b._score - a._score);
+    return results.slice(0, 8);
 }
 
 // ══════════════════════════════════════════════════════════════════
