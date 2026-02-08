@@ -431,15 +431,67 @@ function extractCoords(docData) {
     return null;
 }
 
+// Common city abbreviations / nicknames
+const CITY_ALIASES = {
+    'sf': 'san francisco', 'san fran': 'san francisco',
+    'la': 'los angeles', 'nyc': 'new york', 'ny': 'new york',
+    'philly': 'philadelphia', 'phl': 'philadelphia',
+    'chi': 'chicago', 'dc': 'washington', 'atl': 'atlanta',
+    'stl': 'st. louis', 'st louis': 'st. louis',
+    'kc': 'kansas city', 'nola': 'new orleans',
+    'sd': 'san diego', 'sac': 'sacramento',
+    'cbus': 'columbus', 'cincy': 'cincinnati', 'cle': 'cleveland',
+    'det': 'detroit', 'mke': 'milwaukee', 'msp': 'minneapolis',
+    'pdx': 'portland', 'sea': 'seattle', 'phx': 'phoenix',
+    'west chester pa': 'west chester', 'conshy': 'conshohocken',
+};
+
 function resolveLocationCenter(locationStr) {
     if (!locationStr) return null;
-    const key = locationStr.toLowerCase().trim();
+    let key = locationStr.toLowerCase().trim();
+    // Check aliases first
+    if (CITY_ALIASES[key]) key = CITY_ALIASES[key];
     if (CITY_DATA[key]) return { ...CITY_DATA[key], city: key };
     // Partial match
     for (const [city, data] of Object.entries(CITY_DATA)) {
         if (key.includes(city) || city.includes(key)) return { ...data, city };
     }
     return null;
+}
+
+// ── Fuzzy matching helpers ──────────────────────────────────────
+// Stems a word to its root (simple: strip common suffixes)
+function stemWord(w) {
+    return w.replace(/(ing|tion|ness|ment|ies|es|ed|ly|er|s)$/i, '');
+}
+
+// Returns true if any meaningful query word fuzzy-matches any word in the target string
+function fuzzyMatchQuery(queryStr, targetStr) {
+    const stopWords = new Set(['the','a','an','is','are','was','were','be','been','being',
+        'have','has','had','do','does','did','will','would','could','should','may','might',
+        'shall','can','need','dare','ought','there','their','they','them','this','that',
+        'what','which','who','whom','how','where','when','why','and','but','or','nor','not',
+        'for','with','about','into','through','during','before','after','above','below',
+        'from','any','some','all','each','every','both','few','more','most','other','such',
+        'only','own','same','than','too','very','just','because','here','now','then','also',
+        'back','even','still','well','new','old','just','long','just','like','much','many',
+        'near','nearby','find','visit','looking','want','see','tell','know','help','get','me','my','in','to','of','at']);
+    const queryWords = queryStr.split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+    if (queryWords.length === 0) return false;
+
+    return queryWords.some(qw => {
+        const stemQ = stemWord(qw);
+        if (stemQ.length < 3) return false;
+        return targetStr.includes(stemQ);
+    });
+}
+
+// Fuzzy city matching — handles abbreviations and partial matches
+function fuzzyMatchCity(queryCity, dataCity) {
+    if (!queryCity || !dataCity) return false;
+    // Resolve alias
+    const resolved = CITY_ALIASES[queryCity] || queryCity;
+    return dataCity === resolved || dataCity.includes(resolved) || resolved.includes(dataCity);
 }
 
 function extractCityFromAddress(address) {
@@ -536,12 +588,13 @@ async function fetchChurchData(ql, center, classification) {
                 } else {
                     const cityLower = city.toLowerCase();
                     const locCity = (classification.location || '').toLowerCase();
-                    if (locCity && (cityLower === locCity || cityLower.includes(locCity))) score = 80;
-                    else if (locCity && diocese.toLowerCase().includes(locCity)) score = 20;
+                    if (locCity && fuzzyMatchCity(locCity, cityLower)) score = 80;
+                    else if (locCity && diocese.toLowerCase().includes(CITY_ALIASES[locCity] || locCity)) score = 20;
                 }
             } else {
                 const searchable = `${name} ${city} ${state} ${diocese} ${address}`.toLowerCase();
-                if (ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w))) score = 10;
+                if (fuzzyMatchQuery(ql, searchable)) score = 10;
+                else score = 1; // still include with low score — orchestrator activated this expert
             }
 
             if (score > 0) {
@@ -623,22 +676,28 @@ async function fetchMissionaryData(ql, center) {
             const desc = (d.bio || d.description || '').substring(0, 150);
             const city = d.city || (d.locationPrimary?.city) || '';
             const country = d.country || (d.locationPrimary?.country) || '';
-            const searchable = `${name} ${org} ${desc} ${city} ${country} missionary mission`.toLowerCase();
 
-            if (ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w))) {
-                let distanceMiles;
-                if (center) {
-                    const coords = extractCoords(d);
-                    if (coords) distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+            let score = 1; // always include — orchestrator already activated this expert
+            const searchable = `${name} ${org} ${desc} ${city} ${country}`.toLowerCase();
+            if (fuzzyMatchQuery(ql, searchable)) score += 5;
+
+            let distanceMiles;
+            if (center) {
+                const coords = extractCoords(d);
+                if (coords) {
+                    distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                    if (distanceMiles <= 50) score += Math.max(0, 50 - distanceMiles);
                 }
-                results.push({
-                    id: doc.id, name, type: EntityType.MISSIONARY,
-                    subtitle: org, description: desc,
-                    location: country ? `${city}, ${country}` : city,
-                    distanceMiles
-                });
             }
+
+            results.push({
+                id: doc.id, name, type: EntityType.MISSIONARY,
+                subtitle: org, description: desc,
+                location: country ? `${city}, ${country}` : city,
+                distanceMiles, _score: score
+            });
         });
+        results.sort((a, b) => b._score - a._score);
         return results.slice(0, 8);
     } catch (e) {
         console.error('❌ Error fetching missionaries:', e);
@@ -656,10 +715,9 @@ async function fetchPilgrimageData(ql) {
             const name = d.name || '';
             const location = d.location || '';
             const desc = (d.description || '').substring(0, 150);
-            const searchable = `${name} ${location} ${desc} pilgrimage holy site shrine basilica`.toLowerCase();
-            if (ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w))) {
-                results.push({ id: doc.id, name, type: EntityType.PILGRIMAGE, subtitle: 'Pilgrimage Site', description: desc, location });
-            }
+            let score = 1;
+            if (fuzzyMatchQuery(ql, `${name} ${location} ${desc}`.toLowerCase())) score += 5;
+            results.push({ id: doc.id, name, type: EntityType.PILGRIMAGE, subtitle: 'Pilgrimage Site', description: desc, location, _score: score });
         });
     } catch (e) { console.error('❌ Error fetching pilgrimage sites:', e); }
 
@@ -670,13 +728,13 @@ async function fetchPilgrimageData(ql) {
             const title = d.title || '';
             const location = d.location || '';
             const desc = (d.description || '').substring(0, 150);
-            const searchable = `${title} ${location} ${desc} pilgrimage trip tour`.toLowerCase();
-            if (ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w))) {
-                results.push({ id: doc.id, name: title, type: EntityType.PILGRIMAGE, subtitle: 'Pilgrimage Trip', description: desc, location });
-            }
+            let score = 1;
+            if (fuzzyMatchQuery(ql, `${title} ${location} ${desc}`.toLowerCase())) score += 5;
+            results.push({ id: doc.id, name: title, type: EntityType.PILGRIMAGE, subtitle: 'Pilgrimage Trip', description: desc, location, _score: score });
         });
     } catch (e) { console.error('❌ Error fetching pilgrimage offerings:', e); }
 
+    results.sort((a, b) => b._score - a._score);
     return results.slice(0, 8);
 }
 
@@ -696,30 +754,35 @@ async function fetchRetreatData(ql, center) {
                 const location = d.location || '';
                 const desc = (d.description || '').substring(0, 150);
                 const rType = d.retreatType || d.type || '';
-                const searchable = `${name} ${location} ${desc} ${rType} retreat spiritual`.toLowerCase();
-                if (ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w))) {
-                    let distanceMiles;
-                    if (center) {
-                        const coords = extractCoords(d);
-                        if (coords) distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+
+                let score = 1;
+                if (fuzzyMatchQuery(ql, `${name} ${location} ${desc} ${rType}`.toLowerCase())) score += 5;
+
+                let distanceMiles;
+                if (center) {
+                    const coords = extractCoords(d);
+                    if (coords) {
+                        distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                        if (distanceMiles <= 50) score += Math.max(0, 50 - distanceMiles);
                     }
-                    results.push({
-                        id: doc.id, name, type: EntityType.RETREAT,
-                        subtitle: rType || subtitles[i], description: desc, location, distanceMiles
-                    });
                 }
+
+                results.push({
+                    id: doc.id, name, type: EntityType.RETREAT,
+                    subtitle: rType || subtitles[i], description: desc, location, distanceMiles, _score: score
+                });
             });
         } catch (e) { console.error(`❌ Error fetching ${collections[i]}:`, e); }
     }
 
-    if (center) results.sort((a, b) => (a.distanceMiles || 9999) - (b.distanceMiles || 9999));
+    results.sort((a, b) => b._score - a._score);
     return results.slice(0, 8);
 }
 
 // ── School fetcher ──────────────────────────────────────────────
 async function fetchSchoolData(ql, center, classification) {
     try {
-        const maxFetch = center ? 100 : 30;
+        const maxFetch = center ? 100 : 50;
         const snap = await getDocs(query(collection(db, 'schools'), limit(maxFetch)));
         let results = [];
         snap.forEach(doc => {
@@ -729,26 +792,28 @@ async function fetchSchoolData(ql, center, classification) {
             const state = d.state || '';
             const desc = (d.description || '').substring(0, 150);
             const sType = d.schoolType || '';
-            const searchable = `${name} ${city} ${state} ${desc} ${sType} school catholic education classical`.toLowerCase();
 
-            let relevant = ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w));
+            let score = 1; // always include — orchestrator already activated this expert
+            if (fuzzyMatchQuery(ql, `${name} ${city} ${state} ${desc} ${sType}`.toLowerCase())) score += 5;
             const locCity = (classification.location || '').toLowerCase();
-            if (locCity && city.toLowerCase() === locCity) relevant = true;
+            if (locCity && fuzzyMatchCity(locCity, city.toLowerCase())) score += 10;
 
-            if (relevant) {
-                let distanceMiles;
-                if (center) {
-                    const coords = extractCoords(d);
-                    if (coords) distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+            let distanceMiles;
+            if (center) {
+                const coords = extractCoords(d);
+                if (coords) {
+                    distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                    if (distanceMiles <= 50) score += Math.max(0, 50 - distanceMiles);
                 }
-                results.push({
-                    id: doc.id, name, type: EntityType.SCHOOL,
-                    subtitle: sType || 'Catholic School', description: desc,
-                    location: `${city}, ${state}`, distanceMiles
-                });
             }
+
+            results.push({
+                id: doc.id, name, type: EntityType.SCHOOL,
+                subtitle: sType || 'Catholic School', description: desc,
+                location: `${city}, ${state}`, distanceMiles, _score: score
+            });
         });
-        if (center) results.sort((a, b) => (a.distanceMiles || 9999) - (b.distanceMiles || 9999));
+        results.sort((a, b) => b._score - a._score);
         return results.slice(0, 8);
     } catch (e) {
         console.error('❌ Error fetching schools:', e);
@@ -767,14 +832,16 @@ async function fetchVocationData(ql) {
             const location = d.location || '';
             const desc = (d.description || '').substring(0, 150);
             const vType = d.type || '';
-            const searchable = `${title} ${location} ${desc} ${vType} vocation religious order seminary`.toLowerCase();
-            if (ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w))) {
-                results.push({
-                    id: doc.id, name: title, type: EntityType.VOCATION,
-                    subtitle: vType || 'Religious Vocation', description: desc, location
-                });
-            }
+
+            let score = 1;
+            if (fuzzyMatchQuery(ql, `${title} ${location} ${desc} ${vType}`.toLowerCase())) score += 5;
+
+            results.push({
+                id: doc.id, name: title, type: EntityType.VOCATION,
+                subtitle: vType || 'Religious Vocation', description: desc, location, _score: score
+            });
         });
+        results.sort((a, b) => b._score - a._score);
         return results.slice(0, 8);
     } catch (e) {
         console.error('❌ Error fetching vocations:', e);
@@ -796,26 +863,28 @@ async function fetchBusinessData(ql, center, classification) {
             const desc = (d.description || '').substring(0, 150);
             const city = d.addressCity || d.city || '';
             const state = d.addressState || d.state || '';
-            const searchable = `${name} ${cat} ${sub} ${desc} ${city} ${state} business`.toLowerCase();
 
-            let relevant = ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w));
+            let score = 1; // always include — orchestrator already activated this expert
+            if (fuzzyMatchQuery(ql, `${name} ${cat} ${sub} ${desc} ${city} ${state}`.toLowerCase())) score += 5;
             const locCity = (classification.location || '').toLowerCase();
-            if (locCity && city.toLowerCase() === locCity) relevant = true;
+            if (locCity && fuzzyMatchCity(locCity, city.toLowerCase())) score += 10;
 
-            if (relevant) {
-                let distanceMiles;
-                if (center) {
-                    const coords = extractCoords(d);
-                    if (coords) distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+            let distanceMiles;
+            if (center) {
+                const coords = extractCoords(d);
+                if (coords) {
+                    distanceMiles = haversineDistance(center.lat, center.lng, coords.lat, coords.lng);
+                    if (distanceMiles <= 50) score += Math.max(0, 50 - distanceMiles);
                 }
-                results.push({
-                    id: doc.id, name, type: EntityType.BUSINESS,
-                    subtitle: sub || cat, description: desc,
-                    location: `${city}, ${state}`, distanceMiles
-                });
             }
+
+            results.push({
+                id: doc.id, name, type: EntityType.BUSINESS,
+                subtitle: sub || cat, description: desc,
+                location: `${city}, ${state}`, distanceMiles, _score: score
+            });
         });
-        if (center) results.sort((a, b) => (a.distanceMiles || 9999) - (b.distanceMiles || 9999));
+        results.sort((a, b) => b._score - a._score);
         return results.slice(0, 10);
     } catch (e) {
         console.error('❌ Error fetching businesses:', e);
@@ -834,14 +903,16 @@ async function fetchCampusData(ql) {
             const location = d.location || '';
             const desc = (d.description || '').substring(0, 150);
             const t = d.type || '';
-            const searchable = `${title} ${location} ${desc} ${t} campus ministry college university newman focus`.toLowerCase();
-            if (ql.split(/\s+/).some(w => w.length > 2 && searchable.includes(w))) {
-                results.push({
-                    id: doc.id, name: title, type: EntityType.CAMPUS_MINISTRY,
-                    subtitle: t || 'Campus Ministry', description: desc, location
-                });
-            }
+
+            let score = 1;
+            if (fuzzyMatchQuery(ql, `${title} ${location} ${desc} ${t}`.toLowerCase())) score += 5;
+
+            results.push({
+                id: doc.id, name: title, type: EntityType.CAMPUS_MINISTRY,
+                subtitle: t || 'Campus Ministry', description: desc, location, _score: score
+            });
         });
+        results.sort((a, b) => b._score - a._score);
         return results.slice(0, 8);
     } catch (e) {
         console.error('❌ Error fetching campus ministries:', e);
