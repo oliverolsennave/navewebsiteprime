@@ -789,7 +789,7 @@ function scoreChurchData(docs, ql, center, classification) {
                 entity: {
                     id: d._id, name, type: EntityType.CHURCH,
                     subtitle: diocese || 'Parish', description,
-                    location: displayCity ? `${displayCity}, ${state}` : state,
+                    location: displayCity || '',
                     distanceMiles: distanceMiles < Infinity ? distanceMiles : undefined,
                     richContext
                 }
@@ -858,7 +858,7 @@ function scoreMissionaryData(docs, ql, center) {
         results.push({
             id: d._id, name, type: EntityType.MISSIONARY,
             subtitle: org, description: desc,
-            location: country ? `${city}, ${country}` : city,
+            location: city,
             distanceMiles, _score: score
         });
     }
@@ -954,7 +954,7 @@ function scoreSchoolData(docs, ql, center, classification) {
         results.push({
             id: d._id, name, type: EntityType.SCHOOL,
             subtitle: sType || 'Catholic School', description: desc,
-            location: `${city}, ${state}`, distanceMiles, _score: score
+            location: city, distanceMiles, _score: score
         });
     }
     results.sort((a, b) => b._score - a._score);
@@ -1016,7 +1016,7 @@ function scoreBusinessData(docs, ql, center, classification) {
         results.push({
             id: d._id, name, type: EntityType.BUSINESS,
             subtitle: sub || cat, description: desc,
-            location: `${city}, ${state}`, distanceMiles, _score: score
+            location: city, distanceMiles, _score: score
         });
     }
     results.sort((a, b) => b._score - a._score);
