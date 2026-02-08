@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Ask Gabe — Nave</title>
+    <meta name="description" content="Ask Gabe, your expert Catholic AI assistant. Discover parishes, schools, pilgrimages, retreats, missionaries, vocations, businesses, and campus ministries.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" href="assets/favicon-16.png" sizes="16x16" type="image/png">
+    <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="icon" href="assets/favicon-adaptive.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <link rel="mask-icon" href="assets/favicon-adaptive.svg" color="#000000">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="theme-color" content="#0D0D10">
+    
+    <style>
+        /* Ask Gabe Page — same dark theme */
+        .ask-page { height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #0D0D10; }
+        .ask-wrapper { flex: 1; display: flex; flex-direction: column; margin-top: 57px; overflow: hidden; }
+        .ask-chat-area { flex: 1; overflow-y: auto; padding: 1.5rem; }
+
+        /* Welcome View */
+        .ask-welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3rem 1rem; min-height: 100%; }
+        .ask-welcome-icon { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, rgba(51, 102, 204, 0.2), rgba(51, 102, 204, 0.1)); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+        .ask-welcome-icon svg { display: block; }
+        .ask-welcome h2 { font-size: 1.75rem; font-weight: 700; color: #f5f5f5; margin-bottom: 0.5rem; }
+        .ask-welcome p { font-size: 1rem; color: #888; margin-bottom: 2rem; }
+
+        /* Suggestion chips */
+        .ask-suggestions-label { font-size: 0.8rem; color: #888; letter-spacing: 0.2px; margin-bottom: 0.75rem; text-align: left; width: 100%; max-width: 500px; }
+        .ask-suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; max-width: 500px; width: 100%; }
+        .ask-chip { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: rgba(51, 102, 204, 0.12); border: 1px solid rgba(51, 102, 204, 0.3); border-radius: 12px; color: #6699ff; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.2s, transform 0.1s; text-align: left; }
+        .ask-chip:hover { background: rgba(51, 102, 204, 0.22); transform: translateY(-1px); }
+        .ask-chip:active { transform: translateY(0); }
+        .ask-chip svg { flex-shrink: 0; width: 18px; height: 18px; }
+
+        /* Chat messages */
+        .ask-messages { display: flex; flex-direction: column; gap: 1rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        .ask-msg { display: flex; gap: 0.5rem; max-width: 85%; }
+        .ask-msg-user { align-self: flex-end; flex-direction: row-reverse; }
+        .ask-msg-assistant { align-self: flex-start; }
+        .ask-msg-avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(51, 102, 204, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .ask-msg-avatar svg { width: 16px; height: 16px; }
+        .ask-msg-content { display: flex; flex-direction: column; gap: 0.25rem; }
+        .ask-msg-label { font-size: 0.75rem; font-weight: 500; color: #888; display: flex; align-items: center; gap: 0.35rem; }
+        .ask-msg-bubble { padding: 0.75rem 1rem; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; }
+        .ask-msg-user .ask-msg-bubble { background: #3366CC; color: #fff; border-bottom-right-radius: 4px; }
+        .ask-msg-assistant .ask-msg-bubble { background: #1e1e1e; color: #f5f5f5; border-bottom-left-radius: 4px; }
+
+        /* Suggestion cards */
+        .ask-suggestion-cards { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .ask-suggestion-card { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(51, 102, 204, 0.12); border: 1px solid rgba(51, 102, 204, 0.3); border-radius: 12px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+        .ask-suggestion-card:hover { background: rgba(51, 102, 204, 0.22); transform: translateY(-1px); }
+        .ask-suggestion-card-icon { width: 28px; height: 28px; border-radius: 6px; background: #3366CC; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+        .ask-suggestion-card-info { display: flex; flex-direction: column; }
+        .ask-suggestion-card-name { font-size: 0.85rem; font-weight: 600; color: #f5f5f5; line-height: 1.2; }
+        .ask-suggestion-card-type { font-size: 0.72rem; color: #888; }
+
+        /* Rainbow event cards */
+        .ask-event-cards { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .ask-event-card { display: flex; flex-direction: column; gap: 6px; padding: 12px; min-width: 150px; max-width: 200px; background: #1a1a1a; border-radius: 12px; border: 2.5px solid transparent; background-clip: padding-box; position: relative; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .ask-event-card::before { content: ''; position: absolute; inset: -2.5px; border-radius: 14px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
+        .ask-event-card:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .ask-event-card-title { font-size: 0.85rem; font-weight: 600; color: #f5f5f5; line-height: 1.3; }
+        .ask-event-card-meta { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; color: #888; }
+        .ask-event-card-meta svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+        /* Typing indicator */
+        .ask-typing { display: flex; align-items: center; gap: 0.5rem; align-self: flex-start; }
+        .ask-typing-dots { display: flex; gap: 4px; padding: 0.75rem 1rem; background: #1e1e1e; border-radius: 18px; border-bottom-left-radius: 4px; }
+        .ask-typing-dots span { width: 8px; height: 8px; border-radius: 50%; background: #666; animation: askDot 1.2s infinite; }
+        .ask-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .ask-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes askDot { 0%, 60%, 100% { opacity: 0.4; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1.2); } }
+
+        /* Input area */
+        .ask-input-area { background: #141414; border-top: 1px solid #2a2a2a; padding: 0.75rem 1rem; }
+        .ask-input-row { display: flex; align-items: center; gap: 0.75rem; max-width: 800px; margin: 0 auto; }
+        .ask-input { flex: 1; padding: 0.75rem 1rem; border-radius: 24px; border: 1px solid #2a2a2a; background: #1a1a1a; font-size: 0.95rem; font-family: inherit; color: #f5f5f5; outline: none; }
+        .ask-input::placeholder { color: #666; }
+        .ask-input:focus { box-shadow: 0 0 0 2px rgba(51, 102, 204, 0.3); }
+        .ask-send-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; padding: 0; }
+        .ask-send-btn:disabled { opacity: 0.3; cursor: default; }
+        .ask-send-btn svg { width: 36px; height: 36px; }
+
+        /* Error banner */
+        .ask-error-banner { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.25); border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .ask-error-banner span { font-size: 0.85rem; color: #FF3B30; }
+        .ask-error-banner button { margin-left: auto; background: none; border: none; color: #6699ff; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+
+        /* New chat button */
+        .ask-new-chat-btn { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 8px; border: none; background: rgba(51, 102, 204, 0.15); color: #6699ff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10; }
+        .ask-new-chat-btn:hover { background: rgba(51, 102, 204, 0.25); }
+
+        /* ── Mobile ─────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .ask-wrapper { margin-top: 52px; }
+            .ask-welcome { padding: 2rem 1rem; }
+            .ask-welcome-icon { width: 72px; height: 72px; margin-bottom: 1rem; }
+            .ask-welcome-icon svg { width: 36px; height: 36px; }
+            .ask-welcome h2 { font-size: 1.4rem; }
+            .ask-welcome p { font-size: 0.9rem; margin-bottom: 1.5rem; }
+            .ask-suggestions { grid-template-columns: 1fr; gap: 0.5rem; }
+            .ask-chip { padding: 0.85rem 1rem; font-size: 0.88rem; border-radius: 14px; }
+            .ask-chip svg { width: 20px; height: 20px; }
+            .ask-chat-area { padding: 1rem; }
+            .ask-msg { max-width: 92%; }
+            .ask-msg-bubble { padding: 0.65rem 0.85rem; font-size: 0.92rem; border-radius: 16px; }
+            .ask-msg-user .ask-msg-bubble { border-bottom-right-radius: 4px; }
+            .ask-msg-assistant .ask-msg-bubble { border-bottom-left-radius: 4px; }
+            .ask-msg-avatar { width: 28px; height: 28px; }
+            .ask-suggestion-cards { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
+            .ask-suggestion-cards::-webkit-scrollbar { display: none; }
+            .ask-suggestion-card { min-width: 180px; flex-shrink: 0; padding: 0.6rem 0.85rem; }
+            .ask-event-cards { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
+            .ask-event-cards::-webkit-scrollbar { display: none; }
+            .ask-event-card { min-width: 160px; flex-shrink: 0; }
+            .ask-input-area { padding: 0.6rem 0.75rem; padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px)); }
+            .ask-input-row { gap: 0.5rem; }
+            .ask-input { padding: 0.7rem 0.85rem; font-size: 1rem; border-radius: 22px; }
+            .ask-send-btn { width: 36px; height: 36px; }
+            .ask-send-btn svg { width: 32px; height: 32px; }
+            .ask-new-chat-btn { top: 8px; right: 8px; width: 34px; height: 34px; }
+        }
+        @media (max-width: 380px) {
+            .ask-welcome h2 { font-size: 1.25rem; }
+            .ask-chip { padding: 0.75rem 0.85rem; font-size: 0.84rem; }
+            .ask-msg-bubble { font-size: 0.88rem; }
+        }
+
+        /* ═══ Entity Detail Modal ═══ */
+        .entity-detail-overlay { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-end; transition: opacity 0.3s; }
+        .entity-detail-overlay.active { display: flex; }
+        .entity-detail-panel { background: #141416; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; overflow-y: auto; animation: slideUpDetail 0.35s ease-out; overscroll-behavior: contain; }
+        @keyframes slideUpDetail { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .entity-detail-handle { display: flex; justify-content: center; padding: 10px 0 4px; cursor: grab; }
+        .entity-detail-handle span { width: 36px; height: 4px; border-radius: 2px; background: #444; }
+        .entity-detail-header { display: flex; align-items: flex-start; gap: 14px; padding: 8px 20px 16px; }
+        .entity-detail-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; background: #1e1e1e; }
+        .entity-detail-header-info { flex: 1; min-width: 0; }
+        .entity-detail-name { font-size: 1.25rem; font-weight: 700; color: #f5f5f5; line-height: 1.3; margin: 0 0 2px; }
+        .entity-detail-type-badge { display: inline-block; font-size: 0.72rem; font-weight: 600; color: #999; background: #1e1e1e; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .entity-detail-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: #2a2a2a; color: #999; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: background 0.2s; }
+        .entity-detail-close:hover { background: #3a3a3a; }
+        .entity-detail-card { margin: 0 16px 16px; padding: 16px; border-radius: 16px; background: #1a1a1a; position: relative; }
+        .entity-detail-card.rainbow { border: 2px solid transparent; background-clip: padding-box; }
+        .entity-detail-card.rainbow::before { content: ''; position: absolute; inset: -2px; border-radius: 18px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
+        .entity-detail-location { display: flex; align-items: center; gap: 6px; color: #999; font-size: 0.88rem; margin-bottom: 12px; }
+        .entity-detail-location svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .entity-detail-description { font-size: 0.9rem; line-height: 1.6; color: #ccc; margin-bottom: 12px; }
+        .entity-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .entity-detail-action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid #333; background: #1e1e1e; color: #6699ff; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s, transform 0.1s; }
+        .entity-detail-action-btn:hover { background: #252525; transform: translateY(-1px); }
+        .entity-detail-action-btn svg { width: 14px; height: 14px; }
+        .entity-detail-section-title { font-size: 0.75rem; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 20px 6px; }
+        .entity-detail-schedule { margin: 0 16px 8px; padding: 12px 14px; background: #1a1a1a; border-radius: 12px; }
+        .entity-detail-schedule-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: #aaa; padding: 3px 0; }
+        .entity-detail-schedule-row .day { color: #ccc; font-weight: 500; }
+        .entity-detail-schedule-row .times { text-align: right; color: #999; }
+        .entity-detail-events { margin: 0 16px 12px; }
+        .entity-detail-event-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #1a1a1a; border-radius: 12px; margin-bottom: 6px; position: relative; border: 1.5px solid transparent; }
+        .entity-detail-event-item::before { content: ''; position: absolute; inset: -1.5px; border-radius: 14px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
+        .entity-detail-event-date { width: 44px; text-align: center; flex-shrink: 0; }
+        .entity-detail-event-date .month { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #EF4444; }
+        .entity-detail-event-date .day-num { font-size: 1.1rem; font-weight: 700; color: #f5f5f5; }
+        .entity-detail-event-info { flex: 1; }
+        .entity-detail-event-title { font-size: 0.85rem; font-weight: 600; color: #f5f5f5; }
+        .entity-detail-event-time { font-size: 0.78rem; color: #888; margin-top: 2px; }
+        .entity-detail-programs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 16px 16px; }
+        .entity-detail-program-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 8px; color: #22C55E; font-size: 0.75rem; font-weight: 600; }
+        .entity-detail-contact { margin: 0 16px 16px; padding: 12px 14px; background: #1a1a1a; border-radius: 12px; }
+        .entity-detail-contact-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.85rem; }
+        .entity-detail-contact-row svg { width: 14px; height: 14px; color: #666; flex-shrink: 0; }
+        .entity-detail-contact-row a { color: #6699ff; text-decoration: none; }
+        .entity-detail-contact-row span { color: #ccc; }
+        .entity-detail-footer { padding: 12px 16px 24px; display: flex; gap: 8px; }
+        .entity-detail-footer-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s, transform 0.1s; }
+        .entity-detail-footer-btn:hover { transform: translateY(-1px); }
+        .entity-detail-footer-btn.primary { background: #3366CC; color: #fff; }
+        .entity-detail-footer-btn.secondary { background: #1e1e1e; border: 1px solid #333; color: #ccc; }
+        .entity-detail-footer-btn svg { width: 16px; height: 16px; }
+        .entity-detail-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 12px; }
+        .entity-detail-spinner { width: 32px; height: 32px; border: 3px solid #333; border-top-color: #3366CC; border-radius: 50%; animation: detailSpin 0.8s linear infinite; }
+        @keyframes detailSpin { to { transform: rotate(360deg); } }
+        .entity-detail-loading-text { font-size: 0.85rem; color: #888; }
+        @media (min-width: 769px) { .entity-detail-overlay { align-items: center; } .entity-detail-panel { border-radius: 20px; max-height: 80vh; } }
+        @media (max-width: 768px) { .entity-detail-panel { max-height: 90vh; } .entity-detail-header { padding: 6px 16px 12px; } .entity-detail-name { font-size: 1.15rem; } .entity-detail-card { margin: 0 12px 12px; } .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } }
+    </style>
+</head>
+<body class="ask-page">
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="assets/whitenavelogo.png" alt="Nave" class="logo-img">
+                <span class="logo-text">Nave</span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="ask-gabe.html" class="nav-link nav-link-active">Ask</a>
+                <a href="map.html" class="nav-link">Map</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="/?waitlist=true" class="nav-cta">Try Nave Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="ask-wrapper" style="position:relative;">
+        <!-- New Chat button -->
+        <button class="ask-new-chat-btn" title="New conversation" onclick="startNewChat()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <line x1="12" y1="8" x2="12" y2="14"/>
+                <line x1="9" y1="11" x2="15" y2="11"/>
+            </svg>
+        </button>
+
+        <!-- Chat Area -->
+        <div class="ask-chat-area" id="ask-chat-area">
+            <!-- Welcome View -->
+            <div class="ask-welcome" id="ask-welcome">
+                <div class="ask-welcome-icon">
+                    <svg viewBox="0 0 120 120" width="48" height="48">
+                        <rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/>
+                        <text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">G</text>
+                    </svg>
+                </div>
+
+                <h2>Ask Gabe</h2>
+                <p>Expert-powered Catholic resource discovery</p>
+
+                <div class="ask-suggestions-label">Try asking about...</div>
+                <div class="ask-suggestions">
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                        Parishes near me
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+                        Classical Catholic schools
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.05 4.14l-.39-.39c-.39-.39-1.02-.39-1.41 0l-.01.01c-.39.39-.39 1.02 0 1.41l.39.39c.39.39 1.03.39 1.42 0l-.01-.01c.4-.39.4-1.02.01-1.41zM3.01 10.5H1.99c-.55 0-1.01.45-1.01 1s.45 1.01 1.01 1.01h1.02c.55 0 .99-.46.99-1.01s-.44-1-.99-1zm8.99-6.02V3.49c0-.55-.45-.99-1-1s-1 .44-1 .99V4.5c0 .55.44.99 1 .99s1-.44 1-.99zM19.76 4.14c-.39-.39-1.02-.39-1.41 0l-.39.39c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l.39-.39c.39-.39.39-1.02 0-1.41zM17.95 18.86l.39.39c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-.39-.39c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41zM21.01 10.5c-.55 0-1.01.45-1.01 1s.45 1.01 1.01 1.01H22c.55 0 1.01-.45 1.01-1.01-.01-.55-.46-1-1.01-1h-.99zM12 6.5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.01c0 .55.45 1 1 1s1-.45 1-1v-1.02c0-.55-.45-1-1-1s-1 .45-1 1v1.02zm-7.36-2.65c.39.39 1.02.39 1.41 0l.39-.39c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-.39.39c-.38.39-.38 1.02 0 1.41z"/></svg>
+                        Retreat centers
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                        Pilgrimage sites
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        Catholic businesses
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                        Missionaries near me
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                        Campus ministry
+                    </button>
+                    <button class="ask-chip" onclick="submitChip(this)">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.5 10.2c0 2.57-2.1 5.79-6.16 9.51L12 20l-.34-.31C7.6 15.99 5.5 12.77 5.5 10.2c0-3.84 2.82-6.7 6.5-6.7s6.5 2.85 6.5 6.7zM12 2C7.31 2 3.5 5.53 3.5 10.2c0 3.73 2.84 7.58 7.17 11.54l.01.01c.38.35.85.55 1.32.55.47 0 .94-.2 1.32-.55l.01-.01C17.66 17.78 20.5 13.93 20.5 10.2 20.5 5.53 16.69 2 12 2z"/></svg>
+                        Vocations &amp; religious life
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages container (hidden initially) -->
+            <div class="ask-messages" id="ask-messages" style="display:none;"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="ask-input-area">
+            <div class="ask-input-row">
+                <input type="text" class="ask-input" id="ask-input" placeholder="Ask about Catholic resources..." autocomplete="off">
+                <button class="ask-send-btn" id="ask-send-btn" disabled onclick="handleSend()">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <circle cx="24" cy="24" r="22" fill="#3366CC"/>
+                        <path d="M24 14l0 20M24 14l-7 7M24 14l7 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entity Detail Modal -->
+    <div class="entity-detail-overlay" id="entity-detail-overlay">
+        <div class="entity-detail-panel" id="entity-detail-panel">
+            <div class="entity-detail-handle"><span></span></div>
+            <div id="entity-detail-content"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ── Import Gabe service (orchestrator + 8 experts) ──
+        import { sendMessage as gabeSend, clearConversation, fetchEntityFullDetails } from './gabe-service.js';
+
+        // ── DOM ──
+        const input = document.getElementById('ask-input');
+        const sendBtn = document.getElementById('ask-send-btn');
+        const welcomeEl = document.getElementById('ask-welcome');
+        const messagesEl = document.getElementById('ask-messages');
+        const chatArea = document.getElementById('ask-chat-area');
+        let isSending = false;
+
+        input.addEventListener('input', () => { sendBtn.disabled = input.value.trim() === '' || isSending; });
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && input.value.trim() && !isSending) handleSend(); });
+
+        window.submitChip = function(el) { input.value = el.textContent.trim(); handleSend(); };
+        window.handleSend = handleSend;
+        window.startNewChat = startNewChat;
+
+        // ── Entity Detail Modal ──
+        const detailOverlay = document.getElementById('entity-detail-overlay');
+        const detailContent = document.getElementById('entity-detail-content');
+        const detailPanel = document.getElementById('entity-detail-panel');
+        window._entitySuggestions = [];
+
+        window.openEntityDetail = async function(index) {
+            const entity = window._entitySuggestions[index];
+            if (!entity) return;
+            detailOverlay.classList.add('active');
+            detailContent.innerHTML = `<div class="entity-detail-loading"><div class="entity-detail-spinner"></div><div class="entity-detail-loading-text">Loading details...</div></div>`;
+            try {
+                const details = await fetchEntityFullDetails(entity);
+                renderEntityDetail(details || {
+                    ...entity, address: '', city: '', state: '', diocese: '', phone: '', email: '', website: '',
+                    description: entity.description || '', category: entity.subtitle || '', coordinates: null,
+                    massSchedule: null, confessionSchedule: null, adorationSchedule: null,
+                    events: [], isUnlocked: false, hasOCIA: false, hasConfirmation: false, hasFirstEucharist: false, hasMarriagePrep: false,
+                    organization: '', memberCount: 0, features: []
+                });
+            } catch (err) {
+                console.error('Detail fetch error:', err);
+                renderEntityDetail({ ...entity, address: '', city: '', state: '', description: entity.description || '', coordinates: null, massSchedule: null, confessionSchedule: null, adorationSchedule: null, events: [], website: '', phone: '', email: '', diocese: '', category: entity.subtitle || '', isUnlocked: false, hasOCIA: false, hasConfirmation: false, hasFirstEucharist: false, hasMarriagePrep: false, organization: '', memberCount: 0, features: [] });
+            }
+        };
+
+        window.closeEntityDetail = function() { detailOverlay.classList.remove('active'); };
+        detailOverlay.addEventListener('click', (e) => { if (e.target === detailOverlay) window.closeEntityDetail(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && detailOverlay.classList.contains('active')) window.closeEntityDetail(); });
+
+        let detailTouchStartY = 0;
+        detailPanel.addEventListener('touchstart', (e) => { if (detailPanel.scrollTop <= 0) detailTouchStartY = e.touches[0].clientY; }, { passive: true });
+        detailPanel.addEventListener('touchmove', (e) => { if (detailPanel.scrollTop <= 0 && e.touches[0].clientY - detailTouchStartY > 80) window.closeEntityDetail(); }, { passive: true });
+
+        // ── Render entity detail (same as ask.html) ──
+        function renderEntityDetail(d) {
+            const icon = getEntityIcon(d.type);
+            const isChurch = d.type === 'Church';
+            const isOrganization = d.type === 'Organization';
+            const locationParts = [];
+            if (d.address) locationParts.push(d.address);
+            if (d.city && d.state) locationParts.push(`${d.city}, ${d.state}`);
+            else if (d.city) locationParts.push(d.city);
+            else if (d.state) locationParts.push(d.state);
+            const locationDisplay = locationParts.join(' · ');
+            let categoryDisplay = d.subtitle || d.category || d.type || '';
+            if (d.diocese && isChurch) categoryDisplay = d.diocese;
+            let mapsUrl = '';
+            if (d.coordinates && d.coordinates.lat && d.coordinates.lng) mapsUrl = `https://maps.google.com/maps?q=${d.coordinates.lat},${d.coordinates.lng}`;
+            else if (d.address && d.city) mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(d.address + ', ' + d.city + ' ' + d.state)}`;
+            let naveMapUrl = '';
+            if (d.coordinates && d.coordinates.lat && d.coordinates.lng) naveMapUrl = `map?lat=${d.coordinates.lat}&lng=${d.coordinates.lng}&z=15`;
+
+            let html = `<div class="entity-detail-header"><div class="entity-detail-icon">${icon}</div><div class="entity-detail-header-info"><div class="entity-detail-name">${escapeHTML(d.name)}</div><span class="entity-detail-type-badge">${escapeHTML(categoryDisplay)}</span></div><button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button></div>`;
+
+            const cardClass = isChurch && d.isUnlocked ? 'entity-detail-card rainbow' : 'entity-detail-card';
+            let cardHTML = '';
+            if (locationDisplay) cardHTML += `<div class="entity-detail-location"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg><span>${escapeHTML(locationDisplay)}</span></div>`;
+            if (d.description) { const desc = d.description.length > 300 ? d.description.substring(0, 297) + '...' : d.description; cardHTML += `<div class="entity-detail-description">${escapeHTML(desc)}</div>`; }
+
+            let actionsHTML = '';
+            if (mapsUrl) actionsHTML += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>Open in Maps</a>`;
+            if (d.website) { const url = d.website.startsWith('http') ? d.website : 'https://' + d.website; actionsHTML += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Visit Website</a>`; }
+            if (d.phone) actionsHTML += `<a href="tel:${d.phone}" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>Call</a>`;
+            if (actionsHTML) cardHTML += `<div class="entity-detail-actions">${actionsHTML}</div>`;
+            if (cardHTML) html += `<div class="${cardClass}">${cardHTML}</div>`;
+
+            if (isChurch && d.massSchedule && Object.keys(d.massSchedule).length > 0) { html += `<div class="entity-detail-section-title">Mass Schedule</div><div class="entity-detail-schedule">${renderScheduleRows(d.massSchedule)}</div>`; }
+            if (isChurch && d.confessionSchedule && Object.keys(d.confessionSchedule).length > 0) { html += `<div class="entity-detail-section-title">Confession</div><div class="entity-detail-schedule">${renderScheduleRows(d.confessionSchedule)}</div>`; }
+            if (isChurch && d.adorationSchedule && Object.keys(d.adorationSchedule).length > 0) { html += `<div class="entity-detail-section-title">Adoration</div><div class="entity-detail-schedule">${renderScheduleRows(d.adorationSchedule)}</div>`; }
+
+            if (isChurch && d.events && d.events.length > 0) {
+                html += `<div class="entity-detail-section-title">Upcoming Events</div><div class="entity-detail-events">`;
+                for (const evt of d.events) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; const evtDate = evt.date instanceof Date ? evt.date : new Date(evt.date); html += `<div class="entity-detail-event-item"><div class="entity-detail-event-date"><div class="month">${months[evtDate.getMonth()] || ''}</div><div class="day-num">${evtDate.getDate() || ''}</div></div><div class="entity-detail-event-info"><div class="entity-detail-event-title">${escapeHTML(evt.title)}</div>${evt.time ? `<div class="entity-detail-event-time">${escapeHTML(evt.time)}${evt.location ? ' · ' + escapeHTML(evt.location) : ''}</div>` : ''}</div></div>`; }
+                html += `</div>`;
+            }
+
+            if (isChurch && (d.hasOCIA || d.hasConfirmation || d.hasFirstEucharist || d.hasMarriagePrep)) {
+                html += `<div class="entity-detail-section-title">Programs & Sacraments</div><div class="entity-detail-programs">`;
+                if (d.hasOCIA) html += `<div class="entity-detail-program-pill">OCIA</div>`;
+                if (d.hasConfirmation) html += `<div class="entity-detail-program-pill">Confirmation</div>`;
+                if (d.hasFirstEucharist) html += `<div class="entity-detail-program-pill">First Eucharist</div>`;
+                if (d.hasMarriagePrep) html += `<div class="entity-detail-program-pill">Marriage Prep</div>`;
+                html += `</div>`;
+            }
+
+            if (d.phone || d.email || d.website) {
+                html += `<div class="entity-detail-section-title">Contact</div><div class="entity-detail-contact">`;
+                if (d.phone) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg><a href="tel:${d.phone}">${escapeHTML(d.phone)}</a></div>`;
+                if (d.email) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg><a href="mailto:${d.email}">${escapeHTML(d.email)}</a></div>`;
+                if (d.website) { const url = d.website.startsWith('http') ? d.website : 'https://' + d.website; const displayUrl = d.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg><a href="${url}" target="_blank" rel="noopener">${escapeHTML(displayUrl)}</a></div>`; }
+                html += `</div>`;
+            }
+
+            if (isOrganization && d.features && d.features.length > 0) { html += `<div class="entity-detail-section-title">Features</div><div class="entity-detail-programs">${d.features.map(f => `<div class="entity-detail-program-pill">${escapeHTML(f)}</div>`).join('')}</div>`; }
+
+            html += `<div class="entity-detail-footer">`;
+            if (naveMapUrl) html += `<a href="${naveMapUrl}" class="entity-detail-footer-btn primary" style="text-decoration:none;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>View on Map</a>`;
+            html += `<button class="entity-detail-footer-btn secondary" onclick="askGabeAbout('${escapeHTML(d.name).replace(/'/g, "\\'")}')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ask Gabe</button>`;
+            html += `</div>`;
+
+            detailContent.innerHTML = html;
+        }
+
+        function renderScheduleRows(schedule) {
+            const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Monday-Friday'];
+            let html = '';
+            for (const day of dayOrder) { if (schedule[day] && schedule[day].length > 0) { html += `<div class="entity-detail-schedule-row"><span class="day">${day}</span><span class="times">${schedule[day].map(t => escapeHTML(t)).join(', ')}</span></div>`; } }
+            return html;
+        }
+
+        window.askGabeAbout = function(name) { window.closeEntityDetail(); input.value = `Tell me more about ${name}`; handleSend(); };
+
+        // ── Send message ──
+        async function handleSend() {
+            const text = input.value.trim();
+            if (!text || isSending) return;
+            welcomeEl.style.display = 'none';
+            messagesEl.style.display = 'flex';
+            addMessage(text, 'user');
+            input.value = '';
+            sendBtn.disabled = true;
+            isSending = true;
+            const typingEl = showTyping();
+
+            try {
+                const result = await gabeSend(text);
+                typingEl.remove();
+                addMessage(result.text, 'assistant', result.suggestions, result.events);
+            } catch (err) {
+                typingEl.remove();
+                console.error('Gabe error:', err);
+                if (err.message.startsWith('API_ERROR_429')) addErrorBanner('Rate limited — please wait a moment and try again.');
+                else addErrorBanner('Something went wrong. Please try again.');
+            }
+
+            isSending = false;
+            sendBtn.disabled = input.value.trim() === '';
+            scrollToBottom();
+        }
+
+        // ── UI helpers ──
+        function addMessage(text, role, suggestions, events) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `ask-msg ask-msg-${role}`;
+
+            if (role === 'assistant') {
+                let suggestionsHTML = '';
+                if (suggestions && suggestions.length > 0) {
+                    const startIdx = window._entitySuggestions.length;
+                    suggestions.forEach(s => window._entitySuggestions.push(s));
+                    const cards = suggestions.map((s, i) => {
+                        const typeLabel = s.subtitle || s.type || '';
+                        const icon = getEntityIcon(s.type);
+                        const idx = startIdx + i;
+                        return `<div class="ask-suggestion-card" onclick="window.openEntityDetail(${idx})"><div class="ask-suggestion-card-icon">${icon}</div><div class="ask-suggestion-card-info"><div class="ask-suggestion-card-name">${escapeHTML(s.name)}</div><div class="ask-suggestion-card-type">${escapeHTML(typeLabel)}${s.location ? ' · ' + escapeHTML(s.location) : ''}</div></div></div>`;
+                    }).join('');
+                    suggestionsHTML = `<div class="ask-suggestion-cards">${cards}</div>`;
+                }
+
+                let eventsHTML = '';
+                if (events && events.length > 0) {
+                    const eventCards = events.map(e => {
+                        const parishLabel = e.parishName ? ` · ${escapeHTML(e.parishName)}` : '';
+                        return `<div class="ask-event-card" onclick="window.submitChip({textContent:'Tell me more about ${escapeHTML(e.title).replace(/'/g, "\\'")}'})"><div class="ask-event-card-title">${escapeHTML(e.title)}</div><div class="ask-event-card-meta"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>${escapeHTML(e.date)}</div>${e.time ? `<div class="ask-event-card-meta"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>${escapeHTML(e.time)}${parishLabel}</div>` : ''}</div>`;
+                    }).join('');
+                    eventsHTML = `<div class="ask-event-cards">${eventCards}</div>`;
+                }
+
+                msgDiv.innerHTML = `<div class="ask-msg-avatar"><svg viewBox="0 0 120 120"><rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/><text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">G</text></svg></div><div class="ask-msg-content"><div class="ask-msg-label">Gabe</div><div class="ask-msg-bubble">${escapeHTML(text)}</div>${suggestionsHTML}${eventsHTML}</div>`;
+            } else {
+                msgDiv.innerHTML = `<div class="ask-msg-content"><div class="ask-msg-bubble">${escapeHTML(text)}</div></div>`;
+            }
+            messagesEl.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function addErrorBanner(message) {
+            const banner = document.createElement('div');
+            banner.className = 'ask-error-banner';
+            banner.innerHTML = `<span>${message}</span>`;
+            messagesEl.appendChild(banner);
+            scrollToBottom();
+        }
+
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'ask-typing';
+            typingDiv.innerHTML = `<div class="ask-msg-avatar"><svg viewBox="0 0 120 120"><rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/><text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">G</text></svg></div><div class="ask-typing-dots"><span></span><span></span><span></span></div>`;
+            messagesEl.appendChild(typingDiv);
+            scrollToBottom();
+            return typingDiv;
+        }
+
+        function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
+        function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+        function getEntityIcon(type) {
+            const icons = { 'Church': '⛪', 'Missionary': '✝️', 'Pilgrimage': '🗺️', 'Retreat': '🙏', 'School': '🎓', 'Vocation': '📿', 'Business': '🏪', 'Campus Ministry': '🎒', 'Organization': '🏛️' };
+            return icons[type] || '📍';
+        }
+
+        function startNewChat() { clearConversation(); messagesEl.innerHTML = ''; messagesEl.style.display = 'none'; welcomeEl.style.display = 'flex'; window._entitySuggestions = []; }
+    </script>
+
+    <!-- Waitlist Popup (30s) -->
+    <div id="waitlist-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);justify-content:center;align-items:center;">
+        <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:16px;padding:32px;max-width:400px;width:90%;text-align:center;position:relative;">
+            <button onclick="closeWaitlistPopup()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#707070;font-size:1.5rem;cursor:pointer;line-height:1;">&times;</button>
+            <div style="width:56px;height:56px;border-radius:50%;background:rgba(212,175,55,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <h3 style="color:#f5f5f5;font-size:1.25rem;margin:0 0 8px;">Join the Waitlist</h3>
+            <p style="color:#888;font-size:0.9rem;margin:0 0 20px;">Love what you see? Be the first to know when Nave launches on iOS.</p>
+            <form id="waitlist-popup-form">
+                <input type="email" id="waitlist-popup-email" placeholder="you@email.com" required style="width:100%;padding:12px 16px;font-size:1rem;border:1px solid #333;border-radius:10px;background:#111;color:#f5f5f5;margin-bottom:12px;box-sizing:border-box;">
+                <button type="submit" class="waitlist-popup-btn" style="width:100%;padding:12px;font-size:1rem;font-weight:600;color:#000;background:#fff;border:none;border-radius:10px;cursor:pointer;">Join the Waitlist</button>
+            </form>
+            <div id="waitlist-popup-success" style="display:none;padding:20px 0;">
+                <svg width="48" height="48" viewBox="0 0 20 20" fill="none" style="margin:0 auto 12px;display:block;"><path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z" fill="#d4af37"/></svg>
+                <p style="color:#f5f5f5;font-size:1rem;">You're on the list! We'll be in touch.</p>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        if (!sessionStorage.getItem('nave_gabe_waitlist_shown')) {
+            setTimeout(() => {
+                if (sessionStorage.getItem('nave_gabe_waitlist_shown')) return;
+                document.getElementById('waitlist-overlay').style.display = 'flex';
+                sessionStorage.setItem('nave_gabe_waitlist_shown', '1');
+            }, 30000);
+        }
+        window.closeWaitlistPopup = () => { document.getElementById('waitlist-overlay').style.display = 'none'; };
+        document.getElementById('waitlist-overlay')?.addEventListener('click', (e) => { if (e.target.id === 'waitlist-overlay') window.closeWaitlistPopup(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.closeWaitlistPopup(); });
+        document.getElementById('waitlist-popup-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('waitlist-popup-email').value.trim();
+            if (!email) return;
+            const btn = e.target.querySelector('.waitlist-popup-btn');
+            btn.disabled = true; btn.textContent = 'Submitting...';
+            try {
+                await addDoc(collection(db, 'waitlist'), { email, createdAt: serverTimestamp(), source: 'gabe_30s' });
+                document.getElementById('waitlist-popup-form').style.display = 'none';
+                document.getElementById('waitlist-popup-success').style.display = 'block';
+                setTimeout(() => window.closeWaitlistPopup(), 2000);
+            } catch (err) { console.error('Waitlist error:', err); btn.textContent = 'Error - Try Again'; btn.disabled = false; }
+        });
+    </script>
+</body>
+</html>
