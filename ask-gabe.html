@@ -87,13 +87,21 @@
 
         /* Input area */
         .ask-input-area { background: #141414; border-top: 1px solid #2a2a2a; padding: 0.75rem 1rem; }
-        .ask-input-row { display: flex; align-items: center; gap: 0.75rem; max-width: 800px; margin: 0 auto; }
-        .ask-input { flex: 1; padding: 0.75rem 1rem; border-radius: 24px; border: 1px solid #2a2a2a; background: #1a1a1a; font-size: 0.95rem; font-family: inherit; color: #f5f5f5; outline: none; }
+        .ask-input-container { max-width: 800px; margin: 0 auto; }
+        .ask-input-card { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 24px; padding: 0; overflow: hidden; transition: box-shadow 0.2s; }
+        .ask-input-card:focus-within { box-shadow: 0 0 0 2px rgba(51, 102, 204, 0.3); }
+        .ask-input { width: 100%; padding: 0.75rem 1rem; border-radius: 0; border: none; background: transparent; font-size: 0.95rem; font-family: inherit; color: #f5f5f5; outline: none; box-sizing: border-box; }
         .ask-input::placeholder { color: #666; }
-        .ask-input:focus { box-shadow: 0 0 0 2px rgba(51, 102, 204, 0.3); }
-        .ask-send-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; padding: 0; }
+        .ask-input:focus { box-shadow: none; }
+        .ask-input-bottom { display: flex; align-items: center; padding: 0 0.5rem 0.5rem; }
+        .ask-tool-btns { display: flex; gap: 2px; }
+        .ask-tool-btn { width: 34px; height: 34px; border-radius: 50%; border: none; background: none; color: #888; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s; }
+        .ask-tool-btn:hover { background: #2a2a2a; color: #ccc; }
+        .ask-tool-btn svg { width: 18px; height: 18px; }
+        .ask-send-btn { width: 34px; height: 34px; border-radius: 50%; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; padding: 0; margin-left: auto; }
         .ask-send-btn:disabled { opacity: 0.3; cursor: default; }
-        .ask-send-btn svg { width: 36px; height: 36px; }
+        .ask-send-btn svg { width: 30px; height: 30px; }
+        .ask-disclaimer { text-align: center; font-size: 0.72rem; color: #666; margin-top: 6px; }
 
         /* Error banner */
         .ask-error-banner { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.25); border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
@@ -146,11 +154,14 @@
             .ask-event-card { min-width: 140px; max-width: 170px; flex-shrink: 0; padding: 10px; }
 
             /* Input area — safe-area aware */
-            .ask-input-area { padding: 0.5rem 0.75rem; padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)); }
-            .ask-input-row { gap: 0.5rem; }
-            .ask-input { padding: 0.65rem 0.85rem; font-size: 0.95rem; border-radius: 22px; }
-            .ask-send-btn { width: 36px; height: 36px; }
-            .ask-send-btn svg { width: 32px; height: 32px; }
+            .ask-input-area { padding: 0.4rem 0.6rem; padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px)); }
+            .ask-input { padding: 0.6rem 0.85rem; font-size: 0.95rem; }
+            .ask-input-card { border-radius: 22px; }
+            .ask-tool-btn { width: 32px; height: 32px; }
+            .ask-tool-btn svg { width: 17px; height: 17px; }
+            .ask-send-btn { width: 32px; height: 32px; }
+            .ask-send-btn svg { width: 28px; height: 28px; }
+            .ask-disclaimer { font-size: 0.68rem; margin-top: 5px; }
             .ask-new-chat-btn { top: 8px; right: 8px; width: 34px; height: 34px; }
         }
         @media (max-width: 380px) {
@@ -309,14 +320,37 @@
 
         <!-- Input Area -->
         <div class="ask-input-area">
-            <div class="ask-input-row">
-                <input type="text" class="ask-input" id="ask-input" placeholder="Ask about Catholic resources..." autocomplete="off">
-                <button class="ask-send-btn" id="ask-send-btn" disabled onclick="handleSend()">
-                    <svg viewBox="0 0 48 48" fill="none">
-                        <circle cx="24" cy="24" r="22" fill="#3366CC"/>
-                        <path d="M24 14l0 20M24 14l-7 7M24 14l7 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
+            <div class="ask-input-container">
+                <div class="ask-input-card">
+                    <input type="text" class="ask-input" id="ask-input" placeholder="Ask anything" autocomplete="off">
+                    <div class="ask-input-bottom">
+                        <div class="ask-tool-btns">
+                            <!-- Attach -->
+                            <button class="ask-tool-btn" title="Attach" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                            </button>
+                            <!-- Location -->
+                            <button class="ask-tool-btn" title="Use location" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z"/></svg>
+                            </button>
+                            <!-- Map -->
+                            <button class="ask-tool-btn" title="Explore map" type="button" onclick="window.location.href='map.html'">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                            </button>
+                            <!-- Browse -->
+                            <button class="ask-tool-btn" title="Browse keys" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            </button>
+                        </div>
+                        <button class="ask-send-btn" id="ask-send-btn" disabled onclick="handleSend()">
+                            <svg viewBox="0 0 48 48" fill="none">
+                                <circle cx="24" cy="24" r="22" fill="#3366CC"/>
+                                <path d="M24 14l0 20M24 14l-7 7M24 14l7 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="ask-disclaimer">Gabe can make mistakes. Check important info.</div>
             </div>
         </div>
     </div>
