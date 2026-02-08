@@ -107,14 +107,16 @@
         /* ── Mobile ─────────────────────────────────────── */
         @media (max-width: 768px) {
             .ask-wrapper { margin-top: 52px; }
-            .ask-welcome { padding: 2rem 1rem; }
-            .ask-welcome-icon { width: 72px; height: 72px; margin-bottom: 1rem; }
-            .ask-welcome-icon svg { width: 36px; height: 36px; }
-            .ask-welcome h2 { font-size: 1.4rem; }
-            .ask-welcome p { font-size: 0.9rem; margin-bottom: 1.5rem; }
+            .ask-welcome { padding: 1.5rem 1rem 1rem; min-height: auto; justify-content: flex-start; }
+            .ask-welcome-icon { width: 64px; height: 64px; margin-bottom: 0.75rem; }
+            .ask-welcome-icon svg { width: 32px; height: 32px; }
+            .ask-welcome h2 { font-size: 1.3rem; margin-bottom: 0.25rem; }
+            .ask-welcome p { font-size: 0.85rem; margin-bottom: 1rem; }
+            .ask-suggestions-label { margin-bottom: 0.5rem; }
             .ask-suggestions { grid-template-columns: 1fr; gap: 0.5rem; }
-            .ask-chip { padding: 0.85rem 1rem; font-size: 0.88rem; border-radius: 14px; }
+            .ask-chip { padding: 0.75rem 1rem; font-size: 0.88rem; border-radius: 14px; }
             .ask-chip svg { width: 20px; height: 20px; }
+            .ask-chip-extra { display: none; }
             .ask-chat-area { padding: 1rem; }
             .ask-msg { max-width: 92%; }
             .ask-msg-bubble { padding: 0.65rem 0.85rem; font-size: 0.92rem; border-radius: 16px; }
@@ -207,15 +209,19 @@
                 <img src="assets/whitenavelogo.png" alt="Nave" class="logo-img">
                 <span class="logo-text">Nave</span>
             </a>
-            <div class="nav-links">
+            <div class="nav-links" id="nav-links">
                 <a href="/" class="nav-link">Home</a>
                 <a href="ask-gabe.html" class="nav-link nav-link-active">Ask</a>
                 <a href="map.html" class="nav-link">Map</a>
                 <a href="about.html" class="nav-link">About</a>
                 <a href="/?waitlist=true" class="nav-cta">Try Nave Free</a>
             </div>
+            <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" onclick="document.getElementById('nav-links').classList.toggle('open');document.getElementById('nav-backdrop').classList.toggle('visible');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
         </div>
     </nav>
+    <div class="nav-backdrop" id="nav-backdrop" onclick="document.getElementById('nav-links').classList.remove('open');this.classList.remove('visible');"></div>
 
     <div class="ask-wrapper" style="position:relative;">
         <!-- New Chat button -->
@@ -259,19 +265,19 @@
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
                         Pilgrimage sites
                     </button>
-                    <button class="ask-chip" onclick="submitChip(this)">
+                    <button class="ask-chip ask-chip-extra" onclick="submitChip(this)">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
                         Catholic businesses
                     </button>
-                    <button class="ask-chip" onclick="submitChip(this)">
+                    <button class="ask-chip ask-chip-extra" onclick="submitChip(this)">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                         Missionaries near me
                     </button>
-                    <button class="ask-chip" onclick="submitChip(this)">
+                    <button class="ask-chip ask-chip-extra" onclick="submitChip(this)">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
                         Campus ministry
                     </button>
-                    <button class="ask-chip" onclick="submitChip(this)">
+                    <button class="ask-chip ask-chip-extra" onclick="submitChip(this)">
                         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.5 10.2c0 2.57-2.1 5.79-6.16 9.51L12 20l-.34-.31C7.6 15.99 5.5 12.77 5.5 10.2c0-3.84 2.82-6.7 6.5-6.7s6.5 2.85 6.5 6.7zM12 2C7.31 2 3.5 5.53 3.5 10.2c0 3.73 2.84 7.58 7.17 11.54l.01.01c.38.35.85.55 1.32.55.47 0 .94-.2 1.32-.55l.01-.01C17.66 17.78 20.5 13.93 20.5 10.2 20.5 5.53 16.69 2 12 2z"/></svg>
                         Vocations &amp; religious life
                     </button>

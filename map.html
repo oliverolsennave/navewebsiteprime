@@ -349,49 +349,47 @@
             height: 21px;
         }
 
-        /* Green pulse waves — 5 staggered rings */
+        /* Green pulse waves — 2 gentle staggered rings */
         .user-location-pulse,
-        .user-location-pulse2,
-        .user-location-pulse3,
-        .user-location-pulse4 {
+        .user-location-pulse2 {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
             width: 17px;
             height: 17px;
             border-radius: 50%;
-            background: rgba(0, 220, 80, 0.4);
+            background: rgba(0, 220, 80, 0.35);
+            transform: translate(-50%, -50%) scale(1);
+            will-change: transform, opacity;
         }
-        .user-location-pulse  { animation: locationPulse 3s ease-out infinite 0s; }
-        .user-location-pulse2 { animation: locationPulse 3s ease-out infinite 0.75s; }
-        .user-location-pulse3 { animation: locationPulse 3s ease-out infinite 1.5s; }
-        .user-location-pulse4 { animation: locationPulse 3s ease-out infinite 2.25s; }
+        /* Hidden on mobile — only show on desktop */
+        .user-location-pulse3,
+        .user-location-pulse4 { display: none; }
+        .user-location-pulse  { animation: locationPulse 4s ease-out infinite 0s; }
+        .user-location-pulse2 { animation: locationPulse 4s ease-out infinite 2s; }
 
-        /* The dot itself — black fill, white outline, 20% larger */
+        /* The dot itself — black fill, white outline */
         .user-location-dot {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: #0a0a0a;
             border: 2.5px solid #ffffff;
-            box-shadow: 0 0 14px rgba(0, 220, 80, 0.7), 0 0 5px rgba(0, 220, 80, 0.5);
+            box-shadow: 0 0 8px rgba(0, 220, 80, 0.5);
             z-index: 2;
         }
 
         @keyframes locationPulse {
             0% {
-                width: 17px;
-                height: 17px;
-                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7;
             }
             100% {
-                width: 78px;
-                height: 78px;
+                transform: translate(-50%, -50%) scale(4.5);
                 opacity: 0;
             }
         }
@@ -916,15 +914,19 @@
                 <img src="assets/whitenavelogo.png" alt="Nave" class="logo-img">
                 <span class="logo-text">Nave</span>
             </a>
-            <div class="nav-links">
+            <div class="nav-links" id="nav-links">
                 <a href="/" class="nav-link">Home</a>
                 <a href="ask-gabe.html" class="nav-link">Ask</a>
                 <a href="map.html" class="nav-link nav-link-active">Map</a>
                 <a href="about.html" class="nav-link">About</a>
                 <a href="/?waitlist=true" class="nav-cta">Try Nave Free</a>
             </div>
+            <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" onclick="document.getElementById('nav-links').classList.toggle('open');document.getElementById('nav-backdrop').classList.toggle('visible');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
         </div>
     </nav>
+    <div class="nav-backdrop" id="nav-backdrop" onclick="document.getElementById('nav-links').classList.remove('open');this.classList.remove('visible');"></div>
 
     <!-- Map Container -->
     <div class="map-wrapper">
@@ -1377,6 +1379,51 @@
             // Show/hide backdrop on mobile
             if (backdrop) backdrop.classList.toggle('visible', !isCollapsed);
         };
+
+        // ── Auto-collapse legend on mobile ──
+        if (window.innerWidth <= 768) {
+            const legend = document.getElementById('map-legend');
+            const toggle = document.getElementById('legend-toggle');
+            legend.classList.add('collapsed');
+            toggle.classList.add('visible');
+        }
+
+        // ── Prevent dot shrinking during pinch-zoom on mobile ──
+        // Leaflet redraws circles during zoom which causes visual jitter on
+        // touch pinch. Disable continuous circle redraws during touch-zoom,
+        // only update after zoom ends.
+        if ('ontouchstart' in window) {
+            let isPinching = false;
+            const savedRadii = new Map();
+
+            map.on('zoomstart', () => {
+                isPinching = true;
+                // Freeze all circle marker radii
+                Object.values(layers).forEach(layerGroup => {
+                    layerGroup.eachLayer(marker => {
+                        if (marker instanceof L.CircleMarker && marker.setRadius) {
+                            savedRadii.set(marker, marker.getRadius());
+                        }
+                    });
+                });
+            });
+
+            map.on('zoomend', () => {
+                isPinching = false;
+                // Restore all radii (forces clean redraw at final zoom)
+                savedRadii.forEach((radius, marker) => {
+                    try { marker.setRadius(radius); } catch(e) {}
+                });
+                savedRadii.clear();
+            });
+
+            // Override the internal _updatePath to freeze during pinch
+            const origUpdateStyle = L.CircleMarker.prototype._updateStyle;
+            L.CircleMarker.prototype._updateStyle = function() {
+                if (isPinching) return;
+                origUpdateStyle.call(this);
+            };
+        }
 
         // Swipe-down to dismiss legend on mobile
         (function() {
