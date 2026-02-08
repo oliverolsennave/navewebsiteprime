@@ -551,7 +551,7 @@
                     eventsHTML = `<div class="ask-event-cards">${eventCards}</div>`;
                 }
 
-                msgDiv.innerHTML = `<div class="ask-msg-avatar"><svg viewBox="0 0 120 120"><rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/><text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text></svg></div><div class="ask-msg-content"><div class="ask-msg-label">Gabe</div><div class="ask-msg-bubble">${escapeHTML(text)}</div>${suggestionsHTML}${eventsHTML}</div>`;
+                msgDiv.innerHTML = `<div class="ask-msg-avatar"><svg viewBox="0 0 120 120"><rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/><text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text></svg></div><div class="ask-msg-content"><div class="ask-msg-label">Gabe</div><div class="ask-msg-bubble">${escapeHTMLWithBreaks(text)}</div>${suggestionsHTML}${eventsHTML}</div>`;
             } else {
                 msgDiv.innerHTML = `<div class="ask-msg-content"><div class="ask-msg-bubble">${escapeHTML(text)}</div></div>`;
             }
@@ -578,6 +578,7 @@
 
         function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
         function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+        function escapeHTMLWithBreaks(str) { return escapeHTML(str).replace(/\n/g, '<br>'); }
         function getEntityIcon(type) {
             const icons = { 'Church': '⛪', 'Missionary': '✝️', 'Pilgrimage': '🗺️', 'Retreat': '🙏', 'School': '🎓', 'Vocation': '📿', 'Business': '🏪', 'Campus Ministry': '🎒', 'Organization': '🏛️' };
             return icons[type] || '📍';
