@@ -1211,6 +1211,7 @@ input {
 .ask-gabriel {
     padding: var(--spacing-2xl) var(--spacing-md);
     background: linear-gradient(180deg, var(--color-bg) 0%, #0f0f12 100%);
+    overflow: visible;
 }
 
 .gabriel-container {
@@ -1283,12 +1284,22 @@ input {
     justify-content: center;
 }
 
-.gabriel-icon svg { display: block; }
+.gabriel-icon svg { display: block; position: relative; z-index: 1; }
 
 .gabriel-icon {
-    filter: drop-shadow(0 0 30px rgba(0, 122, 255, 0.5));
-    
-    
+    position: relative;
+    display: inline-flex;
+}
+
+.gabriel-icon::after {
+    content: '';
+    position: absolute;
+    inset: 15%;
+    border-radius: 22%;
+    background: rgba(0, 122, 255, 0.45);
+    filter: blur(28px);
+    z-index: 0;
+    pointer-events: none;
 }
 
 @media (max-width: 768px) {
@@ -1382,6 +1393,7 @@ input {
 .engage-section {
     padding: var(--spacing-2xl) var(--spacing-md);
     background: var(--color-bg-alt);
+    overflow: visible;
 }
 
 .engage-container {
@@ -1400,11 +1412,25 @@ input {
 }
 
 .engage-icon {
-    filter: drop-shadow(0 0 30px rgba(76, 139, 245, 0.4));
+    position: relative;
+    display: inline-flex;
+}
+
+.engage-icon::after {
+    content: '';
+    position: absolute;
+    inset: 15%;
+    border-radius: 22%;
+    background: rgba(76, 139, 245, 0.4);
+    filter: blur(28px);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .engage-icon svg {
     display: block;
+    position: relative;
+    z-index: 1;
 }
 
 .engage-badge {
