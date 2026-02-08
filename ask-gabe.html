@@ -29,7 +29,7 @@
         /* Ask Gabe Page — same dark theme */
         .ask-page { height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #0D0D10; }
         .ask-wrapper { flex: 1; display: flex; flex-direction: column; margin-top: 57px; overflow: hidden; }
-        .ask-chat-area { flex: 1; overflow-y: auto; padding: 1.5rem; }
+        .ask-chat-area { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 1.5rem; }
 
         /* Welcome View */
         .ask-welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3rem 1rem; min-height: 100%; }
@@ -53,9 +53,9 @@
         .ask-msg-assistant { align-self: flex-start; }
         .ask-msg-avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(51, 102, 204, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .ask-msg-avatar svg { width: 16px; height: 16px; }
-        .ask-msg-content { display: flex; flex-direction: column; gap: 0.25rem; }
+        .ask-msg-content { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
         .ask-msg-label { font-size: 0.75rem; font-weight: 500; color: #888; display: flex; align-items: center; gap: 0.35rem; }
-        .ask-msg-bubble { padding: 0.75rem 1rem; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; }
+        .ask-msg-bubble { padding: 0.75rem 1rem; border-radius: 18px; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word; }
         .ask-msg-user .ask-msg-bubble { background: #3366CC; color: #fff; border-bottom-right-radius: 4px; }
         .ask-msg-assistant .ask-msg-bubble { background: #1e1e1e; color: #f5f5f5; border-bottom-left-radius: 4px; }
 
@@ -64,9 +64,9 @@
         .ask-suggestion-card { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(51, 102, 204, 0.12); border: 1px solid rgba(51, 102, 204, 0.3); border-radius: 12px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
         .ask-suggestion-card:hover { background: rgba(51, 102, 204, 0.22); transform: translateY(-1px); }
         .ask-suggestion-card-icon { width: 28px; height: 28px; border-radius: 6px; background: #3366CC; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
-        .ask-suggestion-card-info { display: flex; flex-direction: column; }
-        .ask-suggestion-card-name { font-size: 0.85rem; font-weight: 600; color: #f5f5f5; line-height: 1.2; }
-        .ask-suggestion-card-type { font-size: 0.72rem; color: #888; }
+        .ask-suggestion-card-info { display: flex; flex-direction: column; min-width: 0; }
+        .ask-suggestion-card-name { font-size: 0.85rem; font-weight: 600; color: #f5f5f5; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ask-suggestion-card-type { font-size: 0.72rem; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* Rainbow event cards */
         .ask-event-cards { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
@@ -106,7 +106,8 @@
 
         /* ── Mobile ─────────────────────────────────────── */
         @media (max-width: 768px) {
-            .ask-wrapper { margin-top: 52px; }
+            .ask-page { height: 100vh; height: 100dvh; }
+            .ask-wrapper { margin-top: 52px; overflow: hidden; }
             .ask-welcome { padding: 1.5rem 1rem 1rem; min-height: auto; justify-content: flex-start; }
             .ask-welcome-icon { width: 64px; height: 64px; margin-bottom: 0.75rem; }
             .ask-welcome-icon svg { width: 32px; height: 32px; }
@@ -117,21 +118,37 @@
             .ask-chip { padding: 0.75rem 1rem; font-size: 0.88rem; border-radius: 14px; }
             .ask-chip svg { width: 20px; height: 20px; }
             .ask-chip-extra { display: none; }
-            .ask-chat-area { padding: 1rem; }
-            .ask-msg { max-width: 92%; }
-            .ask-msg-bubble { padding: 0.65rem 0.85rem; font-size: 0.92rem; border-radius: 16px; }
+
+            /* Chat area — prevent horizontal overflow */
+            .ask-chat-area { padding: 0.75rem; overflow-x: hidden; }
+            .ask-messages { gap: 0.75rem; width: 100%; }
+
+            /* Messages — full-width, no clipping */
+            .ask-msg { max-width: 88%; gap: 0.4rem; }
+            .ask-msg-avatar { width: 26px; height: 26px; flex-shrink: 0; }
+            .ask-msg-avatar svg { width: 13px; height: 13px; }
+            .ask-msg-content { min-width: 0; max-width: 100%; }
+            .ask-msg-bubble { padding: 0.6rem 0.8rem; font-size: 0.9rem; border-radius: 16px; word-break: break-word; }
             .ask-msg-user .ask-msg-bubble { border-bottom-right-radius: 4px; }
             .ask-msg-assistant .ask-msg-bubble { border-bottom-left-radius: 4px; }
-            .ask-msg-avatar { width: 28px; height: 28px; }
-            .ask-suggestion-cards { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
+            .ask-msg-label { font-size: 0.7rem; }
+
+            /* Suggestion cards — horizontal scroll, contained */
+            .ask-suggestion-cards { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; max-width: 100%; }
             .ask-suggestion-cards::-webkit-scrollbar { display: none; }
-            .ask-suggestion-card { min-width: 180px; flex-shrink: 0; padding: 0.6rem 0.85rem; }
-            .ask-event-cards { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; }
+            .ask-suggestion-card { min-width: 160px; max-width: 200px; flex-shrink: 0; padding: 0.5rem 0.7rem; }
+            .ask-suggestion-card-name { font-size: 0.8rem; }
+            .ask-suggestion-card-type { font-size: 0.68rem; }
+
+            /* Event cards — horizontal scroll */
+            .ask-event-cards { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scrollbar-width: none; max-width: 100%; }
             .ask-event-cards::-webkit-scrollbar { display: none; }
-            .ask-event-card { min-width: 160px; flex-shrink: 0; }
-            .ask-input-area { padding: 0.6rem 0.75rem; padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px)); }
+            .ask-event-card { min-width: 140px; max-width: 170px; flex-shrink: 0; padding: 10px; }
+
+            /* Input area — safe-area aware */
+            .ask-input-area { padding: 0.5rem 0.75rem; padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)); }
             .ask-input-row { gap: 0.5rem; }
-            .ask-input { padding: 0.7rem 0.85rem; font-size: 1rem; border-radius: 22px; }
+            .ask-input { padding: 0.65rem 0.85rem; font-size: 0.95rem; border-radius: 22px; }
             .ask-send-btn { width: 36px; height: 36px; }
             .ask-send-btn svg { width: 32px; height: 32px; }
             .ask-new-chat-btn { top: 8px; right: 8px; width: 34px; height: 34px; }
@@ -139,7 +156,9 @@
         @media (max-width: 380px) {
             .ask-welcome h2 { font-size: 1.25rem; }
             .ask-chip { padding: 0.75rem 0.85rem; font-size: 0.84rem; }
-            .ask-msg-bubble { font-size: 0.88rem; }
+            .ask-msg { max-width: 92%; }
+            .ask-msg-bubble { font-size: 0.86rem; padding: 0.55rem 0.75rem; }
+            .ask-suggestion-card { min-width: 145px; }
         }
 
         /* ═══ Entity Detail Modal ═══ */
