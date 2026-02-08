@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head><title>Delete Missionary — Jack Guideera</title></head>
+<body>
+<h2>Delete "Jack Guideera" from missionaries collection</h2>
+<p id="status">Searching...</p>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const app = initializeApp({
+    apiKey: "AIzaSyDMzrI35yZxIlUr-OJ56acE_bMnYnrHoEw",
+    authDomain: "navefirebase.firebaseapp.com",
+    projectId: "navefirebase",
+    storageBucket: "navefirebase.firebasestorage.app",
+    messagingSenderId: "701712826975",
+    appId: "1:701712826975:web:placeholder"
+});
+
+const db = getFirestore(app);
+const statusEl = document.getElementById('status');
+
+try {
+    const snap = await getDocs(collection(db, 'missionaries'));
+    let found = false;
+
+    for (const d of snap.docs) {
+        const data = d.data();
+        const name = (data.name || '').toLowerCase();
+        if (name.includes('jack') && name.includes('guideera')) {
+            statusEl.textContent = `Found: "${data.name}" (ID: ${d.id}). Deleting...`;
+            await deleteDoc(doc(db, 'missionaries', d.id));
+            statusEl.textContent = `✅ Deleted "${data.name}" (ID: ${d.id}) from missionaries collection.`;
+            statusEl.style.color = 'green';
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        statusEl.textContent = '⚠️ No missionary named "Jack Guideera" found in the collection.';
+        statusEl.style.color = 'orange';
+
+        // Show all missionaries so you can verify
+        const names = snap.docs.map(d => d.data().name || '(unnamed)');
+        const list = document.createElement('ul');
+        names.forEach(n => { const li = document.createElement('li'); li.textContent = n; list.appendChild(li); });
+        document.body.appendChild(document.createElement('h3')).textContent = 'All missionaries in collection:';
+        document.body.appendChild(list);
+    }
+} catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.style.color = 'red';
+    console.error(e);
+}
+</script>
+</body>
+</html>

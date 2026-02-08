@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head><title>Seed NaveIDPriests</title></head>
+<body>
+<h2>Seed NaveIDPriests Collection</h2>
+<p id="status">Running...</p>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const app = initializeApp({
+    apiKey: "AIzaSyDMzrI35yZxIlUr-OJ56acE_bMnYnrHoEw",
+    authDomain: "navefirebase.firebaseapp.com",
+    projectId: "navefirebase",
+    storageBucket: "navefirebase.firebasestorage.app",
+    messagingSenderId: "701712826975",
+    appId: "1:701712826975:web:placeholder"
+});
+
+const db = getFirestore(app);
+const statusEl = document.getElementById('status');
+
+try {
+    await setDoc(doc(db, 'NaveIDPriests', 'olsenoliver5@gmail.com'), {
+        email: 'olsenoliver5@gmail.com',
+        displayName: 'Oliver Olsen',
+        diocese: 'Diocese of Philadelphia',
+        status: 'active',
+        createdAt: serverTimestamp()
+    });
+    statusEl.textContent = 'Done! olsenoliver5@gmail.com added to NaveIDPriests collection.';
+    statusEl.style.color = 'green';
+} catch (e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.style.color = 'red';
+    console.error(e);
+}
+</script>
+</body>
+</html>
