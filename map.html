@@ -831,7 +831,7 @@
         /* ═══════════════════════════════════════════════════════
            Search Bar + Overlay (matches iOS CatholicSearchOverlay)
            ═══════════════════════════════════════════════════════ */
-        .map-search-bar { position: absolute; top: 12px; left: 16px; right: 16px; z-index: 1001; display: flex; align-items: center; gap: 10px; background: rgba(20,20,20,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid #2a2a2a; border-radius: 22px; padding: 10px 16px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4); max-width: 560px; }
+        .map-search-bar { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1001; display: flex; align-items: center; gap: 10px; background: rgba(20,20,20,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid #2a2a2a; border-radius: 22px; padding: 10px 16px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4); width: 100%; max-width: 560px; box-sizing: border-box; }
         .map-search-bar svg { flex-shrink: 0; color: #888; }
         .map-search-placeholder { flex: 1; overflow: hidden; white-space: nowrap; }
         .map-search-placeholder-inner { display: inline; position: relative; }
@@ -868,7 +868,7 @@
         .map-search-divider { height: 1px; background: #1e1e1e; margin: 0 16px; }
 
         @media (max-width: 768px) {
-            .map-search-bar { top: 8px; left: 8px; right: 8px; padding: 8px 14px; border-radius: 18px; }
+            .map-search-bar { top: 8px; left: 56px; right: 56px; transform: none; width: auto; max-width: none; padding: 8px 12px; border-radius: 16px; }
             .map-search-placeholder-static, .map-search-placeholder-word { font-size: 0.85rem; }
             .map-search-header { padding: 10px 12px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
             .map-search-input { font-size: 0.95rem; }
