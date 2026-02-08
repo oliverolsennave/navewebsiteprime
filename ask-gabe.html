@@ -59,6 +59,15 @@
         .ask-msg-user .ask-msg-bubble { background: #3366CC; color: #fff; border-bottom-right-radius: 4px; }
         .ask-msg-assistant .ask-msg-bubble { background: #1e1e1e; color: #f5f5f5; border-bottom-left-radius: 4px; }
 
+        /* Markdown rendering inside assistant bubbles */
+        .ask-msg-assistant .ask-msg-bubble strong { font-weight: 700; color: #fff; }
+        .ask-msg-assistant .ask-msg-bubble em { font-style: italic; color: #ccc; }
+        .ask-msg-assistant .ask-msg-bubble .gabe-section-header { display: block; font-weight: 700; font-size: 0.95em; color: #fff; margin-top: 0.8em; margin-bottom: 0.35em; }
+        .ask-msg-assistant .ask-msg-bubble .gabe-section-header:first-child { margin-top: 0.2em; }
+        .ask-msg-assistant .ask-msg-bubble .gabe-bullet { display: block; padding-left: 0.2em; margin-bottom: 0.45em; line-height: 1.5; }
+        .ask-msg-assistant .ask-msg-bubble .gabe-bullet strong { color: #fff; }
+        .ask-msg-assistant .ask-msg-bubble .gabe-bullet .gabe-desc { display: block; color: #bbb; font-size: 0.92em; margin-top: 0.1em; }
+
         /* Suggestion cards */
         .ask-suggestion-cards { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
         .ask-suggestion-card { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: rgba(51, 102, 204, 0.12); border: 1px solid rgba(51, 102, 204, 0.3); border-radius: 12px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
@@ -551,7 +560,7 @@
                     eventsHTML = `<div class="ask-event-cards">${eventCards}</div>`;
                 }
 
-                msgDiv.innerHTML = `<div class="ask-msg-avatar"><svg viewBox="0 0 120 120"><rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/><text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text></svg></div><div class="ask-msg-content"><div class="ask-msg-label">Gabe</div><div class="ask-msg-bubble">${escapeHTMLWithBreaks(text)}</div>${suggestionsHTML}${eventsHTML}</div>`;
+                msgDiv.innerHTML = `<div class="ask-msg-avatar"><svg viewBox="0 0 120 120"><rect x="10" y="10" width="100" height="100" rx="22" fill="#3366CC"/><text x="60" y="78" font-family="-apple-system, SF Pro, sans-serif" font-size="60" font-weight="600" fill="white" text-anchor="middle">?</text></svg></div><div class="ask-msg-content"><div class="ask-msg-label">Gabe</div><div class="ask-msg-bubble">${renderGabeMarkdown(text)}</div>${suggestionsHTML}${eventsHTML}</div>`;
             } else {
                 msgDiv.innerHTML = `<div class="ask-msg-content"><div class="ask-msg-bubble">${escapeHTML(text)}</div></div>`;
             }
@@ -579,6 +588,67 @@
         function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
         function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
         function escapeHTMLWithBreaks(str) { return escapeHTML(str).replace(/\n/g, '<br>'); }
+
+        // Lightweight markdown renderer for Gabe's responses
+        function renderGabeMarkdown(str) {
+            const lines = str.split('\n');
+            let html = '';
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmed = line.trim();
+                if (!trimmed) { html += '<br>'; continue; }
+
+                // Section header: "## Header" or emoji + bold header
+                const headerMatch = trimmed.match(/^#{1,3}\s+(.+)$/);
+                if (headerMatch) {
+                    html += `<span class="gabe-section-header">${renderInline(headerMatch[1])}</span>`;
+                    continue;
+                }
+
+                // Bullet point: "• text" or "- text"
+                const bulletMatch = trimmed.match(/^[•\-]\s+(.+)$/);
+                if (bulletMatch) {
+                    // Check if next line is a description (non-bullet, non-header, non-empty)
+                    let desc = '';
+                    if (i + 1 < lines.length) {
+                        const nextTrimmed = lines[i + 1].trim();
+                        if (nextTrimmed && !nextTrimmed.match(/^[•\-\d#]/) && !nextTrimmed.match(/^\d+\./)) {
+                            desc = `<span class="gabe-desc">${renderInline(nextTrimmed)}</span>`;
+                            i++; // skip the description line
+                        }
+                    }
+                    html += `<span class="gabe-bullet">• ${renderInline(bulletMatch[1])}${desc}</span>`;
+                    continue;
+                }
+
+                // Numbered item: "1. text"
+                const numMatch = trimmed.match(/^(\d+)\.\s+(.+)$/);
+                if (numMatch) {
+                    let desc = '';
+                    if (i + 1 < lines.length) {
+                        const nextTrimmed = lines[i + 1].trim();
+                        if (nextTrimmed && !nextTrimmed.match(/^[•\-\d#]/) && !nextTrimmed.match(/^\d+\./)) {
+                            desc = `<span class="gabe-desc">${renderInline(nextTrimmed)}</span>`;
+                            i++;
+                        }
+                    }
+                    html += `<span class="gabe-bullet">${numMatch[1]}. ${renderInline(numMatch[2])}${desc}</span>`;
+                    continue;
+                }
+
+                // Regular text
+                html += renderInline(trimmed) + '<br>';
+            }
+            return html;
+        }
+
+        // Render inline markdown: **bold** and *italic*
+        function renderInline(str) {
+            let s = escapeHTML(str);
+            s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            return s;
+        }
         function getEntityIcon(type) {
             const icons = { 'Church': '⛪', 'Missionary': '✝️', 'Pilgrimage': '🗺️', 'Retreat': '🙏', 'School': '🎓', 'Vocation': '📿', 'Business': '🏪', 'Campus Ministry': '🎒', 'Organization': '🏛️' };
             return icons[type] || '📍';
