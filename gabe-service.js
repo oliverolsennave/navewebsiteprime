@@ -1413,6 +1413,8 @@ function fixSpacing(text) {
     r = r.replace(/  /g, ' ');
     r = r.replace(/AM([A-Z])/g, 'AM $1');
     r = r.replace(/PM([A-Z])/g, 'PM $1');
+    // Force line breaks before numbered items (1. 2. 3.) if they're on the same line
+    r = r.replace(/([^\n])\s+(\d+\.\s)/g, '$1\n\n$2');
     return r;
 }
 
