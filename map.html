@@ -652,82 +652,82 @@
                 margin-top: 52px;
             }
 
-            /* Legend panel — bottom sheet on mobile */
+            /* Legend panel — compact floating card, top-right on mobile */
             .map-legend {
-                top: auto;
-                bottom: 0;
-                left: 0;
-                right: 0;
+                top: 8px;
+                right: 8px;
+                bottom: auto;
+                left: auto;
                 min-width: auto;
-                border-radius: 16px 16px 0 0;
-                padding: 12px 20px 24px;
-                max-height: 55vh;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+                width: auto;
+                border-radius: 12px;
+                padding: 10px 12px 10px;
+                max-height: none;
+                overflow-y: visible;
             }
 
             .map-legend.collapsed {
-                transform: translateY(100%);
+                transform: translateX(calc(100% + 12px));
+                opacity: 0;
             }
 
-            /* Drag handle — iOS-style pill at top of bottom sheet */
+            /* Hide drag handle on mobile — not needed for floating card */
             .legend-drag-handle {
-                display: flex;
-                justify-content: center;
-                padding: 4px 0 12px;
-                cursor: pointer;
+                display: none;
             }
 
-            .legend-drag-handle span {
-                display: block;
-                width: 36px;
-                height: 4px;
-                border-radius: 2px;
-                background: #555;
+            .legend-header {
+                margin-bottom: 8px;
             }
 
-            .legend-filter {
-                padding: 6px 0;
-                gap: 14px;
-                min-height: 44px; /* Apple HIG min touch target */
-            }
-
-            .filter-dot {
-                width: 16px;
-                height: 16px;
-            }
-
-            .filter-label {
-                font-size: 1rem;
-            }
-
-            .filter-count {
+            .legend-header h3 {
                 font-size: 0.85rem;
             }
 
-            /* Legend backdrop — semi-transparent overlay behind bottom sheet */
+            .legend-close {
+                font-size: 1rem;
+            }
+
+            .legend-filters {
+                gap: 4px;
+            }
+
+            .legend-filter {
+                padding: 3px 0;
+                gap: 8px;
+                min-height: auto;
+            }
+
+            .filter-dot {
+                width: 10px;
+                height: 10px;
+                border-width: 1.5px;
+            }
+
+            .filter-label {
+                font-size: 0.75rem;
+            }
+
+            .filter-count {
+                font-size: 0.65rem;
+            }
+
+            /* Legend backdrop — hide for floating card */
             .legend-backdrop {
-                display: none;
-                position: absolute;
-                inset: 0;
-                z-index: 999;
-                background: rgba(0, 0, 0, 0.4);
+                display: none !important;
             }
 
-            .legend-backdrop.visible {
-                display: block;
-            }
-
-            /* Legend toggle — clear of zoom controls, pushed right */
+            /* Legend toggle — top-right, next to where card appears */
             .legend-toggle {
-                top: 10px;
+                top: 8px;
+                bottom: auto;
                 left: auto;
-                right: 12px;
-                padding: 8px 12px;
-                font-size: 0.82rem;
-                min-height: 44px;
-                min-width: 44px;
+                right: 8px;
+                padding: 7px 10px;
+                font-size: 0.75rem;
+                min-height: 36px;
+                min-width: 36px;
+                border-radius: 10px;
             }
 
             /* Leaflet zoom controls — larger touch targets */
