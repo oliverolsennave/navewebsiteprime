@@ -829,6 +829,56 @@
         }
 
         /* ═══════════════════════════════════════════════════════
+           Search Bar + Overlay (matches iOS CatholicSearchOverlay)
+           ═══════════════════════════════════════════════════════ */
+        .map-search-bar { position: absolute; top: 12px; left: 16px; right: 16px; z-index: 1001; display: flex; align-items: center; gap: 10px; background: rgba(20,20,20,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid #2a2a2a; border-radius: 22px; padding: 10px 16px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4); max-width: 560px; }
+        .map-search-bar svg { flex-shrink: 0; color: #888; }
+        .map-search-placeholder { flex: 1; overflow: hidden; white-space: nowrap; }
+        .map-search-placeholder-inner { display: inline; position: relative; }
+        .map-search-placeholder-static { color: #888; font-size: 0.95rem; }
+        .map-search-placeholder-word { color: #6699ff; font-size: 0.95rem; position: absolute; opacity: 0; transition: opacity 0.5s ease; white-space: nowrap; }
+        .map-search-placeholder-word.active { opacity: 1; position: relative; }
+
+        /* Search overlay */
+        .map-search-overlay { position: fixed; inset: 0; z-index: 9999; background: #0D0D10; display: none; flex-direction: column; }
+        .map-search-overlay.active { display: flex; }
+        .map-search-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #1e1e1e; background: #141414; flex-shrink: 0; }
+        .map-search-back { width: 36px; height: 36px; border-radius: 50%; border: none; background: none; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .map-search-back:hover { color: #f5f5f5; }
+        .map-search-input { flex: 1; padding: 8px 12px; border-radius: 18px; border: 1px solid #2a2a2a; background: #1a1a1a; font-size: 1rem; font-family: inherit; color: #f5f5f5; outline: none; }
+        .map-search-input::placeholder { color: #666; }
+        .map-search-input:focus { box-shadow: 0 0 0 2px rgba(51,102,204,0.3); }
+        .map-search-clear { width: 28px; height: 28px; border-radius: 50%; border: none; background: #2a2a2a; color: #888; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+        .map-search-clear.visible { display: flex; }
+
+        /* Results */
+        .map-search-results { flex: 1; overflow-y: auto; padding: 0; overscroll-behavior: contain; }
+        .map-search-section-title { font-size: 0.72rem; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.8px; padding: 16px 16px 6px; }
+        .map-search-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; transition: background 0.15s; }
+        .map-search-row:hover { background: #1a1a1a; }
+        .map-search-row:active { background: #222; }
+        .map-search-row-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.85rem; }
+        .map-search-row-info { flex: 1; min-width: 0; }
+        .map-search-row-title { font-size: 0.92rem; font-weight: 600; color: #f5f5f5; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .map-search-row-subtitle { font-size: 0.78rem; color: #888; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .map-search-row-badge { font-size: 0.65rem; font-weight: 600; color: #888; background: #1e1e1e; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; white-space: nowrap; }
+        .map-search-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 1rem; color: #666; text-align: center; }
+        .map-search-empty svg { width: 40px; height: 40px; color: #444; margin-bottom: 12px; }
+        .map-search-empty-text { font-size: 0.9rem; }
+        .map-search-divider { height: 1px; background: #1e1e1e; margin: 0 16px; }
+
+        @media (max-width: 768px) {
+            .map-search-bar { top: 8px; left: 8px; right: 8px; padding: 8px 14px; border-radius: 18px; }
+            .map-search-placeholder-static, .map-search-placeholder-word { font-size: 0.85rem; }
+            .map-search-header { padding: 10px 12px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
+            .map-search-input { font-size: 0.95rem; }
+            .map-search-row { padding: 9px 14px; gap: 10px; }
+            .map-search-row-icon { width: 28px; height: 28px; font-size: 0.75rem; }
+            .map-search-row-title { font-size: 0.85rem; }
+            .map-search-row-subtitle { font-size: 0.72rem; }
+        }
+
+        /* ═══════════════════════════════════════════════════════
            Entity Detail Panel (matches iOS Prime Detail Views)
            ═══════════════════════════════════════════════════════ */
         .entity-detail-overlay { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-end; transition: opacity 0.3s; }
@@ -930,6 +980,33 @@
 
     <!-- Map Container -->
     <div class="map-wrapper">
+        <!-- Search Bar -->
+        <div class="map-search-bar" id="map-search-bar" onclick="openMapSearch()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <div class="map-search-placeholder" id="search-placeholder">
+                <span class="map-search-placeholder-inner">
+                    <span class="map-search-placeholder-static">Search Catholic </span><span class="map-search-placeholder-word active" data-idx="0">Culture</span><span class="map-search-placeholder-word" data-idx="1">Churches</span><span class="map-search-placeholder-word" data-idx="2">Missionaries</span><span class="map-search-placeholder-word" data-idx="3">Businesses</span><span class="map-search-placeholder-word" data-idx="4">Schools</span><span class="map-search-placeholder-word" data-idx="5">Vocations</span><span class="map-search-placeholder-word" data-idx="6">Retreats</span><span class="map-search-placeholder-word" data-idx="7">Pilgrimages</span><span class="map-search-placeholder-word" data-idx="8">Campus</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Search Overlay -->
+        <div class="map-search-overlay" id="map-search-overlay">
+            <div class="map-search-header">
+                <button class="map-search-back" onclick="closeMapSearch()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </button>
+                <input type="text" class="map-search-input" id="map-search-input" placeholder="Search Catholic Culture" autocomplete="off">
+                <button class="map-search-clear" id="map-search-clear" onclick="clearMapSearch()">&times;</button>
+            </div>
+            <div class="map-search-results" id="map-search-results">
+                <div class="map-search-empty" id="map-search-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <div class="map-search-empty-text">Search across all Catholic resources</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Location Prompt -->
         <div id="location-prompt-overlay" class="location-prompt-overlay">
             <div class="location-prompt">
@@ -2207,6 +2284,234 @@
             if (d.type) html += buildInfoFull('Type', d.type);
             return html;
         }
+
+        // ══════════════════════════════════════════════════════
+        // SEARCH BAR — iOS CatholicSearchOverlay parity
+        // ══════════════════════════════════════════════════════
+
+        const searchOverlay = document.getElementById('map-search-overlay');
+        const searchInput = document.getElementById('map-search-input');
+        const searchResults = document.getElementById('map-search-results');
+        const searchClearBtn = document.getElementById('map-search-clear');
+        const searchEmptyEl = document.getElementById('map-search-empty');
+        let searchDebounceTimer = null;
+
+        // ── Animated placeholder (matches iOS ScrollingSearchTextController) ──
+        (function() {
+            const words = document.querySelectorAll('.map-search-placeholder-word');
+            let currentIdx = 0;
+            const total = words.length;
+            let looped = false;
+
+            const timer = setInterval(() => {
+                if (looped) { clearInterval(timer); return; }
+                words[currentIdx].classList.remove('active');
+                currentIdx++;
+                if (currentIdx >= total) {
+                    currentIdx = 0;
+                    looped = true;
+                    clearInterval(timer);
+                }
+                words[currentIdx].classList.add('active');
+            }, 1800);
+        })();
+
+        // ── Open / close search overlay ──
+        window.openMapSearch = function() {
+            searchOverlay.classList.add('active');
+            searchInput.focus();
+        };
+
+        window.closeMapSearch = function() {
+            searchOverlay.classList.remove('active');
+            searchInput.blur();
+        };
+
+        window.clearMapSearch = function() {
+            searchInput.value = '';
+            searchClearBtn.classList.remove('visible');
+            searchResults.innerHTML = '';
+            searchResults.appendChild(searchEmptyEl);
+            searchEmptyEl.style.display = '';
+            searchInput.focus();
+        };
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && searchOverlay.classList.contains('active')) closeMapSearch();
+        });
+
+        // ── Normalize for search (diacritics, lowercase, collapse spaces) ──
+        function normalizeForSearch(text) {
+            if (!text) return '';
+            return String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().replace(/\s+/g, ' ').trim();
+        }
+
+        // ── Search fields per type ──
+        function getSearchableText(data, type) {
+            const parts = [];
+            const n = data.name || data.title || data.parishName || '';
+            if (n) parts.push(n);
+
+            switch (type) {
+                case 'church':
+                    if (data.address) parts.push(data.address);
+                    if (data.city) parts.push(data.city);
+                    if (data.diocese) parts.push(data.diocese);
+                    break;
+                case 'missionary':
+                    if (data.locationPrimary?.city) parts.push(data.locationPrimary.city);
+                    if (data.organization) parts.push(data.organization);
+                    break;
+                case 'vocation':
+                    if (data.location) parts.push(data.location);
+                    if (data.communityName) parts.push(data.communityName);
+                    break;
+                case 'retreat':
+                    if (data.location) parts.push(data.location);
+                    if (data.city) parts.push(data.city);
+                    if (data.organizationName) parts.push(data.organizationName);
+                    break;
+                case 'pilgrimage':
+                    if (data.location) parts.push(data.location);
+                    if (data.city) parts.push(data.city);
+                    if (data.siteName) parts.push(data.siteName);
+                    break;
+                case 'school':
+                    if (data.location?.city) parts.push(data.location.city);
+                    else if (data.city) parts.push(data.city);
+                    break;
+                case 'campus':
+                    if (data.location) parts.push(data.location);
+                    if (data.university) parts.push(data.university);
+                    if (data.type) parts.push(data.type);
+                    break;
+                case 'business':
+                    if (data.city) parts.push(data.city);
+                    if (data.subcategory) parts.push(data.subcategory);
+                    if (data.category) parts.push(data.category);
+                    break;
+            }
+            return normalizeForSearch(parts.join(' '));
+        }
+
+        // ── Section config (order + limits matching iOS) ──
+        const SEARCH_SECTIONS = [
+            { type: 'church', title: 'Churches', limit: 5 },
+            { type: 'missionary', title: 'Missionaries', limit: 5 },
+            { type: 'vocation', title: 'Vocations', limit: 2 },
+            { type: 'retreat', title: 'Retreats', limit: 2 },
+            { type: 'pilgrimage', title: 'Pilgrimage', limit: 3 },
+            { type: 'school', title: 'Education', limit: 2 },
+            { type: 'campus', title: 'Campus Ministries', limit: 2 },
+            { type: 'business', title: 'Businesses', limit: 5 }
+        ];
+
+        const TYPE_ICONS = {
+            church: '⛪', missionary: '✝️', pilgrimage: '🗺️', retreat: '🙏',
+            school: '🎓', vocation: '📿', business: '🏪', campus: '🎒'
+        };
+
+        const TYPE_LABELS = {
+            church: 'Church', missionary: 'Missionary', pilgrimage: 'Pilgrimage',
+            retreat: 'Retreat', school: 'School', vocation: 'Vocation',
+            business: 'Business', campus: 'Campus'
+        };
+
+        // ── Perform search across entityDataMap ──
+        function performMapSearch(query) {
+            const q = normalizeForSearch(query);
+            if (q.length < 2) {
+                searchResults.innerHTML = '';
+                searchResults.appendChild(searchEmptyEl);
+                searchEmptyEl.style.display = '';
+                return;
+            }
+
+            const tokens = q.split(' ').filter(t => t.length > 0);
+            const sections = [];
+
+            for (const sec of SEARCH_SECTIONS) {
+                const matches = [];
+                entityDataMap.forEach((data, docId) => {
+                    if (data._type !== sec.type) return;
+                    const haystack = getSearchableText(data, sec.type);
+                    const allMatch = tokens.every(tok => haystack.includes(tok));
+                    if (allMatch) matches.push({ docId, data });
+                });
+                if (matches.length > 0) {
+                    sections.push({ ...sec, results: matches.slice(0, sec.limit) });
+                }
+            }
+
+            renderSearchResults(sections, q);
+        }
+
+        // ── Get subtitle for result row ──
+        function getResultSubtitle(data, type) {
+            switch (type) {
+                case 'church': return data.address || data.city || data.diocese || '';
+                case 'missionary': return data.organization || (data.locationPrimary?.city ? data.locationPrimary.city + (data.locationPrimary.state ? ', ' + data.locationPrimary.state : '') : '') || '';
+                case 'vocation': return data.location || data.communityName || '';
+                case 'retreat': return data.location || data.organizationName || data.city || '';
+                case 'pilgrimage': return data.location || data.city || '';
+                case 'school': return data.location?.city || data.city || '';
+                case 'campus': return data.university || data.location || '';
+                case 'business': return [data.subcategory, data.city].filter(Boolean).join(' · ') || '';
+                default: return '';
+            }
+        }
+
+        // ── Render search results ──
+        function renderSearchResults(sections, query) {
+            if (sections.length === 0) {
+                searchResults.innerHTML = `<div class="map-search-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><div class="map-search-empty-text">No results for "${escapeHTML(query)}"</div></div>`;
+                return;
+            }
+
+            let html = '';
+            for (const sec of sections) {
+                html += `<div class="map-search-section-title">${sec.title}</div>`;
+                sec.results.forEach((r, i) => {
+                    const name = r.data.name || r.data.title || r.data.parishName || 'Unknown';
+                    const subtitle = getResultSubtitle(r.data, sec.type);
+                    const color = PIN_COLORS[sec.type];
+                    const icon = TYPE_ICONS[sec.type] || '📍';
+                    const badge = TYPE_LABELS[sec.type] || sec.type;
+                    html += `<div class="map-search-row" onclick="selectSearchResult('${r.docId}')"><div class="map-search-row-icon" style="background:${color}22;"><span>${icon}</span></div><div class="map-search-row-info"><div class="map-search-row-title">${escapeHTML(name)}</div>${subtitle ? `<div class="map-search-row-subtitle">${escapeHTML(subtitle)}</div>` : ''}</div><span class="map-search-row-badge">${badge}</span></div>`;
+                    if (i < sec.results.length - 1) html += `<div class="map-search-divider"></div>`;
+                });
+            }
+            searchResults.innerHTML = html;
+        }
+
+        // ── Select search result: close overlay, fly to, open detail ──
+        window.selectSearchResult = function(docId) {
+            const data = entityDataMap.get(docId);
+            if (!data) return;
+            closeMapSearch();
+            if (data._coords) {
+                map.flyTo([data._coords.lat, data._coords.lng], 14, { duration: 0.8 });
+            }
+            setTimeout(() => openMapEntityDetail(docId), 400);
+        };
+
+        // ── Debounced search on input ──
+        searchInput.addEventListener('input', () => {
+            const val = searchInput.value.trim();
+            searchClearBtn.classList.toggle('visible', val.length > 0);
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => performMapSearch(val), 300);
+        });
+
+        // Enter key submits search
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+                performMapSearch(searchInput.value.trim());
+            }
+        });
 
         // Start loading
         loadData();
