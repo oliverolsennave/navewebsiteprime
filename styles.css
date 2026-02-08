@@ -1366,10 +1366,12 @@ input {
         width: 48px;
         height: 48px;
         border-radius: 12px;
+        background: transparent;
+        box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     .fab-gabriel svg {
-        width: 26px;
-        height: 26px;
+        width: 48px;
+        height: 48px;
     }
 }
 
