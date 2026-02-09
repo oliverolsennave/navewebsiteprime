@@ -1857,6 +1857,7 @@ input {
 .join-sub-note { font-size: 0.85rem; color: #888; margin-bottom: 16px; }
 
 .join-form { display: grid; gap: 12px; }
+.join-form-hint { font-size: 0.9rem; color: #9a9a9a; margin-bottom: 8px; }
 .join-form-row { display: grid; gap: 6px; }
 .join-form-row input, .join-form-row textarea {
     padding: 12px;
