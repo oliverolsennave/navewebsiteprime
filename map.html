@@ -735,12 +735,9 @@
                 height: 13px;
             }
 
-            /* Leaflet zoom controls — larger touch targets */
-            .leaflet-control-zoom a {
-                width: 44px !important;
-                height: 44px !important;
-                line-height: 44px !important;
-                font-size: 20px !important;
+            /* Hide zoom controls on mobile (pinch to zoom) */
+            .leaflet-control-zoom {
+                display: none !important;
             }
             
             /* Stats bar — bottom left, safe-area aware */
@@ -755,11 +752,11 @@
                 padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
             }
 
-            /* Locate me — top-left under +/- zoom controls */
+            /* Locate me — bottom-left, above stats bar */
             .locate-btn {
-                top: 108px;
-                bottom: auto;
-                left: 8px;
+                top: auto;
+                bottom: 48px;
+                left: 12px;
                 right: auto;
                 padding: 10px;
                 min-width: 44px;
