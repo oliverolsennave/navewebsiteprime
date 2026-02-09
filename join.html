@@ -142,12 +142,26 @@
                         <input type="text" id="field-name" required>
                     </div>
                     <div class="join-form-row">
+                        <label>Key Type</label>
+                        <input type="text" id="field-type-readonly" readonly>
+                    </div>
+                    <div class="join-form-row">
                         <label>Description</label>
                         <textarea id="field-description" rows="4"></textarea>
                     </div>
                     <div class="join-form-row">
                         <label>Website</label>
                         <input type="url" id="field-website">
+                    </div>
+                    <div class="join-form-grid">
+                        <div class="join-form-row">
+                            <label>Contact Email</label>
+                            <input type="email" id="field-contact-email">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Contact Phone</label>
+                            <input type="tel" id="field-contact-phone">
+                        </div>
                     </div>
                     <div class="join-form-row">
                         <label>Address</label>
@@ -181,17 +195,101 @@
                         <label>Primary Image URL (optional)</label>
                         <input type="url" id="field-image">
                     </div>
-                    <div class="join-form-row">
-                        <label>Category (optional)</label>
-                        <input type="text" id="field-category">
+                    <!-- Business fields -->
+                    <div class="join-form-group hidden" data-keytype="business">
+                        <div class="join-form-row">
+                            <label>Business Category</label>
+                            <input type="text" id="field-category">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Business Subcategory</label>
+                            <input type="text" id="field-subcategory">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Founding Year</label>
+                            <input type="text" id="field-founding-year">
+                        </div>
                     </div>
-                    <div class="join-form-row">
-                        <label>Subcategory (optional)</label>
-                        <input type="text" id="field-subcategory">
+                    <!-- Church fields -->
+                    <div class="join-form-group hidden" data-keytype="church">
+                        <div class="join-form-row">
+                            <label>Diocese</label>
+                            <input type="text" id="field-diocese">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Mass Times</label>
+                            <input type="text" id="field-mass-times" placeholder="Sun 9am, 11am; Daily 7am">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Confession Times</label>
+                            <input type="text" id="field-confession-times">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Adoration Times</label>
+                            <input type="text" id="field-adoration-times">
+                        </div>
                     </div>
-                    <div class="join-form-row">
-                        <label>Founding Year (optional)</label>
-                        <input type="text" id="field-founding-year">
+                    <!-- School fields -->
+                    <div class="join-form-group hidden" data-keytype="school">
+                        <div class="join-form-row">
+                            <label>Grade Levels</label>
+                            <input type="text" id="field-grades" placeholder="K-8, 9-12">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Tuition Range</label>
+                            <input type="text" id="field-tuition">
+                        </div>
+                    </div>
+                    <!-- Retreat fields -->
+                    <div class="join-form-group hidden" data-keytype="retreat">
+                        <div class="join-form-row">
+                            <label>Retreat Type</label>
+                            <input type="text" id="field-retreat-type">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Typical Duration</label>
+                            <input type="text" id="field-retreat-duration">
+                        </div>
+                    </div>
+                    <!-- Pilgrimage fields -->
+                    <div class="join-form-group hidden" data-keytype="pilgrimage">
+                        <div class="join-form-row">
+                            <label>Pilgrimage Type</label>
+                            <input type="text" id="field-pilgrimage-type">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Season / Dates</label>
+                            <input type="text" id="field-pilgrimage-dates">
+                        </div>
+                    </div>
+                    <!-- Vocation fields -->
+                    <div class="join-form-group hidden" data-keytype="vocation">
+                        <div class="join-form-row">
+                            <label>Charism</label>
+                            <input type="text" id="field-charism">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Diocese / Community</label>
+                            <input type="text" id="field-vocation-diocese">
+                        </div>
+                    </div>
+                    <!-- Missionary fields -->
+                    <div class="join-form-group hidden" data-keytype="missionary">
+                        <div class="join-form-row">
+                            <label>Organization</label>
+                            <input type="text" id="field-missionary-org">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Region / Focus</label>
+                            <input type="text" id="field-missionary-region">
+                        </div>
+                    </div>
+                    <!-- Campus fields -->
+                    <div class="join-form-group hidden" data-keytype="campus">
+                        <div class="join-form-row">
+                            <label>Campus / University</label>
+                            <input type="text" id="field-campus-name">
+                        </div>
                     </div>
                     <div class="join-form-row">
                         <button type="submit" class="join-submit">Submit</button>

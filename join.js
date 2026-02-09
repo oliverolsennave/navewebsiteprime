@@ -169,6 +169,10 @@ keyTypeGrid.addEventListener('click', (e) => {
     document.querySelectorAll('.join-type-card').forEach(card => {
         card.classList.toggle('selected', card.dataset.type === selectedType);
     });
+    document.getElementById('field-type-readonly').value = btn.textContent.trim();
+    document.querySelectorAll('.join-form-group').forEach(group => {
+        group.classList.toggle('hidden', group.dataset.keytype !== selectedType);
+    });
     toSubscriptionBtn.disabled = !selectedType;
 });
 
@@ -200,9 +204,44 @@ joinForm.addEventListener('submit', async (e) => {
         const latitude = parseFloat(document.getElementById('field-latitude').value);
         const longitude = parseFloat(document.getElementById('field-longitude').value);
         const imageUrl = document.getElementById('field-image').value.trim();
+        const contactEmail = document.getElementById('field-contact-email').value.trim();
+        const contactPhone = document.getElementById('field-contact-phone').value.trim();
         const category = document.getElementById('field-category').value.trim();
         const subcategory = document.getElementById('field-subcategory').value.trim();
         const foundingYear = document.getElementById('field-founding-year').value.trim();
+        const diocese = document.getElementById('field-diocese')?.value.trim() || '';
+        const massTimes = document.getElementById('field-mass-times')?.value.trim() || '';
+        const confessionTimes = document.getElementById('field-confession-times')?.value.trim() || '';
+        const adorationTimes = document.getElementById('field-adoration-times')?.value.trim() || '';
+        const grades = document.getElementById('field-grades')?.value.trim() || '';
+        const tuition = document.getElementById('field-tuition')?.value.trim() || '';
+        const retreatType = document.getElementById('field-retreat-type')?.value.trim() || '';
+        const retreatDuration = document.getElementById('field-retreat-duration')?.value.trim() || '';
+        const pilgrimageType = document.getElementById('field-pilgrimage-type')?.value.trim() || '';
+        const pilgrimageDates = document.getElementById('field-pilgrimage-dates')?.value.trim() || '';
+        const charism = document.getElementById('field-charism')?.value.trim() || '';
+        const vocationDiocese = document.getElementById('field-vocation-diocese')?.value.trim() || '';
+        const missionaryOrg = document.getElementById('field-missionary-org')?.value.trim() || '';
+        const missionaryRegion = document.getElementById('field-missionary-region')?.value.trim() || '';
+        const campusName = document.getElementById('field-campus-name')?.value.trim() || '';
+
+        const extraNotes = [
+            diocese && `Diocese: ${diocese}`,
+            massTimes && `Mass Times: ${massTimes}`,
+            confessionTimes && `Confession Times: ${confessionTimes}`,
+            adorationTimes && `Adoration Times: ${adorationTimes}`,
+            grades && `Grades: ${grades}`,
+            tuition && `Tuition: ${tuition}`,
+            retreatType && `Retreat Type: ${retreatType}`,
+            retreatDuration && `Retreat Duration: ${retreatDuration}`,
+            pilgrimageType && `Pilgrimage Type: ${pilgrimageType}`,
+            pilgrimageDates && `Pilgrimage Dates: ${pilgrimageDates}`,
+            charism && `Charism: ${charism}`,
+            vocationDiocese && `Vocation Diocese: ${vocationDiocese}`,
+            missionaryOrg && `Missionary Org: ${missionaryOrg}`,
+            missionaryRegion && `Missionary Region: ${missionaryRegion}`,
+            campusName && `Campus: ${campusName}`
+        ].filter(Boolean).join(' | ');
 
         const objectData = {
             id: objectId,
@@ -229,6 +268,23 @@ joinForm.addEventListener('submit', async (e) => {
 
         if (website) objectData.website = website;
         if (foundingYear) objectData.foundingYear = foundingYear;
+        if (contactEmail) objectData.contactEmail = contactEmail;
+        if (contactPhone) objectData.contactPhone = contactPhone;
+        if (diocese) objectData.diocese = diocese;
+        if (massTimes) objectData.massTimes = massTimes;
+        if (confessionTimes) objectData.confessionTimes = confessionTimes;
+        if (adorationTimes) objectData.adorationTimes = adorationTimes;
+        if (grades) objectData.gradeLevels = grades;
+        if (tuition) objectData.tuition = tuition;
+        if (retreatType) objectData.retreatType = retreatType;
+        if (retreatDuration) objectData.retreatDuration = retreatDuration;
+        if (pilgrimageType) objectData.pilgrimageType = pilgrimageType;
+        if (pilgrimageDates) objectData.pilgrimageDates = pilgrimageDates;
+        if (charism) objectData.charism = charism;
+        if (vocationDiocese) objectData.vocationDiocese = vocationDiocese;
+        if (missionaryOrg) objectData.missionaryOrganization = missionaryOrg;
+        if (missionaryRegion) objectData.missionaryRegion = missionaryRegion;
+        if (campusName) objectData.campusName = campusName;
         if (imageUrl) {
             objectData.primaryImage = imageUrl;
             objectData.images = [imageUrl];
@@ -244,14 +300,14 @@ joinForm.addEventListener('submit', async (e) => {
             submissionStatus: 'approved',
             submittedAt: serverTimestamp(),
             approvedAt: serverTimestamp(),
-            notes: null,
+            notes: extraNotes || null,
             category: category || null,
             subcategory: subcategory || null,
             description: description || null,
             foundingYear: foundingYear || null,
             contactName: null,
-            contactEmail: currentUser.email || null,
-            contactPhone: currentUser.phoneNumber || null,
+            contactEmail: contactEmail || currentUser.email || null,
+            contactPhone: contactPhone || currentUser.phoneNumber || null,
             website: website || null,
             address: address || null,
             city: city || null,
