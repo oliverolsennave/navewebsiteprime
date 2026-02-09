@@ -14,6 +14,7 @@
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getAuth, GoogleAuthProvider, OAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -31,5 +32,10 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firestore
 const db = getFirestore(app);
 
-export { db };
+// Initialize Auth
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
+
+export { app, db, auth, googleProvider, appleProvider };
 

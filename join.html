@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join — Nave</title>
+    <meta name="description" content="Join Nave and add your Catholic organization to the map.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Favicon (red Nave logo, cache-busted) -->
+    <link rel="icon" href="/favicon.ico?v=20260209-red" sizes="48x48">
+    <link rel="icon" href="assets/favicon-32.png?v=20260209-red" sizes="32x32" type="image/png">
+    <link rel="icon" href="assets/favicon-16.png?v=20260209-red" sizes="16x16" type="image/png">
+    <link rel="icon" href="assets/favicon-adaptive.svg?v=20260209-red" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260209-red" sizes="180x180">
+    <link rel="mask-icon" href="assets/favicon-adaptive.svg?v=20260209-red" color="#CC3333">
+    <link rel="shortcut icon" href="/favicon.ico?v=20260209-red">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#0D0D10">
+</head>
+<body class="join-page">
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="assets/whitenavelogo.png" alt="Nave" class="logo-img">
+                <span class="logo-text">Nave</span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="ask-gabe.html" class="nav-link">Ask</a>
+                <a href="map.html" class="nav-link">Map</a>
+                <a href="join.html" class="nav-link nav-link-active">Join</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="/?waitlist=true" class="nav-cta">Try Nave Free</a>
+            </div>
+            <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" onclick="document.getElementById('nav-links').classList.toggle('open');document.getElementById('nav-backdrop').classList.toggle('visible');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+        </div>
+    </nav>
+    <div class="nav-backdrop" id="nav-backdrop" onclick="document.getElementById('nav-links').classList.remove('open');this.classList.remove('visible');"></div>
+
+    <main class="join-wrapper">
+        <section class="join-hero">
+            <img src="assets/whitenavelogo.png" alt="Nave" class="join-hero-logo">
+            <h1>Join Nave</h1>
+            <p>Add your Catholic organization to the map using the Double Prime submission flow.</p>
+        </section>
+
+        <div class="join-steps">
+            <div class="join-step-indicator" id="join-step-indicator">
+                <span class="active">Sign In</span>
+                <span>Choose Type</span>
+                <span>Subscription</span>
+                <span>Submit</span>
+            </div>
+
+            <!-- Step 1: Auth -->
+            <section class="join-step" id="step-auth">
+                <h2>Sign in to continue</h2>
+                <p>Use the same methods as the iOS app: email/phone, Google, or Apple.</p>
+                <div class="join-auth-buttons">
+                    <button class="join-auth-btn" id="btn-email-phone">Continue with Email or Phone</button>
+                    <button class="join-auth-btn join-auth-apple" id="btn-apple">
+                        <span class="join-auth-icon"></span> Continue with Apple
+                    </button>
+                    <button class="join-auth-btn join-auth-google" id="btn-google">
+                        <span class="join-auth-icon">G</span> Continue with Google
+                    </button>
+                </div>
+                <div class="join-auth-form hidden" id="email-phone-form">
+                    <div class="join-auth-row">
+                        <input type="email" id="email-input" placeholder="Email address">
+                        <button id="email-send-link">Send Link</button>
+                    </div>
+                    <div class="join-auth-row">
+                        <input type="tel" id="phone-input" placeholder="+1 555 555 5555">
+                        <button id="phone-send-code">Send Code</button>
+                    </div>
+                    <div class="join-auth-row hidden" id="phone-code-row">
+                        <input type="text" id="phone-code-input" placeholder="SMS code">
+                        <button id="phone-verify-code">Verify</button>
+                    </div>
+                    <div id="recaptcha-container"></div>
+                    <div class="join-auth-note" id="auth-status"></div>
+                </div>
+            </section>
+
+            <!-- Step 2: Key Type -->
+            <section class="join-step hidden" id="step-type">
+                <h2>Select a key type</h2>
+                <div class="join-type-grid" id="key-type-grid">
+                    <button class="join-type-card" data-type="church">Church</button>
+                    <button class="join-type-card" data-type="business">Business</button>
+                    <button class="join-type-card" data-type="school">School</button>
+                    <button class="join-type-card" data-type="pilgrimage">Pilgrimage</button>
+                    <button class="join-type-card" data-type="retreat">Retreat</button>
+                    <button class="join-type-card" data-type="vocation">Vocation</button>
+                    <button class="join-type-card" data-type="missionary">Missionary</button>
+                    <button class="join-type-card" data-type="campus">Campus Ministry</button>
+                </div>
+                <button class="join-next" id="to-subscription" disabled>Continue</button>
+            </section>
+
+            <!-- Step 3: Subscription -->
+            <section class="join-step hidden" id="step-subscription">
+                <h2>Build your trial</h2>
+                <div class="join-subscription-options">
+                    <label class="join-sub-option">
+                        <input type="radio" name="plan" value="trial" checked>
+                        <span>Free — 1 month</span>
+                    </label>
+                    <label class="join-sub-option">
+                        <input type="radio" name="plan" value="three_months">
+                        <span>$9.99 — 3 months</span>
+                    </label>
+                </div>
+                <div class="join-toggle">
+                    <span>Remind me before my trial ends</span>
+                    <label class="switch">
+                        <input type="checkbox" id="trial-reminder" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p class="join-sub-note">Cancel anytime. Stripe checkout will be added once pricing IDs are available.</p>
+                <button class="join-next" id="to-form">Continue</button>
+            </section>
+
+            <!-- Step 4: Submission Form -->
+            <section class="join-step hidden" id="step-form">
+                <h2>Submit your key</h2>
+                <form id="join-form" class="join-form">
+                    <div class="join-form-row">
+                        <label>Name</label>
+                        <input type="text" id="field-name" required>
+                    </div>
+                    <div class="join-form-row">
+                        <label>Description</label>
+                        <textarea id="field-description" rows="4"></textarea>
+                    </div>
+                    <div class="join-form-row">
+                        <label>Website</label>
+                        <input type="url" id="field-website">
+                    </div>
+                    <div class="join-form-row">
+                        <label>Address</label>
+                        <input type="text" id="field-address">
+                    </div>
+                    <div class="join-form-grid">
+                        <div class="join-form-row">
+                            <label>City</label>
+                            <input type="text" id="field-city">
+                        </div>
+                        <div class="join-form-row">
+                            <label>State</label>
+                            <input type="text" id="field-state">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Zip</label>
+                            <input type="text" id="field-zip">
+                        </div>
+                    </div>
+                    <div class="join-form-grid">
+                        <div class="join-form-row">
+                            <label>Latitude</label>
+                            <input type="number" step="any" id="field-latitude">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Longitude</label>
+                            <input type="number" step="any" id="field-longitude">
+                        </div>
+                    </div>
+                    <div class="join-form-row">
+                        <label>Primary Image URL (optional)</label>
+                        <input type="url" id="field-image">
+                    </div>
+                    <div class="join-form-row">
+                        <label>Category (optional)</label>
+                        <input type="text" id="field-category">
+                    </div>
+                    <div class="join-form-row">
+                        <label>Subcategory (optional)</label>
+                        <input type="text" id="field-subcategory">
+                    </div>
+                    <div class="join-form-row">
+                        <label>Founding Year (optional)</label>
+                        <input type="text" id="field-founding-year">
+                    </div>
+                    <div class="join-form-row">
+                        <button type="submit" class="join-submit">Submit</button>
+                    </div>
+                    <div class="join-form-note" id="submit-status"></div>
+                </form>
+            </section>
+
+            <!-- Success -->
+            <section class="join-step hidden" id="step-success">
+                <h2>Submission received</h2>
+                <p>Your key has been submitted using the Double Prime format.</p>
+                <a href="map.html" class="join-next">Go to Map</a>
+            </section>
+        </div>
+    </main>
+
+    <script type="module" src="join.js"></script>
+</body>
+</html>
