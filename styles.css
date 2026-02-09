@@ -1694,8 +1694,37 @@ input {
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
-.join-step-indicator span.active { color: #f5f5f5; font-weight: 600; }
-.join-step-indicator span.done { color: #c9a227; }
+.join-step-indicator span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #2a2a2a;
+    background: #141414;
+}
+.join-step-indicator span::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3a3a3a;
+}
+.join-step-indicator span.active {
+    color: #f5f5f5;
+    font-weight: 600;
+    border-color: #22c55e;
+}
+.join-step-indicator span.active::before {
+    background: #22c55e;
+}
+.join-step-indicator span.done {
+    color: #c9a227;
+    border-color: #22c55e;
+}
+.join-step-indicator span.done::before {
+    background: #22c55e;
+}
 .join-step { display: block; }
 .join-step.hidden { display: none; }
 .join-auth-buttons { display: grid; gap: 10px; margin-top: 16px; }
