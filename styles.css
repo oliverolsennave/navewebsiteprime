@@ -1685,6 +1685,29 @@ input {
     border: 1px solid #222;
     border-radius: 16px;
     padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+.join-steps::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6);
+    z-index: 0;
+    opacity: 0.35;
+}
+.join-steps::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: #111;
+    z-index: 1;
+}
+.join-steps > * {
+    position: relative;
+    z-index: 2;
 }
 .join-step-indicator {
     display: flex;
