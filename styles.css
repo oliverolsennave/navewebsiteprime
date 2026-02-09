@@ -1740,6 +1740,7 @@ input {
 }
 .join-step { display: block; }
 .join-step.hidden { display: none; }
+.hidden { display: none !important; }
 .join-auth-buttons { display: grid; gap: 10px; margin-top: 16px; }
 .join-auth-btn {
     background: #1a1a1a;
@@ -1753,6 +1754,7 @@ input {
 .join-auth-apple { background: #fff; color: #111; }
 .join-auth-google { background: #1a1a1a; }
 .join-auth-form { margin-top: 16px; }
+.join-auth-form.hidden { display: none; }
 .join-auth-row {
     display: flex;
     gap: 8px;
