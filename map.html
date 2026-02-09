@@ -843,7 +843,7 @@
         .map-search-placeholder { flex: 1; overflow: hidden; white-space: nowrap; }
         .map-search-placeholder-inner { display: inline-flex; align-items: baseline; }
         .map-search-placeholder-static { color: #888; font-size: 0.95rem; }
-        .map-search-placeholder-words { display: inline-grid; }
+        .map-search-placeholder-words { display: inline-grid; margin-left: 0.3em; }
         .map-search-placeholder-words > span { grid-area: 1 / 1; }
         .map-search-placeholder-word { color: #6699ff; font-size: 0.95rem; opacity: 0; transition: opacity 0.5s ease; white-space: nowrap; }
         .map-search-placeholder-word.active { opacity: 1; }
@@ -996,7 +996,7 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <div class="map-search-placeholder" id="search-placeholder">
                 <span class="map-search-placeholder-inner">
-                    <span class="map-search-placeholder-static">Search Catholic </span><span class="map-search-placeholder-words"><span class="map-search-placeholder-word active" data-idx="0">Culture</span><span class="map-search-placeholder-word" data-idx="1">Churches</span><span class="map-search-placeholder-word" data-idx="2">Missionaries</span><span class="map-search-placeholder-word" data-idx="3">Businesses</span><span class="map-search-placeholder-word" data-idx="4">Schools</span><span class="map-search-placeholder-word" data-idx="5">Vocations</span><span class="map-search-placeholder-word" data-idx="6">Retreats</span><span class="map-search-placeholder-word" data-idx="7">Pilgrimages</span><span class="map-search-placeholder-word" data-idx="8">Campus</span></span>
+                    <span class="map-search-placeholder-static">Search Catholic</span><span class="map-search-placeholder-words"><span class="map-search-placeholder-word active" data-idx="0">Culture</span><span class="map-search-placeholder-word" data-idx="1">Churches</span><span class="map-search-placeholder-word" data-idx="2">Missionaries</span><span class="map-search-placeholder-word" data-idx="3">Businesses</span><span class="map-search-placeholder-word" data-idx="4">Schools</span><span class="map-search-placeholder-word" data-idx="5">Vocations</span><span class="map-search-placeholder-word" data-idx="6">Retreats</span><span class="map-search-placeholder-word" data-idx="7">Pilgrimages</span><span class="map-search-placeholder-word" data-idx="8">Campus</span></span>
                 </span>
             </div>
         </div>
@@ -2316,17 +2316,10 @@
             const words = document.querySelectorAll('.map-search-placeholder-word');
             let currentIdx = 0;
             const total = words.length;
-            let looped = false;
 
-            const timer = setInterval(() => {
-                if (looped) { clearInterval(timer); return; }
+            setInterval(() => {
                 words[currentIdx].classList.remove('active');
-                currentIdx++;
-                if (currentIdx >= total) {
-                    currentIdx = 0;
-                    looped = true;
-                    clearInterval(timer);
-                }
+                currentIdx = (currentIdx + 1) % total;
                 words[currentIdx].classList.add('active');
             }, 1800);
         })();
