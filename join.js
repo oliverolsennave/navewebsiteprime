@@ -27,6 +27,7 @@ const toFormBtn = document.getElementById('to-form');
 const joinForm = document.getElementById('join-form');
 
 let currentStep = 0;
+let maxStepReached = 0;
 let selectedType = null;
 let phoneConfirmation = null;
 let currentUser = null;
@@ -49,15 +50,17 @@ function showStep(index) {
         if (!el) return;
         el.classList.toggle('hidden', i !== index);
     });
-    const spans = indicator.querySelectorAll('span');
-    spans.forEach((span, i) => {
-        span.classList.toggle('active', i === index);
-        span.classList.toggle('done', i < index);
+    const dots = indicator.querySelectorAll('.join-step-dot');
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+        dot.classList.toggle('done', i <= maxStepReached && i !== index);
+        dot.disabled = i > maxStepReached;
     });
 }
 
 function requireAuthNext() {
     if (currentUser) {
+        maxStepReached = Math.max(maxStepReached, 1);
         showStep(1);
     }
 }
@@ -174,10 +177,30 @@ keyTypeGrid.addEventListener('click', (e) => {
         group.classList.toggle('hidden', group.dataset.keytype !== selectedType);
     });
     toSubscriptionBtn.disabled = !selectedType;
+    if (selectedType) {
+        maxStepReached = Math.max(maxStepReached, 1);
+    }
 });
 
-toSubscriptionBtn.addEventListener('click', () => showStep(2));
-toFormBtn.addEventListener('click', () => showStep(3));
+toSubscriptionBtn.addEventListener('click', () => {
+    maxStepReached = Math.max(maxStepReached, 2);
+    showStep(2);
+});
+toFormBtn.addEventListener('click', () => {
+    maxStepReached = Math.max(maxStepReached, 3);
+    showStep(3);
+});
+
+// Step indicator navigation (back or reached steps only)
+indicator.addEventListener('click', (e) => {
+    const btn = e.target.closest('.join-step-dot');
+    if (!btn) return;
+    const step = Number(btn.dataset.step);
+    if (Number.isNaN(step)) return;
+    if (step <= maxStepReached) {
+        showStep(step);
+    }
+});
 
 // Submission
 joinForm.addEventListener('submit', async (e) => {
@@ -321,6 +344,7 @@ joinForm.addEventListener('submit', async (e) => {
         await setDoc(doc(db, 'users', currentUser.uid, 'submissions', submissionId), submissionData);
 
         submitStatus.textContent = 'Submitted!';
+        maxStepReached = Math.max(maxStepReached, 4);
         showStep(4);
     } catch (err) {
         submitStatus.textContent = `Submission failed: ${err.message}`;
