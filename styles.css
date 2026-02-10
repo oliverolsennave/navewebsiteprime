@@ -1711,59 +1711,39 @@ input {
 }
 .join-step-indicator {
     display: flex;
-    gap: 24px;
+    gap: 8px;
     font-size: 0.85rem;
-    color: #777;
     margin-bottom: 20px;
     flex-wrap: wrap;
-    position: relative;
-    justify-content: space-between;
-}
-.join-step-indicator::before {
-    content: '';
-    position: absolute;
-    top: 9px;
-    left: 6px;
-    right: 6px;
-    height: 2px;
-    background: #2a2a2a;
-    z-index: 0;
 }
 .join-step-indicator .join-step-dot {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1.5px solid #2a2a2a;
     background: transparent;
-    padding: 0;
-    position: relative;
-    z-index: 1;
-    border: none;
-    color: inherit;
+    color: #555;
     font: inherit;
+    font-size: 0.85rem;
     cursor: pointer;
-}
-.join-step-indicator .join-step-dot::before {
-    content: '';
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #141414;
-    border: 2px solid #3a3a3a;
+    transition: all 0.2s ease;
 }
 .join-step-indicator .join-step-dot.active {
-    color: #f5f5f5;
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #fff;
     font-weight: 600;
 }
-.join-step-indicator .join-step-dot.active::before {
-    border-color: #22c55e;
-    background: #22c55e;
-}
 .join-step-indicator .join-step-dot.done {
-    color: #c9a227;
+    border-color: #22c55e;
+    color: #22c55e;
 }
 .join-step-indicator .join-step-dot.done::before {
-    border-color: #22c55e;
-    background: #22c55e;
+    content: '\2713';
+    font-size: 0.75rem;
+    line-height: 1;
 }
 .join-step { display: block; }
 .join-step.hidden { display: none; }
