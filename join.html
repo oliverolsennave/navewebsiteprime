@@ -135,152 +135,217 @@
             <!-- Step 4: Submission Form -->
             <section class="join-step hidden" id="step-form">
                 <h2>Submit your key</h2>
-                <p class="join-form-hint">After approval, owners can add more details later using the + icon on their key’s detail view.</p>
+                <p class="join-form-hint">Fields marked with * are required.</p>
                 <form id="join-form" class="join-form">
-                    <div class="join-form-row">
-                        <label>Name</label>
-                        <input type="text" id="field-name" required>
-                    </div>
                     <div class="join-form-row">
                         <label>Key Type</label>
                         <input type="text" id="field-type-readonly" readonly>
                     </div>
                     <div class="join-form-row">
-                        <label>Description</label>
-                        <textarea id="field-description" rows="4"></textarea>
+                        <label>Name *</label>
+                        <input type="text" id="field-name" required>
                     </div>
-                    <div class="join-form-row">
-                        <label>Website</label>
-                        <input type="url" id="field-website">
-                    </div>
-                    <div class="join-form-grid">
+
+                    <!-- Parish fields -->
+                    <div class="join-form-group hidden" data-keytype="church">
                         <div class="join-form-row">
-                            <label>Contact Email</label>
-                            <input type="email" id="field-contact-email">
+                            <label>Pastor Name *</label>
+                            <input type="text" id="field-pastor-name" required>
+                        </div>
+                        <div class="join-form-grid">
+                            <div class="join-form-row">
+                                <label>Email *</label>
+                                <input type="email" id="field-church-email" required>
+                            </div>
+                            <div class="join-form-row">
+                                <label>Phone *</label>
+                                <input type="tel" id="field-church-phone" required>
+                            </div>
                         </div>
                         <div class="join-form-row">
-                            <label>Contact Phone</label>
-                            <input type="tel" id="field-contact-phone">
+                            <label>Address *</label>
+                            <input type="text" id="field-church-address" required>
                         </div>
-                    </div>
-                    <div class="join-form-row">
-                        <label>Address</label>
-                        <input type="text" id="field-address">
-                    </div>
-                    <div class="join-form-grid">
+                        <div class="join-form-grid">
+                            <div class="join-form-row">
+                                <label>City *</label>
+                                <input type="text" id="field-church-city" required>
+                            </div>
+                            <div class="join-form-row">
+                                <label>State *</label>
+                                <input type="text" id="field-church-state" required>
+                            </div>
+                            <div class="join-form-row">
+                                <label>ZIP Code *</label>
+                                <input type="text" id="field-church-zip" required>
+                            </div>
+                        </div>
                         <div class="join-form-row">
-                            <label>City</label>
-                            <input type="text" id="field-city">
+                            <label>Website</label>
+                            <input type="url" id="field-church-website">
                         </div>
                         <div class="join-form-row">
-                            <label>State</label>
-                            <input type="text" id="field-state">
+                            <label>Description</label>
+                            <textarea id="field-church-description" rows="3"></textarea>
                         </div>
                         <div class="join-form-row">
-                            <label>Zip</label>
-                            <input type="text" id="field-zip">
+                            <label>Member Count</label>
+                            <input type="number" id="field-member-count" inputmode="numeric">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Mass Schedule</label>
+                            <textarea id="field-mass-times" rows="2" placeholder="Sun 9am, 11am; Daily 7am"></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Confession Schedule</label>
+                            <textarea id="field-confession-times" rows="2"></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Adoration Schedule</label>
+                            <textarea id="field-adoration-times" rows="2"></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Upcoming Events</label>
+                            <textarea id="field-upcoming-events" rows="3"></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Pastor PSAs</label>
+                            <textarea id="field-pastor-psas" rows="3"></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Prep Class Signup URL</label>
+                            <input type="url" id="field-prep-class-url">
                         </div>
                     </div>
-                    <div class="join-form-row">
-                        <label>Primary Image URL (optional)</label>
-                        <input type="url" id="field-image">
-                    </div>
+
                     <!-- Business fields -->
                     <div class="join-form-group hidden" data-keytype="business">
                         <div class="join-form-row">
-                            <label>Business Category</label>
-                            <input type="text" id="field-category">
+                            <label>Location *</label>
+                            <input type="text" id="field-business-location" required placeholder="Address or city, state">
                         </div>
                         <div class="join-form-row">
-                            <label>Business Subcategory</label>
-                            <input type="text" id="field-subcategory">
+                            <label>Description *</label>
+                            <textarea id="field-business-description" rows="3" required></textarea>
                         </div>
                         <div class="join-form-row">
-                            <label>Founding Year</label>
-                            <input type="text" id="field-founding-year">
+                            <label>Founding Year *</label>
+                            <input type="number" id="field-business-founding-year" required inputmode="numeric">
                         </div>
                     </div>
-                    <!-- Church fields -->
-                    <div class="join-form-group hidden" data-keytype="church">
-                        <div class="join-form-row">
-                            <label>Diocese</label>
-                            <input type="text" id="field-diocese">
-                        </div>
-                        <div class="join-form-row">
-                            <label>Mass Times</label>
-                            <input type="text" id="field-mass-times" placeholder="Sun 9am, 11am; Daily 7am">
-                        </div>
-                        <div class="join-form-row">
-                            <label>Confession Times</label>
-                            <input type="text" id="field-confession-times">
-                        </div>
-                        <div class="join-form-row">
-                            <label>Adoration Times</label>
-                            <input type="text" id="field-adoration-times">
-                        </div>
-                    </div>
+
                     <!-- School fields -->
                     <div class="join-form-group hidden" data-keytype="school">
                         <div class="join-form-row">
-                            <label>Grade Levels</label>
-                            <input type="text" id="field-grades" placeholder="K-8, 9-12">
+                            <label>Location *</label>
+                            <input type="text" id="field-school-location" required placeholder="Address or city, state">
                         </div>
                         <div class="join-form-row">
-                            <label>Tuition Range</label>
-                            <input type="text" id="field-tuition">
+                            <label>Description *</label>
+                            <textarea id="field-school-description" rows="3" required></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Founding Year *</label>
+                            <input type="number" id="field-school-founding-year" required inputmode="numeric">
                         </div>
                     </div>
-                    <!-- Retreat fields -->
-                    <div class="join-form-group hidden" data-keytype="retreat">
-                        <div class="join-form-row">
-                            <label>Retreat Type</label>
-                            <input type="text" id="field-retreat-type">
-                        </div>
-                        <div class="join-form-row">
-                            <label>Typical Duration</label>
-                            <input type="text" id="field-retreat-duration">
-                        </div>
-                    </div>
+
                     <!-- Pilgrimage fields -->
                     <div class="join-form-group hidden" data-keytype="pilgrimage">
                         <div class="join-form-row">
-                            <label>Pilgrimage Type</label>
-                            <input type="text" id="field-pilgrimage-type">
+                            <label>Location *</label>
+                            <input type="text" id="field-pilgrimage-location" required placeholder="Address or city, state">
                         </div>
                         <div class="join-form-row">
-                            <label>Season / Dates</label>
-                            <input type="text" id="field-pilgrimage-dates">
+                            <label>Description *</label>
+                            <textarea id="field-pilgrimage-description" rows="3" required></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Founding Year *</label>
+                            <input type="number" id="field-pilgrimage-founding-year" required inputmode="numeric">
                         </div>
                     </div>
-                    <!-- Vocation fields -->
-                    <div class="join-form-group hidden" data-keytype="vocation">
+
+                    <!-- Retreat fields -->
+                    <div class="join-form-group hidden" data-keytype="retreat">
                         <div class="join-form-row">
-                            <label>Charism</label>
-                            <input type="text" id="field-charism">
+                            <label>Location *</label>
+                            <input type="text" id="field-retreat-location" required placeholder="Address or city, state">
                         </div>
                         <div class="join-form-row">
-                            <label>Diocese / Community</label>
-                            <input type="text" id="field-vocation-diocese">
+                            <label>Description *</label>
+                            <textarea id="field-retreat-description" rows="3" required></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Founding Year *</label>
+                            <input type="number" id="field-retreat-founding-year" required inputmode="numeric">
                         </div>
                     </div>
+
                     <!-- Missionary fields -->
                     <div class="join-form-group hidden" data-keytype="missionary">
                         <div class="join-form-row">
-                            <label>Organization</label>
-                            <input type="text" id="field-missionary-org">
+                            <label>Introduction *</label>
+                            <textarea id="field-missionary-intro" rows="3" required maxlength="300" placeholder="Brief introduction (300 char max)"></textarea>
                         </div>
                         <div class="join-form-row">
-                            <label>Region / Focus</label>
-                            <input type="text" id="field-missionary-region">
+                            <label>Parish Address *</label>
+                            <input type="text" id="field-missionary-address" required placeholder="Where your dot appears on the map">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Website *</label>
+                            <input type="url" id="field-missionary-website" required>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Donation Link</label>
+                            <input type="url" id="field-missionary-donation">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Contact Email</label>
+                            <input type="email" id="field-missionary-email">
                         </div>
                     </div>
-                    <!-- Campus fields -->
+
+                    <!-- Vocation fields -->
+                    <div class="join-form-group hidden" data-keytype="vocation">
+                        <div class="join-form-row">
+                            <label>Introduction *</label>
+                            <textarea id="field-vocation-intro" rows="3" required maxlength="300" placeholder="Brief introduction (300 char max)"></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Parish Address *</label>
+                            <input type="text" id="field-vocation-address" required placeholder="Where your dot appears on the map">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Website *</label>
+                            <input type="url" id="field-vocation-website" required>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Contact Email</label>
+                            <input type="email" id="field-vocation-email">
+                        </div>
+                    </div>
+
+                    <!-- Campus Ministry fields -->
                     <div class="join-form-group hidden" data-keytype="campus">
                         <div class="join-form-row">
-                            <label>Campus / University</label>
-                            <input type="text" id="field-campus-name">
+                            <label>Introduction *</label>
+                            <textarea id="field-campus-intro" rows="3" required maxlength="300" placeholder="Brief introduction (300 char max)"></textarea>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Meeting Times *</label>
+                            <input type="text" id="field-campus-meeting-times" required>
+                        </div>
+                        <div class="join-form-row">
+                            <label>Parish Address *</label>
+                            <input type="text" id="field-campus-address" required placeholder="Where your dot appears on the map">
+                        </div>
+                        <div class="join-form-row">
+                            <label>Contact Email</label>
+                            <input type="email" id="field-campus-email">
                         </div>
                     </div>
+
                     <div class="join-form-row">
                         <button type="submit" class="join-submit">Submit</button>
                     </div>

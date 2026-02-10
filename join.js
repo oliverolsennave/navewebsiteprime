@@ -70,6 +70,12 @@ function setAuthMessage(msg, isError = false) {
     authStatus.classList.toggle('error', isError);
 }
 
+// Helper to get trimmed value, returns '' if element missing
+function val(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+}
+
 // Auth gate UI
 document.getElementById('btn-email-phone').addEventListener('click', () => {
     document.getElementById('email-phone-form').classList.toggle('hidden');
@@ -202,16 +208,13 @@ indicator.addEventListener('click', (e) => {
     }
 });
 
-async function geocodeAddress({ address, city, state, zipCode }) {
-    const parts = [address, city, state, zipCode].filter(Boolean).join(', ');
-    if (!parts) {
-        throw new Error('Please enter an address, city, and state so we can place your key on the map.');
+async function geocodeAddress(locationStr) {
+    if (!locationStr) {
+        throw new Error('Please enter an address so we can place your key on the map.');
     }
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(parts)}`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(locationStr)}`;
     const res = await fetch(url, {
-        headers: {
-            'Accept': 'application/json'
-        }
+        headers: { 'Accept': 'application/json' }
     });
     if (!res.ok) {
         throw new Error('Address lookup failed. Please double-check the address.');
@@ -240,69 +243,11 @@ joinForm.addEventListener('submit', async (e) => {
     try {
         const objectId = doc(collection(db, config.collection)).id;
         const submissionId = crypto.randomUUID();
+        const name = val('field-name');
 
-        const name = document.getElementById('field-name').value.trim();
-        const description = document.getElementById('field-description').value.trim();
-        const website = document.getElementById('field-website').value.trim();
-        const address = document.getElementById('field-address').value.trim();
-        const city = document.getElementById('field-city').value.trim();
-        const state = document.getElementById('field-state').value.trim();
-        const zipCode = document.getElementById('field-zip').value.trim();
-        const imageUrl = document.getElementById('field-image').value.trim();
-        const contactEmail = document.getElementById('field-contact-email').value.trim();
-        const contactPhone = document.getElementById('field-contact-phone').value.trim();
-        const category = document.getElementById('field-category').value.trim();
-        const subcategory = document.getElementById('field-subcategory').value.trim();
-        const foundingYear = document.getElementById('field-founding-year').value.trim();
-        const diocese = document.getElementById('field-diocese')?.value.trim() || '';
-        const massTimes = document.getElementById('field-mass-times')?.value.trim() || '';
-        const confessionTimes = document.getElementById('field-confession-times')?.value.trim() || '';
-        const adorationTimes = document.getElementById('field-adoration-times')?.value.trim() || '';
-        const grades = document.getElementById('field-grades')?.value.trim() || '';
-        const tuition = document.getElementById('field-tuition')?.value.trim() || '';
-        const retreatType = document.getElementById('field-retreat-type')?.value.trim() || '';
-        const retreatDuration = document.getElementById('field-retreat-duration')?.value.trim() || '';
-        const pilgrimageType = document.getElementById('field-pilgrimage-type')?.value.trim() || '';
-        const pilgrimageDates = document.getElementById('field-pilgrimage-dates')?.value.trim() || '';
-        const charism = document.getElementById('field-charism')?.value.trim() || '';
-        const vocationDiocese = document.getElementById('field-vocation-diocese')?.value.trim() || '';
-        const missionaryOrg = document.getElementById('field-missionary-org')?.value.trim() || '';
-        const missionaryRegion = document.getElementById('field-missionary-region')?.value.trim() || '';
-        const campusName = document.getElementById('field-campus-name')?.value.trim() || '';
-
-        const extraNotes = [
-            diocese && `Diocese: ${diocese}`,
-            massTimes && `Mass Times: ${massTimes}`,
-            confessionTimes && `Confession Times: ${confessionTimes}`,
-            adorationTimes && `Adoration Times: ${adorationTimes}`,
-            grades && `Grades: ${grades}`,
-            tuition && `Tuition: ${tuition}`,
-            retreatType && `Retreat Type: ${retreatType}`,
-            retreatDuration && `Retreat Duration: ${retreatDuration}`,
-            pilgrimageType && `Pilgrimage Type: ${pilgrimageType}`,
-            pilgrimageDates && `Pilgrimage Dates: ${pilgrimageDates}`,
-            charism && `Charism: ${charism}`,
-            vocationDiocese && `Vocation Diocese: ${vocationDiocese}`,
-            missionaryOrg && `Missionary Org: ${missionaryOrg}`,
-            missionaryRegion && `Missionary Region: ${missionaryRegion}`,
-            campusName && `Campus: ${campusName}`
-        ].filter(Boolean).join(' | ');
-
-        const { latitude, longitude } = await geocodeAddress({ address, city, state, zipCode });
-
-        const objectData = {
+        let objectData = {
             id: objectId,
             name: name,
-            description: description || 'No description provided',
-            category: category || '',
-            subcategory: subcategory || '',
-            address: address,
-            city: city,
-            state: state,
-            zipCode: zipCode,
-            country: 'USA',
-            latitude,
-            longitude,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             source: 'free_submission',
@@ -310,33 +255,117 @@ joinForm.addEventListener('submit', async (e) => {
             createdByUserId: currentUser.uid,
             isActive: true,
             isVerified: false,
-            isPremium: false
+            isPremium: false,
+            country: 'USA'
         };
 
-        if (website) objectData.website = website;
-        if (foundingYear) objectData.foundingYear = foundingYear;
-        if (contactEmail) objectData.contactEmail = contactEmail;
-        if (contactPhone) objectData.contactPhone = contactPhone;
-        if (diocese) objectData.diocese = diocese;
-        if (massTimes) objectData.massTimes = massTimes;
-        if (confessionTimes) objectData.confessionTimes = confessionTimes;
-        if (adorationTimes) objectData.adorationTimes = adorationTimes;
-        if (grades) objectData.gradeLevels = grades;
-        if (tuition) objectData.tuition = tuition;
-        if (retreatType) objectData.retreatType = retreatType;
-        if (retreatDuration) objectData.retreatDuration = retreatDuration;
-        if (pilgrimageType) objectData.pilgrimageType = pilgrimageType;
-        if (pilgrimageDates) objectData.pilgrimageDates = pilgrimageDates;
-        if (charism) objectData.charism = charism;
-        if (vocationDiocese) objectData.vocationDiocese = vocationDiocese;
-        if (missionaryOrg) objectData.missionaryOrganization = missionaryOrg;
-        if (missionaryRegion) objectData.missionaryRegion = missionaryRegion;
-        if (campusName) objectData.campusName = campusName;
-        if (imageUrl) {
-            objectData.primaryImage = imageUrl;
-            objectData.images = [imageUrl];
+        let locationStr = '';
+
+        // ── Parish ──────────────────────────────────────────────
+        if (selectedType === 'church') {
+            const address = val('field-church-address');
+            const city = val('field-church-city');
+            const state = val('field-church-state');
+            const zip = val('field-church-zip');
+            locationStr = [address, city, state, zip].filter(Boolean).join(', ');
+
+            objectData.pastorName = val('field-pastor-name');
+            objectData.contactEmail = val('field-church-email');
+            objectData.contactPhone = val('field-church-phone');
+            objectData.address = address;
+            objectData.city = city;
+            objectData.state = state;
+            objectData.zipCode = zip;
+            objectData.description = val('field-church-description') || 'No description provided';
+
+            const website = val('field-church-website');
+            if (website) objectData.website = website;
+            const memberCount = val('field-member-count');
+            if (memberCount) objectData.memberCount = parseInt(memberCount, 10);
+            const massTimes = val('field-mass-times');
+            if (massTimes) objectData.massTimes = massTimes;
+            const confessionTimes = val('field-confession-times');
+            if (confessionTimes) objectData.confessionTimes = confessionTimes;
+            const adorationTimes = val('field-adoration-times');
+            if (adorationTimes) objectData.adorationTimes = adorationTimes;
+            const events = val('field-upcoming-events');
+            if (events) objectData.upcomingEvents = events;
+            const psas = val('field-pastor-psas');
+            if (psas) objectData.pastorPSAs = psas;
+            const prepUrl = val('field-prep-class-url');
+            if (prepUrl) objectData.prepClassSignupUrl = prepUrl;
         }
 
+        // ── Business ────────────────────────────────────────────
+        if (selectedType === 'business') {
+            locationStr = val('field-business-location');
+            objectData.description = val('field-business-description');
+            objectData.foundingYear = val('field-business-founding-year');
+            objectData.address = locationStr;
+        }
+
+        // ── School ──────────────────────────────────────────────
+        if (selectedType === 'school') {
+            locationStr = val('field-school-location');
+            objectData.description = val('field-school-description');
+            objectData.foundingYear = val('field-school-founding-year');
+            objectData.address = locationStr;
+        }
+
+        // ── Pilgrimage ──────────────────────────────────────────
+        if (selectedType === 'pilgrimage') {
+            locationStr = val('field-pilgrimage-location');
+            objectData.description = val('field-pilgrimage-description');
+            objectData.foundingYear = val('field-pilgrimage-founding-year');
+            objectData.address = locationStr;
+        }
+
+        // ── Retreat ─────────────────────────────────────────────
+        if (selectedType === 'retreat') {
+            locationStr = val('field-retreat-location');
+            objectData.description = val('field-retreat-description');
+            objectData.foundingYear = val('field-retreat-founding-year');
+            objectData.address = locationStr;
+        }
+
+        // ── Missionary ──────────────────────────────────────────
+        if (selectedType === 'missionary') {
+            locationStr = val('field-missionary-address');
+            objectData.description = val('field-missionary-intro');
+            objectData.address = locationStr;
+            objectData.website = val('field-missionary-website');
+            const donation = val('field-missionary-donation');
+            if (donation) objectData.donationLink = donation;
+            const email = val('field-missionary-email');
+            if (email) objectData.contactEmail = email;
+        }
+
+        // ── Vocation ────────────────────────────────────────────
+        if (selectedType === 'vocation') {
+            locationStr = val('field-vocation-address');
+            objectData.description = val('field-vocation-intro');
+            objectData.address = locationStr;
+            objectData.website = val('field-vocation-website');
+            const email = val('field-vocation-email');
+            if (email) objectData.contactEmail = email;
+        }
+
+        // ── Campus Ministry ─────────────────────────────────────
+        if (selectedType === 'campus') {
+            locationStr = val('field-campus-address');
+            objectData.description = val('field-campus-intro');
+            objectData.address = locationStr;
+            objectData.meetingTimes = val('field-campus-meeting-times');
+            const email = val('field-campus-email');
+            if (email) objectData.contactEmail = email;
+        }
+
+        // Geocode
+        const { latitude, longitude } = await geocodeAddress(locationStr);
+        objectData.latitude = latitude;
+        objectData.longitude = longitude;
+
+        // Write to Firestore
         await setDoc(doc(db, config.collection, objectId), objectData);
 
         const submissionData = {
@@ -347,19 +376,11 @@ joinForm.addEventListener('submit', async (e) => {
             submissionStatus: 'approved',
             submittedAt: serverTimestamp(),
             approvedAt: serverTimestamp(),
-            notes: extraNotes || null,
-            category: category || null,
-            subcategory: subcategory || null,
-            description: description || null,
-            foundingYear: foundingYear || null,
-            contactName: null,
-            contactEmail: contactEmail || currentUser.email || null,
-            contactPhone: contactPhone || currentUser.phoneNumber || null,
-            website: website || null,
-            address: address || null,
-            city: city || null,
-            state: state || null,
-            zipCode: zipCode || null,
+            description: objectData.description || null,
+            contactEmail: objectData.contactEmail || currentUser.email || null,
+            contactPhone: objectData.contactPhone || currentUser.phoneNumber || null,
+            website: objectData.website || null,
+            address: objectData.address || null,
             country: 'USA',
             latitude,
             longitude
