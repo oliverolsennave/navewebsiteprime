@@ -229,6 +229,64 @@ async function geocodeAddress(locationStr) {
     };
 }
 
+// ── Live geocode preview on address fields ──────────────────────────
+let geocodeTimer = null;
+
+// Single-field location inputs (blur to geocode)
+const singleLocationFields = [
+    { inputId: 'field-business-location', resultId: 'geocode-business' },
+    { inputId: 'field-school-location', resultId: 'geocode-school' },
+    { inputId: 'field-pilgrimage-location', resultId: 'geocode-pilgrimage' },
+    { inputId: 'field-retreat-location', resultId: 'geocode-retreat' },
+    { inputId: 'field-missionary-address', resultId: 'geocode-missionary' },
+    { inputId: 'field-vocation-address', resultId: 'geocode-vocation' },
+    { inputId: 'field-campus-address', resultId: 'geocode-campus' }
+];
+
+singleLocationFields.forEach(({ inputId, resultId }) => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.addEventListener('blur', () => {
+        const value = input.value.trim();
+        if (value) previewGeocode(value, resultId);
+        else clearGeocode(resultId);
+    });
+});
+
+// Parish: composite address — geocode when any of the 4 fields blur
+const churchAddressFields = ['field-church-address', 'field-church-city', 'field-church-state', 'field-church-zip'];
+churchAddressFields.forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener('blur', () => {
+        const parts = churchAddressFields.map(fid => val(fid)).filter(Boolean);
+        if (parts.length >= 2) previewGeocode(parts.join(', '), 'geocode-church');
+        else clearGeocode('geocode-church');
+    });
+});
+
+async function previewGeocode(locationStr, resultId) {
+    const el = document.getElementById(resultId);
+    if (!el) return;
+    el.textContent = 'Locating...';
+    el.className = 'join-geocode-result loading';
+    try {
+        const { latitude, longitude } = await geocodeAddress(locationStr);
+        el.textContent = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        el.className = 'join-geocode-result success';
+    } catch {
+        el.textContent = 'Could not resolve address';
+        el.className = 'join-geocode-result error';
+    }
+}
+
+function clearGeocode(resultId) {
+    const el = document.getElementById(resultId);
+    if (!el) return;
+    el.textContent = '';
+    el.className = 'join-geocode-result';
+}
+
 // Submission
 joinForm.addEventListener('submit', async (e) => {
     e.preventDefault();

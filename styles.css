@@ -1884,6 +1884,15 @@ input {
 .join-form-note { font-size: 0.85rem; color: #888; }
 .join-form-note.error { color: #ff6b6b; }
 
+.join-geocode-result {
+    font-size: 0.8rem;
+    margin-top: 4px;
+    min-height: 1.2em;
+}
+.join-geocode-result.success { color: #22c55e; }
+.join-geocode-result.error { color: #ff6b6b; }
+.join-geocode-result.loading { color: #888; }
+
 /* Toggle switch */
 .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
 .switch input { opacity: 0; width: 0; height: 0; }
