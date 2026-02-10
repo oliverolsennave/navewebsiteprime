@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engage — Nave</title>
+    <meta name="description" content="Engage with Catholic professional networks, organizations, and communities on Nave.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico?v=20260209-red" sizes="48x48">
+    <link rel="icon" href="assets/favicon-32.png?v=20260209-red" sizes="32x32" type="image/png">
+    <link rel="icon" href="assets/favicon-16.png?v=20260209-red" sizes="16x16" type="image/png">
+    <link rel="icon" href="assets/favicon-adaptive.svg?v=20260209-red" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260209-red" sizes="180x180">
+    <link rel="mask-icon" href="assets/favicon-adaptive.svg?v=20260209-red" color="#CC3333">
+    <link rel="shortcut icon" href="/favicon.ico?v=20260209-red">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="theme-color" content="#0D0D10">
+</head>
+<body class="engage-page">
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="assets/whitenavelogo.png" alt="Nave" class="logo-img">
+                <span class="logo-text">Nave</span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="ask-gabe.html" class="nav-link">Ask</a>
+                <a href="engage.html" class="nav-link nav-link-active">Engage</a>
+                <a href="map.html" class="nav-link">Map</a>
+                <a href="join.html" class="nav-link">Join</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="/?waitlist=true" class="nav-cta">Try Nave Free</a>
+            </div>
+            <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" onclick="document.getElementById('nav-links').classList.toggle('open');document.getElementById('nav-backdrop').classList.toggle('visible');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+        </div>
+    </nav>
+    <div class="nav-backdrop" id="nav-backdrop" onclick="document.getElementById('nav-links').classList.remove('open');this.classList.remove('visible');"></div>
+
+    <!-- ============================================================
+         AUTH GATE — shown when user is not signed in
+         ============================================================ -->
+    <section class="eg-auth-gate" id="eg-auth-gate">
+        <div class="eg-auth-container">
+            <div class="eg-auth-icon">
+                <svg viewBox="0 0 120 120" width="80" height="80">
+                    <rect x="10" y="10" width="100" height="100" rx="22" fill="#4C8BF5"/>
+                    <circle cx="52" cy="42" r="10" fill="rgba(255,255,255,0.5)"/>
+                    <path d="M52 54 C38 54 30 64 30 76 L30 80 C30 82 31 83 33 83 L71 83 C73 83 74 82 74 80 L74 76 C74 64 66 54 52 54 Z" fill="rgba(255,255,255,0.5)"/>
+                    <circle cx="68" cy="42" r="10" fill="white"/>
+                    <path d="M68 54 C54 54 46 64 46 76 L46 80 C46 82 47 83 49 83 L87 83 C89 83 90 82 90 80 L90 76 C90 64 82 54 68 54 Z" fill="white"/>
+                </svg>
+            </div>
+            <h2>Sign in to Engage</h2>
+            <p>Connect with Catholic organizations, message your network, and discover communities.</p>
+            <div class="eg-auth-buttons">
+                <button class="join-auth-btn join-auth-google" id="eg-btn-google">
+                    <span class="join-auth-icon">G</span> Continue with Google
+                </button>
+                <button class="join-auth-btn join-auth-apple" id="eg-btn-apple">
+                    <span class="join-auth-icon"></span> Continue with Apple
+                </button>
+                <button class="join-auth-btn" id="eg-btn-email">Continue with Email</button>
+            </div>
+            <div class="eg-auth-email-form hidden" id="eg-email-form">
+                <div class="join-auth-row">
+                    <input type="email" id="eg-email-input" placeholder="Email address">
+                    <button id="eg-email-send">Send Link</button>
+                </div>
+            </div>
+            <div id="recaptcha-container"></div>
+            <div class="eg-auth-status" id="eg-auth-status"></div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         MAIN APP — hidden until authenticated
+         ============================================================ -->
+    <div class="eg-app hidden" id="eg-app">
+        <!-- Mobile sidebar toggle -->
+        <button class="eg-sidebar-toggle" id="eg-sidebar-toggle" aria-label="Toggle sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <!-- Sidebar -->
+        <aside class="eg-sidebar" id="eg-sidebar">
+            <div class="eg-sidebar-header">
+                <div class="eg-user-info" id="eg-user-info">
+                    <div class="eg-user-avatar" id="eg-user-avatar">U</div>
+                    <span class="eg-user-name" id="eg-user-name">User</span>
+                </div>
+            </div>
+            <nav class="eg-sidebar-nav">
+                <button class="eg-nav-item active" data-section="home">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Home
+                </button>
+                <button class="eg-nav-item" data-section="inbox">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Inbox
+                    <span class="eg-badge hidden" id="eg-inbox-badge">0</span>
+                </button>
+                <button class="eg-nav-item" data-section="network">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Network
+                </button>
+                <button class="eg-nav-item" data-section="discovery">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Discovery
+                    <span class="eg-badge hidden" id="eg-discovery-badge">0</span>
+                </button>
+            </nav>
+        </aside>
+        <div class="eg-sidebar-backdrop" id="eg-sidebar-backdrop"></div>
+
+        <!-- Content Area -->
+        <main class="eg-content">
+
+            <!-- ==================== HOME SECTION ==================== -->
+            <section class="eg-section active" id="eg-section-home">
+                <h1 class="eg-section-title">Engage Home</h1>
+
+                <!-- Inbox Preview -->
+                <div class="eg-card">
+                    <div class="eg-card-header">
+                        <h3>Inbox</h3>
+                        <button class="eg-card-link" data-goto="inbox">View All</button>
+                    </div>
+                    <div class="eg-home-inbox" id="eg-home-inbox">
+                        <div class="eg-empty-state">No messages yet</div>
+                    </div>
+                </div>
+
+                <!-- My Network Preview -->
+                <div class="eg-card">
+                    <div class="eg-card-header">
+                        <h3>My Network</h3>
+                        <button class="eg-card-link" data-goto="network">View All</button>
+                    </div>
+                    <div class="eg-home-network" id="eg-home-network">
+                        <div class="eg-empty-state">No organizations yet</div>
+                    </div>
+                </div>
+
+                <!-- Discovery Preview -->
+                <div class="eg-card">
+                    <div class="eg-card-header">
+                        <h3>Discovery</h3>
+                        <button class="eg-card-link" data-goto="discovery">View All</button>
+                    </div>
+                    <div class="eg-home-discovery" id="eg-home-discovery">
+                        <div class="eg-empty-state">No suggestions yet</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== INBOX SECTION ==================== -->
+            <section class="eg-section" id="eg-section-inbox">
+                <h1 class="eg-section-title">Inbox</h1>
+                <div class="eg-filter-tabs" id="eg-inbox-filters">
+                    <button class="eg-filter-tab active" data-filter="all">All</button>
+                    <button class="eg-filter-tab" data-filter="direct">Direct</button>
+                    <button class="eg-filter-tab" data-filter="business">Business</button>
+                    <button class="eg-filter-tab" data-filter="parish">Parish</button>
+                </div>
+                <div class="eg-thread-list" id="eg-thread-list">
+                    <div class="eg-empty-state">No message threads</div>
+                </div>
+            </section>
+
+            <!-- ==================== NETWORK SECTION ==================== -->
+            <section class="eg-section" id="eg-section-network">
+                <h1 class="eg-section-title">My Network</h1>
+                <div class="eg-search-bar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="eg-org-search" placeholder="Search organizations...">
+                </div>
+                <div class="eg-org-list" id="eg-org-list">
+                    <div class="eg-empty-state">Loading organizations...</div>
+                </div>
+            </section>
+
+            <!-- ==================== DISCOVERY SECTION ==================== -->
+            <section class="eg-section" id="eg-section-discovery">
+                <h1 class="eg-section-title">Discovery</h1>
+
+                <div class="eg-discovery-group" id="eg-invitations-group">
+                    <h3 class="eg-discovery-label">Pending Invitations</h3>
+                    <div class="eg-invitations-list" id="eg-invitations-list">
+                        <div class="eg-empty-state">No pending invitations</div>
+                    </div>
+                </div>
+
+                <div class="eg-discovery-group">
+                    <h3 class="eg-discovery-label">Suggested Organizations</h3>
+                    <div class="eg-suggestions-list" id="eg-suggestions-list">
+                        <div class="eg-empty-state">No suggestions available</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ============================================================
+         MODAL: Organization Detail
+         ============================================================ -->
+    <div class="eg-modal-overlay hidden" id="eg-org-modal">
+        <div class="eg-modal eg-modal-large">
+            <button class="eg-modal-close" id="eg-org-modal-close">&times;</button>
+            <div class="eg-org-modal-header" id="eg-org-modal-header">
+                <div class="eg-org-avatar-lg" id="eg-org-avatar-lg">N</div>
+                <div class="eg-org-modal-info">
+                    <h2 id="eg-org-modal-name">Organization</h2>
+                    <p id="eg-org-modal-desc">Description</p>
+                </div>
+            </div>
+            <div class="eg-org-tabs">
+                <button class="eg-org-tab active" data-tab="channels">Channels</button>
+                <button class="eg-org-tab" data-tab="forums">Forums</button>
+                <button class="eg-org-tab" data-tab="resources">Resources</button>
+            </div>
+            <div class="eg-org-tab-content" id="eg-org-tab-content">
+                <!-- Tab content rendered dynamically -->
+                <div class="eg-empty-state">Select a tab</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: Channel Chat
+         ============================================================ -->
+    <div class="eg-modal-overlay hidden" id="eg-channel-modal">
+        <div class="eg-modal eg-modal-chat">
+            <div class="eg-chat-header">
+                <button class="eg-chat-back" id="eg-channel-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                </button>
+                <h3 id="eg-channel-name">#channel</h3>
+            </div>
+            <div class="eg-chat-messages" id="eg-channel-messages">
+                <div class="eg-empty-state">No messages yet</div>
+            </div>
+            <div class="eg-chat-input-bar">
+                <input type="text" id="eg-channel-input" placeholder="Type a message...">
+                <button class="eg-send-btn" id="eg-channel-send">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: DM Chat
+         ============================================================ -->
+    <div class="eg-modal-overlay hidden" id="eg-dm-modal">
+        <div class="eg-modal eg-modal-chat">
+            <div class="eg-chat-header">
+                <button class="eg-chat-back" id="eg-dm-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                </button>
+                <h3 id="eg-dm-name">Conversation</h3>
+            </div>
+            <div class="eg-chat-messages" id="eg-dm-messages">
+                <div class="eg-empty-state">No messages yet</div>
+            </div>
+            <div class="eg-chat-input-bar">
+                <input type="text" id="eg-dm-input" placeholder="Type a message...">
+                <button class="eg-send-btn" id="eg-dm-send">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL: Forum Post Detail
+         ============================================================ -->
+    <div class="eg-modal-overlay hidden" id="eg-forum-modal">
+        <div class="eg-modal eg-modal-large">
+            <button class="eg-modal-close" id="eg-forum-modal-close">&times;</button>
+            <div class="eg-forum-post-detail" id="eg-forum-post-detail">
+                <h2 id="eg-forum-post-title">Post Title</h2>
+                <p class="eg-forum-post-meta" id="eg-forum-post-meta">By Author</p>
+                <div class="eg-forum-post-body" id="eg-forum-post-body">Post content...</div>
+                <div class="eg-forum-replies" id="eg-forum-replies">
+                    <h4>Replies</h4>
+                    <div class="eg-empty-state">No replies yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="engage.js"></script>
+</body>
+</html>
