@@ -202,6 +202,30 @@ indicator.addEventListener('click', (e) => {
     }
 });
 
+async function geocodeAddress({ address, city, state, zipCode }) {
+    const parts = [address, city, state, zipCode].filter(Boolean).join(', ');
+    if (!parts) {
+        throw new Error('Please enter an address, city, and state so we can place your key on the map.');
+    }
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(parts)}`;
+    const res = await fetch(url, {
+        headers: {
+            'Accept': 'application/json'
+        }
+    });
+    if (!res.ok) {
+        throw new Error('Address lookup failed. Please double-check the address.');
+    }
+    const data = await res.json();
+    if (!data || data.length === 0) {
+        throw new Error('We could not find that address. Please double-check it.');
+    }
+    return {
+        latitude: parseFloat(data[0].lat),
+        longitude: parseFloat(data[0].lon)
+    };
+}
+
 // Submission
 joinForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -224,8 +248,6 @@ joinForm.addEventListener('submit', async (e) => {
         const city = document.getElementById('field-city').value.trim();
         const state = document.getElementById('field-state').value.trim();
         const zipCode = document.getElementById('field-zip').value.trim();
-        const latitude = parseFloat(document.getElementById('field-latitude').value);
-        const longitude = parseFloat(document.getElementById('field-longitude').value);
         const imageUrl = document.getElementById('field-image').value.trim();
         const contactEmail = document.getElementById('field-contact-email').value.trim();
         const contactPhone = document.getElementById('field-contact-phone').value.trim();
@@ -266,6 +288,8 @@ joinForm.addEventListener('submit', async (e) => {
             campusName && `Campus: ${campusName}`
         ].filter(Boolean).join(' | ');
 
+        const { latitude, longitude } = await geocodeAddress({ address, city, state, zipCode });
+
         const objectData = {
             id: objectId,
             name: name,
@@ -277,8 +301,8 @@ joinForm.addEventListener('submit', async (e) => {
             state: state,
             zipCode: zipCode,
             country: 'USA',
-            latitude: Number.isFinite(latitude) ? latitude : null,
-            longitude: Number.isFinite(longitude) ? longitude : null,
+            latitude,
+            longitude,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             source: 'free_submission',
@@ -337,8 +361,8 @@ joinForm.addEventListener('submit', async (e) => {
             state: state || null,
             zipCode: zipCode || null,
             country: 'USA',
-            latitude: Number.isFinite(latitude) ? latitude : null,
-            longitude: Number.isFinite(longitude) ? longitude : null
+            latitude,
+            longitude
         };
 
         await setDoc(doc(db, 'users', currentUser.uid, 'submissions', submissionId), submissionData);
