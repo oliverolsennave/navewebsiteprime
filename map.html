@@ -1474,16 +1474,24 @@
             setTimeout(() => loadingEl.remove(), 500);
         }
         
-        // Update visible count
+        // Update visible count — only markers in current viewport
         window.updateVisibleCount = function() {
+            const bounds = map.getBounds();
             let total = 0;
             document.querySelectorAll('.legend-filter input[type="checkbox"]').forEach(cb => {
-                if (cb.checked) {
-                    total += markerCounts[cb.dataset.type] || 0;
+                if (cb.checked && layers[cb.dataset.type]) {
+                    layers[cb.dataset.type].eachLayer(marker => {
+                        if (marker.getLatLng && bounds.contains(marker.getLatLng())) {
+                            total++;
+                        }
+                    });
                 }
             });
             document.getElementById('total-visible').textContent = total.toLocaleString();
         };
+
+        // Update count on map move/zoom
+        map.on('moveend', updateVisibleCount);
         
         // Filter toggle handlers
         document.querySelectorAll('.legend-filter input[type="checkbox"]').forEach(checkbox => {
