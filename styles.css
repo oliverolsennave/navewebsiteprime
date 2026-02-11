@@ -1893,6 +1893,71 @@ input {
 .join-geocode-result.error { color: #ff6b6b; }
 .join-geocode-result.loading { color: #888; }
 
+/* Disclaimer box */
+.join-disclaimer {
+    display: none;
+    background: #ffffff;
+    color: #1a1a1a;
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin: 20px 0 8px;
+    gap: 16px;
+    align-items: flex-start;
+}
+.join-disclaimer.visible {
+    display: flex;
+}
+.join-disclaimer-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #e8e8e8;
+    color: #1a1a1a;
+    font-size: 1.4rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+.join-disclaimer-body {
+    flex: 1;
+    min-width: 0;
+}
+.join-disclaimer-heading {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0 0 6px;
+    color: #1a1a1a;
+}
+.join-disclaimer-text {
+    font-size: 0.85rem;
+    color: #444;
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+.join-disclaimer-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.join-disclaimer-list li {
+    display: none;
+    font-size: 0.8rem;
+    background: #f0f0f0;
+    color: #333;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.join-disclaimer-list li.visible {
+    display: inline-block;
+}
+
 /* Toggle switch */
 .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
 .switch input { opacity: 0; width: 0; height: 0; }

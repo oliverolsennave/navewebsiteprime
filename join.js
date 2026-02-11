@@ -182,6 +182,12 @@ keyTypeGrid.addEventListener('click', (e) => {
     document.querySelectorAll('.join-form-group').forEach(group => {
         group.classList.toggle('hidden', group.dataset.keytype !== selectedType);
     });
+    // Update disclaimer visibility and list items
+    const disclaimer = document.getElementById('join-disclaimer');
+    disclaimer.classList.toggle('visible', !!selectedType);
+    document.querySelectorAll('#disclaimer-list li').forEach(li => {
+        li.classList.toggle('visible', li.dataset.keytype === selectedType);
+    });
     toSubscriptionBtn.disabled = !selectedType;
     if (selectedType) {
         maxStepReached = Math.max(maxStepReached, 1);
