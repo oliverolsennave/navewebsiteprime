@@ -196,9 +196,10 @@ async function getUserPhotoURL(userId) {
     return null;
 }
 
-// Open profile modal
-function openProfileModal() {
+// Render profile section
+async function renderProfileSection() {
     const user = state.currentUser;
+    if (!user) return;
     const profile = state.userProfile || {};
     const name = user.displayName || profile.displayName || user.email || 'User';
     const photoURL = state.userPhotoURL || user.photoURL;
@@ -210,33 +211,48 @@ function openProfileModal() {
     $('eg-profile-name').textContent = name;
     $('eg-profile-username').textContent = profile.username ? `@${profile.username}` : 'Nave Member';
 
-    // Stats
-    const friendCount = profile.followerCount || 0;
+    // Friends count — query subcollection
+    const friendCount = await loadFriendsCount(user.uid);
     $('eg-profile-friends').textContent = friendCount;
+
+    // Networks count
     $('eg-profile-networks').textContent = state.organizations.length;
 
-    // Count keys from associatedObjects
-    let keyCount = 0;
+    // Keys count — deduplicate by objectId (matches iOS behavior)
+    const uniqueIds = new Set();
     if (profile.associatedObjects) {
         for (const [, arr] of Object.entries(profile.associatedObjects)) {
             if (Array.isArray(arr)) {
-                keyCount += arr.filter(a => a.isActive !== false).length;
+                for (const a of arr) {
+                    if (a.isActive !== false && a.objectId) uniqueIds.add(a.objectId);
+                }
             }
         }
     }
-    // Also count from submittedObjects
-    if (profile.submittedObjects) {
-        for (const [, arr] of Object.entries(profile.submittedObjects)) {
-            if (Array.isArray(arr)) keyCount += arr.length;
-        }
-    }
-    $('eg-profile-keys').textContent = keyCount;
+    $('eg-profile-keys').textContent = uniqueIds.size;
 
-    // Home parish
+    // Home parish and campus
     loadProfileParish(profile.homeParishId);
     loadProfileCampus(profile.homeCampusMinistryId);
+}
 
-    $('eg-profile-modal').classList.remove('hidden');
+async function loadFriendsCount(userId) {
+    try {
+        // Try newer "connections" subcollection first (matches iOS ConnectionService)
+        const connectionsSnap = await getDocs(collection(db, 'users', userId, 'connections'));
+        if (connectionsSnap.size > 0) return connectionsSnap.size;
+
+        // Fallback: legacy "friends" subcollection with status == "active"
+        const friendsQ = query(
+            collection(db, 'users', userId, 'friends'),
+            where('status', '==', 'active')
+        );
+        const friendsSnap = await getDocs(friendsQ);
+        return friendsSnap.size;
+    } catch (err) {
+        console.error('Error loading friends count:', err);
+        return 0;
+    }
 }
 
 async function loadProfileParish(parishId) {
@@ -280,6 +296,9 @@ function navigateTo(section) {
         item.classList.toggle('active', item.dataset.section === section);
     });
 
+    // Highlight user-info button when profile is active
+    $('eg-user-info').classList.toggle('eg-user-info-active', section === 'profile');
+
     // Show active section
     document.querySelectorAll('.eg-section').forEach(sec => {
         sec.classList.toggle('active', sec.id === `eg-section-${section}`);
@@ -301,15 +320,10 @@ sidebarBackdrop.addEventListener('click', () => {
     sidebarBackdrop.classList.remove('visible');
 });
 
-// Profile modal
-$('eg-user-info').addEventListener('click', () => openProfileModal());
-
-$('eg-profile-modal-close').addEventListener('click', () => {
-    $('eg-profile-modal').classList.add('hidden');
-});
-
-$('eg-profile-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'eg-profile-modal') $('eg-profile-modal').classList.add('hidden');
+// Profile section navigation
+$('eg-user-info').addEventListener('click', () => {
+    navigateTo('profile');
+    renderProfileSection();
 });
 
 // ==========================================================================
@@ -334,6 +348,7 @@ async function loadAllData() {
         loadSuggestions()
     ]);
     renderHomePreview();
+    renderProfileSection();
 }
 
 // ── Organizations ──────────────────────────────────────────────────────
@@ -1230,9 +1245,7 @@ async function expressInterest(orgId, btn) {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         // Close modals in order (topmost first)
-        if (!$('eg-profile-modal').classList.contains('hidden')) {
-            $('eg-profile-modal').classList.add('hidden');
-        } else if (!$('eg-channel-modal').classList.contains('hidden')) {
+        if (!$('eg-channel-modal').classList.contains('hidden')) {
             $('eg-channel-modal').classList.add('hidden');
             if (channelMessageUnsub) { channelMessageUnsub(); channelMessageUnsub = null; }
         } else if (!$('eg-dm-modal').classList.contains('hidden')) {

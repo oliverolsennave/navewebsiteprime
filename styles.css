@@ -3068,13 +3068,26 @@ input {
     margin-top: 4px;
 }
 
-/* ── Profile Modal ──────────────────────────────────────────────────── */
-.eg-modal-profile {
-    max-width: 380px;
-    width: 90%;
-    padding: 0;
+/* ── Profile Section ───────────────────────────────────────────────── */
+#eg-section-profile {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.eg-profile-card {
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
     border-radius: 16px;
     overflow: hidden;
+}
+
+.eg-user-info-active {
+    background: rgba(76, 139, 245, 0.08);
+    border-radius: 8px;
+}
+
+.eg-user-info-active .eg-user-avatar {
+    box-shadow: 0 0 0 2px #4C8BF5;
 }
 
 .eg-profile-header {
