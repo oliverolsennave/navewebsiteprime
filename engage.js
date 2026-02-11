@@ -38,7 +38,10 @@ const state = {
     activeOrg: null,
     activeThreadId: null,
     activeChannelId: null,
-    listeners: []
+    listeners: [],
+    userProfile: null,       // Firestore user document
+    userPhotoURL: null,      // Resolved profile photo URL
+    photoCache: {}           // userId → photoURL cache
 };
 
 // ==========================================================================
@@ -129,7 +132,120 @@ onAuthStateChanged(auth, (user) => {
 function updateUserInfo(user) {
     const name = user.displayName || user.email || 'User';
     $('eg-user-name').textContent = name;
-    $('eg-user-avatar').textContent = name.charAt(0).toUpperCase();
+    const avatarEl = $('eg-user-avatar');
+    // Use Firebase Auth photoURL or Firestore photoURL
+    const photoURL = user.photoURL || state.userPhotoURL;
+    if (photoURL) {
+        avatarEl.innerHTML = `<img src="${photoURL}" alt="">`;
+        state.userPhotoURL = photoURL;
+    } else {
+        avatarEl.textContent = name.charAt(0).toUpperCase();
+    }
+}
+
+// Load user profile from Firestore
+async function loadUserProfile() {
+    if (!state.currentUser) return;
+    try {
+        const userDoc = await getDoc(doc(db, 'users', state.currentUser.uid));
+        if (userDoc.exists()) {
+            state.userProfile = userDoc.data();
+            // Cache own photo
+            const photoURL = state.userProfile.photoURL || state.currentUser.photoURL;
+            if (photoURL) {
+                state.userPhotoURL = photoURL;
+                state.photoCache[state.currentUser.uid] = photoURL;
+                // Update sidebar avatar with Firestore photo
+                const avatarEl = $('eg-user-avatar');
+                avatarEl.innerHTML = `<img src="${photoURL}" alt="">`;
+            }
+        }
+    } catch (err) {
+        console.error('Error loading user profile:', err);
+    }
+}
+
+// Load photo URL for another user (with cache)
+async function getUserPhotoURL(userId) {
+    if (state.photoCache[userId] !== undefined) return state.photoCache[userId];
+    try {
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            state.photoCache[userId] = data.photoURL || null;
+            return data.photoURL || null;
+        }
+    } catch (err) {
+        // Silently fail — will show initial instead
+    }
+    state.photoCache[userId] = null;
+    return null;
+}
+
+// Open profile modal
+function openProfileModal() {
+    const user = state.currentUser;
+    const profile = state.userProfile || {};
+    const name = user.displayName || profile.displayName || user.email || 'User';
+    const photoURL = state.userPhotoURL || user.photoURL;
+
+    // Photo
+    const photoEl = $('eg-profile-photo');
+    if (photoURL) {
+        photoEl.innerHTML = `<img src="${photoURL}" alt="">`;
+    } else {
+        photoEl.textContent = name.charAt(0).toUpperCase();
+    }
+
+    // Name and username
+    $('eg-profile-name').textContent = name;
+    $('eg-profile-username').textContent = profile.username ? `@${profile.username}` : 'Nave Member';
+
+    // Stats
+    const friendCount = profile.followerCount || 0;
+    $('eg-profile-friends').textContent = friendCount;
+    $('eg-profile-networks').textContent = state.organizations.length;
+
+    // Count keys from associatedObjects
+    let keyCount = 0;
+    if (profile.associatedObjects) {
+        for (const [, arr] of Object.entries(profile.associatedObjects)) {
+            if (Array.isArray(arr)) {
+                keyCount += arr.filter(a => a.isActive !== false).length;
+            }
+        }
+    }
+    // Also count from submittedObjects
+    if (profile.submittedObjects) {
+        for (const [, arr] of Object.entries(profile.submittedObjects)) {
+            if (Array.isArray(arr)) keyCount += arr.length;
+        }
+    }
+    $('eg-profile-keys').textContent = keyCount;
+
+    // Home parish
+    loadProfileParish(profile.homeParishId);
+    loadProfileCampus(profile.homeCampusMinistryId);
+
+    $('eg-profile-modal').classList.remove('hidden');
+}
+
+async function loadProfileParish(parishId) {
+    const el = $('eg-profile-parish');
+    if (!parishId) { el.textContent = 'Not set'; return; }
+    try {
+        const d = await getDoc(doc(db, 'Churches', parishId));
+        el.textContent = d.exists() ? d.data().name : 'Not set';
+    } catch { el.textContent = 'Not set'; }
+}
+
+async function loadProfileCampus(campusId) {
+    const el = $('eg-profile-campus');
+    if (!campusId) { el.textContent = 'Not set'; return; }
+    try {
+        const d = await getDoc(doc(db, 'bibleStudies', campusId));
+        el.textContent = d.exists() ? d.data().name : 'Not set';
+    } catch { el.textContent = 'Not set'; }
 }
 
 // ==========================================================================
@@ -176,6 +292,17 @@ sidebarBackdrop.addEventListener('click', () => {
     sidebarBackdrop.classList.remove('visible');
 });
 
+// Profile modal
+$('eg-user-info').addEventListener('click', () => openProfileModal());
+
+$('eg-profile-modal-close').addEventListener('click', () => {
+    $('eg-profile-modal').classList.add('hidden');
+});
+
+$('eg-profile-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'eg-profile-modal') $('eg-profile-modal').classList.add('hidden');
+});
+
 // ==========================================================================
 // Filter Tabs (Inbox)
 // ==========================================================================
@@ -192,6 +319,7 @@ $('eg-inbox-filters').addEventListener('click', (e) => {
 // ==========================================================================
 async function loadAllData() {
     await Promise.all([
+        loadUserProfile(),
         loadOrganizations(),
         loadThreads(),
         loadInvitations(),
@@ -429,10 +557,11 @@ function renderThreads(filter = 'all') {
     container.innerHTML = threads.map(t => {
         const otherName = getThreadDisplayName(t);
         const initial = otherName.charAt(0).toUpperCase();
+        const otherId = getThreadOtherUserId(t);
         const isUnread = t.unreadCount?.[state.currentUser.uid] > 0;
         return `
-            <div class="eg-thread-row" data-thread-id="${t.id}">
-                <div class="eg-thread-avatar">${initial}</div>
+            <div class="eg-thread-row" data-thread-id="${t.id}" data-other-id="${otherId || ''}">
+                <div class="eg-thread-avatar" data-uid="${otherId || ''}">${initial}</div>
                 <div class="eg-thread-info">
                     <div class="eg-thread-name">${escapeHtml(otherName)}</div>
                     <div class="eg-thread-preview">${escapeHtml(t.lastMessage || '')}</div>
@@ -448,18 +577,40 @@ function renderThreads(filter = 'all') {
     container.querySelectorAll('.eg-thread-row').forEach(row => {
         row.addEventListener('click', () => openDmChat(row.dataset.threadId));
     });
+
+    // Load profile photos for thread avatars
+    loadThreadAvatarPhotos(container);
 }
 
 function getThreadDisplayName(thread) {
     if (thread.participantNames) {
         const names = thread.participantNames;
         const uid = state.currentUser.uid;
-        // Find the other participant's name
         for (const [id, name] of Object.entries(names)) {
             if (id !== uid) return name;
         }
     }
     return thread.title || 'Conversation';
+}
+
+function getThreadOtherUserId(thread) {
+    if (thread.participantIds) {
+        const uid = state.currentUser.uid;
+        return thread.participantIds.find(id => id !== uid) || null;
+    }
+    return null;
+}
+
+async function loadThreadAvatarPhotos(container) {
+    const avatars = container.querySelectorAll('.eg-thread-avatar[data-uid]');
+    for (const el of avatars) {
+        const uid = el.dataset.uid;
+        if (!uid) continue;
+        const photoURL = await getUserPhotoURL(uid);
+        if (photoURL) {
+            el.innerHTML = `<img src="${photoURL}" alt="">`;
+        }
+    }
 }
 
 function updateInboxBadge() {
@@ -563,9 +714,10 @@ function renderHomePreview() {
         const preview = state.threads.slice(0, 2);
         inboxContainer.innerHTML = preview.map(t => {
             const name = getThreadDisplayName(t);
+            const otherId = getThreadOtherUserId(t);
             return `
                 <div class="eg-thread-row" data-thread-id="${t.id}">
-                    <div class="eg-thread-avatar">${name.charAt(0).toUpperCase()}</div>
+                    <div class="eg-thread-avatar" data-uid="${otherId || ''}">${name.charAt(0).toUpperCase()}</div>
                     <div class="eg-thread-info">
                         <div class="eg-thread-name">${escapeHtml(name)}</div>
                         <div class="eg-thread-preview">${escapeHtml(t.lastMessage || '')}</div>
@@ -579,6 +731,7 @@ function renderHomePreview() {
         inboxContainer.querySelectorAll('.eg-thread-row').forEach(row => {
             row.addEventListener('click', () => openDmChat(row.dataset.threadId));
         });
+        loadThreadAvatarPhotos(inboxContainer);
     } else {
         inboxContainer.innerHTML = '<div class="eg-empty-state">No messages yet</div>';
     }
@@ -1035,7 +1188,9 @@ async function expressInterest(orgId, btn) {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         // Close modals in order (topmost first)
-        if (!$('eg-channel-modal').classList.contains('hidden')) {
+        if (!$('eg-profile-modal').classList.contains('hidden')) {
+            $('eg-profile-modal').classList.add('hidden');
+        } else if (!$('eg-channel-modal').classList.contains('hidden')) {
             $('eg-channel-modal').classList.add('hidden');
             if (channelMessageUnsub) { channelMessageUnsub(); channelMessageUnsub = null; }
         } else if (!$('eg-dm-modal').classList.contains('hidden')) {
