@@ -135,7 +135,8 @@ const cleanURL = (url) => url ? url.replace(':443/', '/') : null;
 function updateUserInfo(user) {
     const name = user.displayName || user.email || 'User';
     $('eg-user-name').textContent = name;
-    setAvatarPhoto($('eg-user-avatar'), state.userPhotoURL || user.photoURL, name);
+    // Show initial as placeholder — loadUserProfile will set the real photo
+    $('eg-user-avatar').textContent = name.charAt(0).toUpperCase();
 }
 
 function setAvatarPhoto(el, photoURL, fallbackName) {
