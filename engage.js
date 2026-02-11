@@ -814,18 +814,29 @@ function renderHomePreview() {
         networkContainer.innerHTML = '<div class="eg-empty-state">No organizations yet</div>';
     }
 
-    // Discovery preview
+    // Discovery preview (top 3 suggestions)
     const discoveryContainer = $('eg-home-discovery');
-    const totalDiscovery = state.invitations.length + state.suggestions.length;
-    if (totalDiscovery > 0) {
-        let html = '';
-        if (state.invitations.length > 0) {
-            html += `<div style="padding:0.5rem;color:var(--color-text-muted);font-size:0.85rem">${state.invitations.length} pending invitation${state.invitations.length > 1 ? 's' : ''}</div>`;
-        }
-        if (state.suggestions.length > 0) {
-            html += `<div style="padding:0.5rem;color:var(--color-text-muted);font-size:0.85rem">${state.suggestions.length} suggested organization${state.suggestions.length > 1 ? 's' : ''}</div>`;
-        }
-        discoveryContainer.innerHTML = html;
+    let discoveryHtml = '';
+    if (state.invitations.length > 0) {
+        discoveryHtml += `<div style="padding:0.5rem;color:var(--color-text-muted);font-size:0.85rem">${state.invitations.length} pending invitation${state.invitations.length > 1 ? 's' : ''}</div>`;
+    }
+    if (state.suggestions.length > 0) {
+        discoveryHtml += state.suggestions.slice(0, 3).map(org => `
+            <div class="eg-org-row" data-org-id="${org.id}">
+                ${renderOrgAvatar(org)}
+                <div class="eg-org-info">
+                    <div class="eg-org-name">${escapeHtml(org.name || 'Organization')}</div>
+                    <div class="eg-org-tagline">${escapeHtml(org.tagline || org.description || '')}</div>
+                </div>
+                <span class="eg-org-arrow">&rsaquo;</span>
+            </div>
+        `).join('');
+    }
+    if (discoveryHtml) {
+        discoveryContainer.innerHTML = discoveryHtml;
+        discoveryContainer.querySelectorAll('.eg-org-row').forEach(row => {
+            row.addEventListener('click', () => openOrgModal(row.dataset.orgId));
+        });
     } else {
         discoveryContainer.innerHTML = '<div class="eg-empty-state">No suggestions yet</div>';
     }
