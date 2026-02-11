@@ -998,8 +998,68 @@
         .entity-detail-hours-row .time { color: #666; text-align: right; }
         .entity-detail-social { display: flex; gap: 8px; margin: 0 16px 16px; flex-wrap: wrap; }
         .entity-detail-social a { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #f0f0f5; border: 1px solid #ddd; border-radius: 8px; color: #3366CC; font-size: 0.78rem; font-weight: 600; text-decoration: none; }
+        /* Hero image */
+        .entity-detail-hero { width: 100%; height: 200px; object-fit: cover; border-radius: 16px 16px 0 0; display: block; }
+        .entity-detail-hero-carousel { position: relative; width: 100%; height: 200px; overflow: hidden; border-radius: 16px 16px 0 0; }
+        .entity-detail-hero-carousel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.4s; }
+        .entity-detail-hero-carousel img.active { opacity: 1; }
+        .entity-detail-hero-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+        .entity-detail-hero-dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; }
+        .entity-detail-hero-dots span.active { background: #fff; }
+        /* Owner edit bar */
+        .entity-detail-edit-bar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 8px 20px 0; }
+        .entity-detail-edit-toggle { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #ddd; background: #f8f8fa; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .entity-detail-edit-toggle:hover { background: #eee; }
+        .entity-detail-edit-toggle.active { background: #3366CC; color: #fff; border-color: #3366CC; }
+        .entity-detail-add-section-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; border: 1px solid #ddd; background: #f8f8fa; color: #3366CC; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .entity-detail-add-section-btn:hover { background: #eee; }
+        /* Editable field */
+        .entity-detail-editable { position: relative; }
+        .entity-detail-editable.editing { background: #f0f4ff; border-radius: 8px; padding: 8px; }
+        .entity-detail-editable textarea, .entity-detail-editable input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-family: inherit; font-size: 0.88rem; color: #111; background: #fff; resize: vertical; box-sizing: border-box; }
+        .entity-detail-save-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; margin-top: 6px; border-radius: 8px; border: none; background: #3366CC; color: #fff; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+        /* Message owner button */
+        .entity-detail-msg-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid #ddd; background: #f0f0f5; color: #3366CC; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .entity-detail-msg-btn:hover { background: #e8e8f0; }
+        /* Add section modal */
+        .entity-detail-add-modal { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
+        .entity-detail-add-modal.active { display: flex; }
+        .entity-detail-add-modal-content { background: #fff; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 70vh; overflow-y: auto; }
+        .entity-detail-add-modal-title { font-size: 1.1rem; font-weight: 700; color: #111; margin-bottom: 16px; }
+        .entity-detail-add-modal-item { padding: 12px 14px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s; }
+        .entity-detail-add-modal-item:hover { background: #f0f4ff; }
+        .entity-detail-add-modal-item h4 { font-size: 0.9rem; font-weight: 600; color: #111; margin: 0 0 2px; }
+        .entity-detail-add-modal-item p { font-size: 0.78rem; color: #777; margin: 0; }
+        /* PSA card */
+        .entity-detail-psa { margin: 0 16px 8px; padding: 14px; background: #f8f8fa; border-radius: 12px; border-left: 3px solid #d4af37; }
+        .entity-detail-psa-title { font-size: 0.88rem; font-weight: 600; color: #111; margin-bottom: 4px; }
+        .entity-detail-psa-text { font-size: 0.82rem; color: #444; line-height: 1.5; }
+        .entity-detail-psa-meta { font-size: 0.72rem; color: #999; margin-top: 6px; }
+        /* Gallery grid */
+        .entity-detail-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 16px 12px; border-radius: 12px; overflow: hidden; }
+        .entity-detail-gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; }
+        /* Staff list */
+        .entity-detail-staff-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; margin: 0 16px 4px; background: #f8f8fa; border-radius: 10px; }
+        .entity-detail-staff-avatar { width: 36px; height: 36px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #666; flex-shrink: 0; }
+        .entity-detail-staff-name { font-size: 0.85rem; font-weight: 600; color: #111; }
+        .entity-detail-staff-role { font-size: 0.75rem; color: #777; }
+        /* Job listing */
+        .entity-detail-job { margin: 0 16px 8px; padding: 12px 14px; background: #f8f8fa; border-radius: 12px; }
+        .entity-detail-job-title { font-size: 0.88rem; font-weight: 600; color: #111; }
+        .entity-detail-job-meta { font-size: 0.78rem; color: #777; margin-top: 2px; }
+        .entity-detail-job-desc { font-size: 0.82rem; color: #444; margin-top: 6px; line-height: 1.5; }
+        /* SENT badge */
+        .entity-detail-sent-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 6px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25); color: #d4af37; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px; }
+        /* Vocation process steps */
+        .entity-detail-step { display: flex; gap: 12px; margin: 0 16px 8px; }
+        .entity-detail-step-num { width: 28px; height: 28px; border-radius: 50%; background: #3366CC; color: #fff; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .entity-detail-step-text { flex: 1; }
+        .entity-detail-step-title { font-size: 0.85rem; font-weight: 600; color: #111; }
+        .entity-detail-step-desc { font-size: 0.78rem; color: #666; margin-top: 2px; line-height: 1.4; }
+        /* Member count badge */
+        .entity-detail-member-count { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #777; margin-top: 4px; }
         @media (min-width: 769px) { .entity-detail-overlay { align-items: center; } .entity-detail-panel { border-radius: 20px; max-height: 80vh; } }
-        @media (max-width: 768px) { .entity-detail-panel { max-height: 90vh; } .entity-detail-header { padding: 6px 16px 12px; } .entity-detail-name { font-size: 1.15rem; } .entity-detail-card { margin: 0 12px 12px; } .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } }
+        @media (max-width: 768px) { .entity-detail-panel { max-height: 90vh; } .entity-detail-header { padding: 6px 16px 12px; } .entity-detail-name { font-size: 1.15rem; } .entity-detail-card { margin: 0 12px 12px; } .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } .entity-detail-hero, .entity-detail-hero-carousel { height: 160px; } }
     </style>
 </head>
 <body class="map-page">
@@ -1202,6 +1262,17 @@
         </div>
     </div>
 
+    <!-- Add Section Modal -->
+    <div class="entity-detail-add-modal" id="add-section-modal">
+        <div class="entity-detail-add-modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <div class="entity-detail-add-modal-title">Add Section</div>
+                <button onclick="closeAddSectionModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#666;">&times;</button>
+            </div>
+            <div id="add-section-list"></div>
+        </div>
+    </div>
+
     <!-- Waitlist Popup (30s) -->
     <div id="map-waitlist-overlay" class="location-prompt-overlay hidden" style="z-index: 1100;">
         <div class="location-prompt" style="text-align: center;">
@@ -1235,7 +1306,8 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         
         // Firebase config (same project as iOS app)
         const firebaseConfig = {
@@ -1249,7 +1321,10 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
+        const auth = getAuth(app);
+        let currentUser = null;
+        onAuthStateChanged(auth, (user) => { currentUser = user; });
+
         // Pin colors matching iOS app
         const PIN_COLORS = {
             church: '#3B82F6',
@@ -1752,6 +1827,8 @@
         const detailOverlay = document.getElementById('entity-detail-overlay');
         const detailContent = document.getElementById('entity-detail-content');
         const detailPanel = document.getElementById('entity-detail-panel');
+        let detailEditMode = false;
+        let detailCurrentData = null;
 
         function escapeHTML(str) {
             if (!str) return '';
@@ -1770,16 +1847,134 @@
             return labels[type] || type;
         }
 
+        // Collection name for Firestore writes
+        function getCollectionForType(type) {
+            return COLLECTIONS[type] || '';
+        }
+
+        // ── Owner detection (matches iOS UserObjectAssociationService) ──
+        function isOwner(d) {
+            if (!currentUser) return false;
+            return d.createdByUserId === currentUser.uid || d.ownerId === currentUser.uid || d.organizationCreatedByUserId === currentUser.uid;
+        }
+
+        // ── Save field to Firestore ──
+        async function saveEntityField(d, field, value) {
+            const col = getCollectionForType(d._type);
+            if (!col || !d._docId) return;
+            try {
+                await updateDoc(doc(db, col, d._docId), { [field]: value, updatedAt: serverTimestamp() });
+                d[field] = value;
+                entityDataMap.set(`${d._type}_${d._docId}`, d);
+            } catch (err) {
+                console.error('Save error:', err);
+                alert('Could not save. Please try again.');
+            }
+        }
+
+        // ── Analytics tracking (matches iOS ListingAnalyticsService) ──
+        async function trackDetailView(d) {
+            if (!d._docId || !d._type) return;
+            try {
+                await addDoc(collection(db, 'listingAnalytics'), {
+                    entityId: d._docId, entityType: d._type, event: 'view',
+                    userId: currentUser?.uid || 'anonymous', timestamp: serverTimestamp()
+                });
+            } catch (e) { /* silent */ }
+        }
+
         // ── Open detail panel ──────────────────────────────
-        function openMapEntityDetail(docId) {
+        async function openMapEntityDetail(docId) {
             const data = entityDataMap.get(docId);
             if (!data) return;
+            detailEditMode = false;
+            detailCurrentData = data;
             detailOverlay.classList.add('active');
             renderMapEntityDetail(data);
+            trackDetailView(data);
+            // Load subcollection data async
+            await loadSubcollectionData(data);
+        }
+
+        // ── Load subcollection data per type ──
+        async function loadSubcollectionData(d) {
+            const type = d._type;
+            const docId = d._docId;
+            let needsRerender = false;
+            try {
+                if (type === 'church') {
+                    // Parish gallery subcollection
+                    const gallerySnap = await getDocs(collection(db, 'Churches', docId, 'gallery'));
+                    if (gallerySnap.size > 0) {
+                        d._gallery = gallerySnap.docs.map(g => g.data());
+                        needsRerender = true;
+                    }
+                    // Groups & ministries
+                    const groupsSnap = await getDocs(collection(db, 'Churches', docId, 'groups'));
+                    if (groupsSnap.size > 0) { d._groups = groupsSnap.docs.map(g => ({ id: g.id, ...g.data() })); needsRerender = true; }
+                    // Staff
+                    const staffSnap = await getDocs(collection(db, 'Churches', docId, 'staff'));
+                    if (staffSnap.size > 0) { d._staff = staffSnap.docs.map(s => ({ id: s.id, ...s.data() })); needsRerender = true; }
+                }
+                if (type === 'business') {
+                    // Job openings
+                    const jobsSnap = await getDocs(collection(db, 'businesses', docId, 'jobOpenings'));
+                    if (jobsSnap.size > 0) { d._jobs = jobsSnap.docs.map(j => ({ id: j.id, ...j.data() })); needsRerender = true; }
+                }
+                if (type === 'retreat') {
+                    // Other retreat offerings from same org
+                    if (d.organizationId) {
+                        const offerQ = query(collection(db, 'retreats'), where('organizationId', '==', d.organizationId), where('isActive', '!=', false));
+                        const offerSnap = await getDocs(offerQ);
+                        const others = offerSnap.docs.filter(o => o.id !== docId).map(o => ({ id: o.id, ...o.data() }));
+                        if (others.length) { d._otherRetreats = others; needsRerender = true; }
+                    }
+                }
+                if (type === 'pilgrimage') {
+                    // Multi-collection fetch: try pilgrimageOfferings first, merge with pilgrimageSites
+                    try {
+                        const offeringSnap = await getDocs(query(collection(db, 'pilgrimageOfferings'), where('siteId', '==', docId)));
+                        if (offeringSnap.size > 0) {
+                            d._offerings = offeringSnap.docs.map(o => ({ id: o.id, ...o.data() }));
+                            needsRerender = true;
+                        }
+                    } catch (e) { /* pilgrimageOfferings may not exist */ }
+                    // Also check if this doc has a siteId pointing to pilgrimageSites
+                    if (d.siteId) {
+                        try {
+                            const siteDoc = await getDoc(doc(db, 'pilgrimageSites', d.siteId));
+                            if (siteDoc.exists()) {
+                                const site = siteDoc.data();
+                                d.siteName = d.siteName || site.name;
+                                d.siteDescription = d.siteDescription || site.description;
+                                d.siteHistoricalSignificance = d.siteHistoricalSignificance || site.historicalSignificance;
+                                d.siteVisitingHours = d.siteVisitingHours || site.visitingHours;
+                                d.siteAdmissionInfo = d.siteAdmissionInfo || site.admissionInfo;
+                                d.siteImageURL = d.siteImageURL || site.imageURL;
+                                d.siteCreatedByUserId = d.siteCreatedByUserId || site.createdByUserId;
+                                needsRerender = true;
+                            }
+                        } catch (e) { /* silent */ }
+                    }
+                    // Travel facilitations subcollection
+                    try {
+                        const travSnap = await getDocs(collection(db, 'pilgrimageSites', docId, 'travelFacilitations'));
+                        if (travSnap.size > 0) { d.travelFacilitations = travSnap.docs.map(t => t.data()); needsRerender = true; }
+                    } catch (e) { /* silent */ }
+                }
+            } catch (err) {
+                console.warn('Subcollection load error:', err);
+            }
+            if (needsRerender && detailOverlay.classList.contains('active') && detailCurrentData === d) {
+                entityDataMap.set(`${d._type}_${d._docId}`, d);
+                renderMapEntityDetail(d);
+            }
         }
 
         window.closeEntityDetail = function() {
             detailOverlay.classList.remove('active');
+            detailEditMode = false;
+            detailCurrentData = null;
         };
 
         detailOverlay.addEventListener('click', (e) => { if (e.target === detailOverlay) closeEntityDetail(); });
@@ -1789,6 +1984,68 @@
         let detailTouchY = 0;
         detailPanel.addEventListener('touchstart', (e) => { if (detailPanel.scrollTop <= 0) detailTouchY = e.touches[0].clientY; }, { passive: true });
         detailPanel.addEventListener('touchmove', (e) => { if (detailPanel.scrollTop <= 0 && e.touches[0].clientY - detailTouchY > 80) closeEntityDetail(); }, { passive: true });
+
+        // ── Add section modal ──
+        window.openAddSectionModal = function() {
+            document.getElementById('add-section-modal').classList.add('active');
+        };
+        window.closeAddSectionModal = function() {
+            document.getElementById('add-section-modal').classList.remove('active');
+        };
+        document.getElementById('add-section-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'add-section-modal') closeAddSectionModal();
+        });
+
+        // ── Toggle edit mode ──
+        window.toggleDetailEditMode = function() {
+            detailEditMode = !detailEditMode;
+            if (detailCurrentData) renderMapEntityDetail(detailCurrentData);
+        };
+
+        // ── Save inline edit ──
+        window.saveInlineEdit = async function(field, inputId) {
+            const el = document.getElementById(inputId);
+            if (!el || !detailCurrentData) return;
+            const value = el.value.trim();
+            const btn = el.parentElement.querySelector('.entity-detail-save-btn');
+            if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+            await saveEntityField(detailCurrentData, field, value);
+            if (detailCurrentData) renderMapEntityDetail(detailCurrentData);
+        };
+
+        // ── Message owner ──
+        window.messageEntityOwner = async function() {
+            if (!currentUser || !detailCurrentData) { alert('Please sign in to send messages.'); return; }
+            const d = detailCurrentData;
+            const ownerId = d.createdByUserId || d.ownerId;
+            if (!ownerId) { alert('No owner found for this listing.'); return; }
+            if (ownerId === currentUser.uid) { alert('This is your listing.'); return; }
+            try {
+                const threadQ = query(collection(db, 'messages_threads'),
+                    where('participantIds', 'array-contains', currentUser.uid));
+                const threadSnap = await getDocs(threadQ);
+                let threadId = null;
+                threadSnap.forEach(t => {
+                    const td = t.data();
+                    if (td.participantIds && td.participantIds.includes(ownerId) && td.entityId === d._docId) {
+                        threadId = t.id;
+                    }
+                });
+                if (!threadId) {
+                    const newThread = await addDoc(collection(db, 'messages_threads'), {
+                        participantIds: [currentUser.uid, ownerId],
+                        participantNames: { [currentUser.uid]: currentUser.displayName || 'User', [ownerId]: d.name || d.title || 'Owner' },
+                        entityId: d._docId, entityType: d._type, entityName: d.name || d.title || '',
+                        lastMessage: '', lastMessageAt: serverTimestamp(), createdAt: serverTimestamp()
+                    });
+                    threadId = newThread.id;
+                }
+                window.open(`engage.html?thread=${threadId}`, '_blank');
+            } catch (err) {
+                console.error('Message error:', err);
+                alert('Could not start conversation. Please try again.');
+            }
+        };
 
         // ── Schedule parser ────────────────────────────────
         function parseSchedule(scheduleData) {
@@ -1838,11 +2095,71 @@
         }
 
         // ── Shared builders ────────────────────────────────
+        function buildHeroImage(d) {
+            const images = d.images || d.imageNames || [];
+            const singleImg = d.imageURL || d.ownerProfileImageURL || d.organizationImageURL || d.siteImageURL || '';
+            if (images.length > 1) {
+                let html = `<div class="entity-detail-hero-carousel" id="detail-hero-carousel">`;
+                images.forEach((img, i) => {
+                    const url = img.startsWith && img.startsWith('http') ? img : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(img)}?alt=media`;
+                    html += `<img src="${url}" alt="" class="${i === 0 ? 'active' : ''}" loading="lazy">`;
+                });
+                html += `<div class="entity-detail-hero-dots">`;
+                images.forEach((_, i) => { html += `<span class="${i === 0 ? 'active' : ''}" onclick="heroCarouselTo(${i})"></span>`; });
+                html += `</div></div>`;
+                return html;
+            }
+            const url = (images.length === 1 ? images[0] : singleImg);
+            if (!url) return '';
+            const src = url.startsWith && url.startsWith('http') ? url : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(url)}?alt=media`;
+            return `<img class="entity-detail-hero" src="${src}" alt="" loading="lazy" onerror="this.style.display='none'">`;
+        }
+
+        window.heroCarouselTo = function(idx) {
+            const carousel = document.getElementById('detail-hero-carousel');
+            if (!carousel) return;
+            carousel.querySelectorAll('img').forEach((img, i) => img.classList.toggle('active', i === idx));
+            carousel.querySelectorAll('.entity-detail-hero-dots span').forEach((dot, i) => dot.classList.toggle('active', i === idx));
+        };
+
+        // Auto-advance carousel
+        let heroInterval = null;
+        function startHeroCarousel() {
+            clearInterval(heroInterval);
+            const carousel = document.getElementById('detail-hero-carousel');
+            if (!carousel) return;
+            const imgs = carousel.querySelectorAll('img');
+            if (imgs.length <= 1) return;
+            let cur = 0;
+            heroInterval = setInterval(() => { cur = (cur + 1) % imgs.length; heroCarouselTo(cur); }, 4000);
+        }
+
         function buildHeader(d, type) {
             const icon = getEntityIcon(type);
             const name = d.name || d.title || d.parishName || 'Unknown';
+            let badgeHTML = '';
             const badge = d.diocese || d.category || d.type || d.schoolType || d.retreatType || d.organization || getTypeLabel(type);
-            return `<div class="entity-detail-header"><div class="entity-detail-icon">${icon}</div><div class="entity-detail-header-info"><div class="entity-detail-name">${escapeHTML(name)}</div><span class="entity-detail-type-badge">${escapeHTML(badge)}</span></div><button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button></div>`;
+            badgeHTML = `<span class="entity-detail-type-badge">${escapeHTML(badge)}</span>`;
+            if (d.isVerified) badgeHTML += `<span class="entity-detail-type-badge" style="background:rgba(34,197,94,0.1);color:#16a34a;margin-left:4px;">✓ Verified</span>`;
+            if (d.isSentMember) badgeHTML += `<span class="entity-detail-sent-badge">SENT</span>`;
+            if (d.subcategory && type === 'business') badgeHTML += `<span class="entity-detail-type-badge" style="margin-left:4px;">${escapeHTML(d.subcategory)}</span>`;
+            let memberHTML = '';
+            if (d.memberCount) memberHTML = `<div class="entity-detail-member-count"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>${d.memberCount} members</div>`;
+            return `<div class="entity-detail-header"><div class="entity-detail-icon">${icon}</div><div class="entity-detail-header-info"><div class="entity-detail-name">${escapeHTML(name)}</div>${badgeHTML}${memberHTML}</div><button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button></div>`;
+        }
+
+        function buildEditBar(d) {
+            if (!isOwner(d)) return '';
+            return `<div class="entity-detail-edit-bar"><button class="entity-detail-edit-toggle ${detailEditMode ? 'active' : ''}" onclick="toggleDetailEditMode()" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>${detailEditMode ? `<button class="entity-detail-add-section-btn" onclick="openAddSectionModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Section</button>` : ''}</div>`;
+        }
+
+        function buildEditableField(d, field, label, currentVal, isTextarea) {
+            if (!detailEditMode) return '';
+            const id = `edit-${field}-${Date.now()}`;
+            if (isTextarea) {
+                return `<div class="entity-detail-editable editing"><label style="font-size:0.72rem;font-weight:600;color:#999;text-transform:uppercase;">${escapeHTML(label)}</label><textarea id="${id}" rows="3">${escapeHTML(currentVal || '')}</textarea><button class="entity-detail-save-btn" onclick="saveInlineEdit('${field}','${id}')">Save</button></div>`;
+            }
+            return `<div class="entity-detail-editable editing"><label style="font-size:0.72rem;font-weight:600;color:#999;text-transform:uppercase;">${escapeHTML(label)}</label><input type="text" id="${id}" value="${escapeHTML(currentVal || '')}"><button class="entity-detail-save-btn" onclick="saveInlineEdit('${field}','${id}')">Save</button></div>`;
         }
 
         function buildLocation(d) {
@@ -1852,7 +2169,6 @@
             else if (d.city) parts.push(d.city);
             else if (d.state) parts.push(d.state);
             else if (d.location && typeof d.location === 'string') parts.push(d.location);
-            // Missionaries
             if (!parts.length && d.locationPrimary) {
                 if (d.locationPrimary.city) parts.push(d.locationPrimary.city + (d.locationPrimary.state ? ', ' + d.locationPrimary.state : ''));
             }
@@ -1863,7 +2179,8 @@
 
         function buildDescription(d) {
             const desc = d.description || d.bio || '';
-            if (!desc) return '';
+            if (!desc && !detailEditMode) return '';
+            if (detailEditMode && isOwner(d)) return buildEditableField(d, 'description', 'Description', desc, true);
             const truncated = desc.length > 400 ? desc.substring(0, 397) + '...' : desc;
             return `<div class="entity-detail-description">${escapeHTML(truncated)}</div>`;
         }
@@ -1883,11 +2200,17 @@
             const phone = d.phone || d.phoneNumber || d.contactInfo?.phone || '';
             if (phone) html += `<a href="tel:${phone}" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>Call</a>`;
             // Type-specific actions
-            if (type === 'missionary' && d.donationLink) { html += `<a href="${d.donationLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Donate</a>`; }
-            if (type === 'missionary' && d.calendlyLink) { html += `<a href="${d.calendlyLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Schedule</a>`; }
+            if (type === 'missionary' && d.donationLink) html += `<a href="${d.donationLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Donate</a>`;
+            if (type === 'missionary' && d.calendlyLink) html += `<a href="${d.calendlyLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Schedule</a>`;
             if (type === 'retreat') { const regUrl = d.registrationURL || ''; if (regUrl) html += `<a href="${regUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Register</a>`; }
-            if (type === 'vocation' && d.applicationLink) { html += `<a href="${d.applicationLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Apply</a>`; }
+            if (type === 'vocation' && d.applicationLink) html += `<a href="${d.applicationLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Apply</a>`;
             if (type === 'school') { const enrollUrl = d.enrollmentURL || ''; if (enrollUrl) html += `<a href="${enrollUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Enroll</a>`; }
+            if (type === 'pilgrimage' && d.website) { const url = d.website.startsWith('http') ? d.website : 'https://' + d.website; html += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Visit Site</a>`; }
+            // Message owner button (if not owner and owner exists)
+            const ownerId = d.createdByUserId || d.ownerId;
+            if (ownerId && currentUser && ownerId !== currentUser.uid) {
+                html += `<button class="entity-detail-action-btn" onclick="messageEntityOwner()"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>Message</button>`;
+            }
             return html ? `<div class="entity-detail-actions">${html}</div>` : '';
         }
 
@@ -1900,6 +2223,19 @@
             if (phone) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg><a href="tel:${phone}">${escapeHTML(phone)}</a></div>`;
             if (email) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg><a href="mailto:${email}">${escapeHTML(email)}</a></div>`;
             if (website) { const url = website.startsWith('http') ? website : 'https://' + website; const display = website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg><a href="${url}" target="_blank" rel="noopener">${escapeHTML(display)}</a></div>`; }
+            html += '</div>';
+            return html;
+        }
+
+        function buildSocialMedia(socialObj) {
+            if (!socialObj || typeof socialObj !== 'object') return '';
+            const entries = Object.entries(socialObj).filter(([,v]) => v);
+            if (!entries.length) return '';
+            let html = `<div class="entity-detail-section-title">Social Media</div><div class="entity-detail-social">`;
+            for (const [platform, url] of entries) {
+                const link = String(url).startsWith('http') ? url : 'https://' + url;
+                html += `<a href="${link}" target="_blank" rel="noopener">${escapeHTML(platform)}</a>`;
+            }
             html += '</div>';
             return html;
         }
@@ -1923,27 +2259,200 @@
             return `<div class="entity-detail-info-full"><div class="info-title">${escapeHTML(title)}</div><div class="info-text">${escapeHTML(String(text))}</div></div>`;
         }
 
+        function buildGallery(photos) {
+            if (!photos || !photos.length) return '';
+            let html = `<div class="entity-detail-section-title">Gallery</div><div class="entity-detail-gallery">`;
+            photos.slice(0, 9).forEach(p => {
+                const url = p.storageUrl || p.imageURL || p.url || '';
+                if (url) html += `<img src="${url}" alt="${escapeHTML(p.imageType || '')}" loading="lazy" onerror="this.style.display='none'">`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function buildStaffList(staff) {
+            if (!staff || !staff.length) return '';
+            let html = `<div class="entity-detail-section-title">Staff & Leadership</div>`;
+            staff.forEach(s => {
+                const name = s.name || s.staffName || '';
+                const role = s.role || s.title || s.position || '';
+                const initials = name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                html += `<div class="entity-detail-staff-item"><div class="entity-detail-staff-avatar">${initials}</div><div><div class="entity-detail-staff-name">${escapeHTML(name)}</div>${role ? `<div class="entity-detail-staff-role">${escapeHTML(role)}</div>` : ''}</div></div>`;
+            });
+            return html;
+        }
+
+        // ── Add section definitions per type (matches iOS AddSectionsSheets) ──
+        const ADD_SECTIONS = {
+            church: [
+                { id: 'events', title: 'Events', desc: 'Add parish events', fields: ['title','description','date','time','location'] },
+                { id: 'groups', title: 'Groups & Ministries', desc: 'Add groups or ministries', fields: ['name','description','meetingTime'] },
+                { id: 'staff', title: 'Staff & Leadership', desc: 'Add staff members', fields: ['name','role'] },
+                { id: 'social', title: 'Social Media', desc: 'Add social media links', fields: ['platform','url'] },
+                { id: 'psas', title: 'Pastor PSAs', desc: 'Post announcements', fields: ['title','message','pastorName'] },
+                { id: 'gallery', title: 'Gallery Photos', desc: 'Add photos of your parish', fields: ['imageType','url'] }
+            ],
+            business: [
+                { id: 'hours', title: 'Hours', desc: 'Set business hours', fields: ['day','openTime','closeTime'] },
+                { id: 'events', title: 'Events', desc: 'Add business events', fields: ['eventName','eventDate','eventTime','eventDescription','eventSignUpLink'] },
+                { id: 'marketing', title: 'Marketing', desc: 'Newsletter, reviews, awards', fields: ['marketingNewsletter','customerReviewsSummary','awardsRecognition'] },
+                { id: 'philanthropy', title: 'Philanthropy', desc: 'Community involvement', fields: ['communityPartnerships','communityInvolvement'] },
+                { id: 'jobs', title: 'Job Openings', desc: 'Post job listings', fields: ['title','type','salary','description'] }
+            ],
+            school: [
+                { id: 'classical', title: 'Classical Education', desc: 'Trivium, Latin, Great Books', fields: ['triviumQuadrivium','latinGreekStudies','greatBooks','socraticMethod'] },
+                { id: 'academics', title: 'Academics', desc: 'Enrollment, tuition, financial aid', fields: ['gradeLevels','enrollment','classSize','tuition','financialAid','admissionsProcess','enrollmentURL'] },
+                { id: 'formation', title: 'Catholic Formation', desc: 'Mass, confession, sacraments', fields: ['religiousEducation','sacramentalPreparation','dailyMass','confessionSchedule','adoration','virtueFormation'] }
+            ],
+            missionary: [
+                { id: 'contact', title: 'Contact', desc: 'Email, phone, scheduling', fields: ['email','phone','calendlyLink'] },
+                { id: 'impact', title: 'Impact Stats', desc: 'Students, campuses, years', fields: ['impactStats.studentsReached','impactStats.campusesCovered','impactStats.yearsOfService'] },
+                { id: 'links', title: 'Links', desc: 'Website and donation', fields: ['website','donationLink'] }
+            ],
+            retreat: [
+                { id: 'details', title: 'Retreat Details', desc: 'Topics, speakers, schedule', fields: ['retreatTopics','speakerInfo','scheduleStructure','capacity','pricing'] },
+                { id: 'spiritual', title: 'Spiritual Life', desc: 'Mass, confession, adoration', fields: ['massSchedule','confessionAvailability','adorationOpportunities','spiritualDirection'] },
+                { id: 'org', title: 'Organization Info', desc: 'Director, contact, frequency', fields: ['directorName','email','phone','retreatFrequency','accommodationInfo'] },
+                { id: 'marketing', title: 'Marketing', desc: 'Social media, newsletter', fields: ['socialMedia','newsletter','testimonials'] }
+            ],
+            vocation: [
+                { id: 'contact', title: 'Contact Info', desc: 'Email, phone, website', fields: ['email','phone','website','applicationLink'] },
+                { id: 'location', title: 'Location Details', desc: 'Full address', fields: ['address','city','state','zipCode'] },
+                { id: 'formation', title: 'Formation Info', desc: 'Process, requirements, discernment', fields: ['formationProcess','requirements','discernmentOpportunities'] },
+                { id: 'director', title: 'Director Info', desc: 'Director and community name', fields: ['directorName','communityName'] }
+            ],
+            pilgrimage: [
+                { id: 'description', title: 'Description', desc: 'Site description and history', fields: ['description','siteHistoricalSignificance'] }
+            ],
+            campus: [
+                { id: 'details', title: 'Ministry Details', desc: 'Meeting times and chaplain', fields: ['meetingTimes','chaplainName','chaplainEmail'] },
+                { id: 'contact', title: 'Contact', desc: 'Email, phone, website', fields: ['email','phone','website'] }
+            ]
+        };
+
+        window.populateAddSectionModal = function(type) {
+            const sections = ADD_SECTIONS[type] || [];
+            const list = document.getElementById('add-section-list');
+            list.innerHTML = '';
+            sections.forEach(sec => {
+                const item = document.createElement('div');
+                item.className = 'entity-detail-add-modal-item';
+                item.innerHTML = `<h4>${sec.title}</h4><p>${sec.desc}</p>`;
+                item.onclick = () => { closeAddSectionModal(); openSectionEditor(sec); };
+                list.appendChild(item);
+            });
+        };
+
+        function openSectionEditor(sec) {
+            // For now, create a simple prompt-based editor for each field
+            const d = detailCurrentData;
+            if (!d) return;
+            const col = getCollectionForType(d._type);
+            if (!col) return;
+
+            // For subcollection sections (events, groups, staff, jobs), add a new doc
+            const subcolSections = ['events','groups','staff','jobs','psas','gallery'];
+            if (subcolSections.includes(sec.id)) {
+                const values = {};
+                for (const field of sec.fields) {
+                    const val = prompt(`Enter ${field}:`);
+                    if (val === null) return;
+                    values[field] = val;
+                }
+                values.createdAt = serverTimestamp();
+                const subCol = sec.id === 'psas' ? 'pastorPSAs' : sec.id === 'jobs' ? 'jobOpenings' : sec.id;
+                addDoc(collection(db, col, d._docId, subCol), values).then(() => {
+                    alert('Added! Refreshing...');
+                    loadSubcollectionData(d);
+                }).catch(err => alert('Error: ' + err.message));
+                return;
+            }
+
+            // For document-level fields, update the entity doc
+            const updates = {};
+            for (const field of sec.fields) {
+                const current = field.includes('.') ? (d[field.split('.')[0]]?.[field.split('.')[1]] || '') : (d[field] || '');
+                const val = prompt(`${field}:`, current);
+                if (val === null) return;
+                if (field.includes('.')) {
+                    const [parent, child] = field.split('.');
+                    if (!updates[parent]) updates[parent] = d[parent] || {};
+                    updates[parent][child] = val;
+                } else {
+                    updates[field] = val;
+                }
+            }
+            updates.updatedAt = serverTimestamp();
+            updateDoc(doc(db, col, d._docId), updates).then(() => {
+                Object.assign(d, updates);
+                entityDataMap.set(`${d._type}_${d._docId}`, d);
+                renderMapEntityDetail(d);
+            }).catch(err => alert('Error: ' + err.message));
+        }
+
+        // ── Vocation process steps (matches iOS getVocationProcessSteps) ──
+        function getVocationProcessSteps(type) {
+            const steps = {
+                'Priesthood': [
+                    { title: 'Discernment', desc: 'Meet with a vocation director and begin prayer and reflection.' },
+                    { title: 'Seminary Application', desc: 'Apply to a seminary recommended by your diocese.' },
+                    { title: 'Propaedeutic Stage', desc: 'Initial formation period focused on human and spiritual growth.' },
+                    { title: 'Philosophy Studies', desc: '2 years studying philosophy and liberal arts.' },
+                    { title: 'Theology Studies', desc: '4 years of theological formation.' },
+                    { title: 'Ordination', desc: 'Ordination to the diaconate, then priesthood.' }
+                ],
+                'Religious Life': [
+                    { title: 'Inquiry', desc: 'Visit communities and attend come-and-see events.' },
+                    { title: 'Postulancy', desc: 'Live with the community for an initial trial period.' },
+                    { title: 'Novitiate', desc: '1-2 years of intensive formation and study of the rule.' },
+                    { title: 'Temporary Vows', desc: 'Profess vows for a set period (typically 3-6 years).' },
+                    { title: 'Perpetual Vows', desc: 'Make a lifelong commitment to the community.' }
+                ],
+                'Permanent Deacon': [
+                    { title: 'Inquiry', desc: 'Meet with the diaconate formation director.' },
+                    { title: 'Aspirancy', desc: '1 year of discernment with your spouse (if married).' },
+                    { title: 'Candidacy', desc: '3-4 years of academic and pastoral formation.' },
+                    { title: 'Ordination', desc: 'Ordained to the permanent diaconate.' }
+                ]
+            };
+            return steps[type] || steps['Priesthood'];
+        }
+
         // ══════════════════════════════════════════════════════
         // MASTER RENDER FUNCTION
         // ══════════════════════════════════════════════════════
 
         function renderMapEntityDetail(d) {
             const type = d._type;
-            let html = buildHeader(d, type);
+
+            // Hero image at top
+            let html = buildHeroImage(d);
+
+            // Owner edit bar
+            html += buildEditBar(d);
+
+            // Header
+            html += buildHeader(d, type);
 
             // Main card
             const isChurch = type === 'church';
             const cardClass = isChurch && d.isUnlocked ? 'entity-detail-card rainbow' : 'entity-detail-card';
             let cardHTML = buildLocation(d) + buildDescription(d);
 
-            // Founding year / rating / subtitle
+            // Founding year / rating
             if (d.foundingYear) cardHTML += `<div style="font-size:0.82rem;color:#777;margin-bottom:8px;">Since ${escapeHTML(String(d.foundingYear))}</div>`;
-            if (d.rating) cardHTML += `<div style="font-size:0.82rem;color:#d4af37;margin-bottom:8px;">★ ${d.rating}${d.reviewCount ? ` (${d.reviewCount} reviews)` : ''}</div>`;
+            if (d.rating) {
+                let ratingHTML = `<div style="font-size:0.82rem;color:#d4af37;margin-bottom:8px;">★ ${d.rating}`;
+                if (d.reviewCount) ratingHTML += ` (${d.reviewCount} reviews)`;
+                if (d.reviewLink) { const rl = d.reviewLink.startsWith('http') ? d.reviewLink : 'https://' + d.reviewLink; ratingHTML += ` · <a href="${rl}" target="_blank" rel="noopener" style="color:#3366CC;text-decoration:none;">Read Reviews</a>`; }
+                ratingHTML += `</div>`;
+                cardHTML += ratingHTML;
+            }
 
             cardHTML += buildActions(d, type);
             if (cardHTML) html += `<div class="${cardClass}">${cardHTML}</div>`;
 
-            // ── Type-specific sections ──
+            // Type-specific sections
             switch (type) {
                 case 'church': html += renderChurch(d); break;
                 case 'business': html += renderBusiness(d); break;
@@ -1961,10 +2470,16 @@
             html += buildFooter(d);
 
             detailContent.innerHTML = html;
+
+            // Start carousel if present
+            startHeroCarousel();
+
+            // Populate add-section modal for this type
+            if (isOwner(d)) populateAddSectionModal(type);
         }
 
         // ══════════════════════════════════════════════════════
-        // CHURCH — PrimeParishDetailView
+        // CHURCH — PrimeParishUnlockedView
         // ══════════════════════════════════════════════════════
 
         function renderChurch(d) {
@@ -2010,6 +2525,16 @@
                 }
             }
 
+            // Pastor PSAs
+            if (Array.isArray(d.pastorPSAs) && d.pastorPSAs.length > 0) {
+                html += `<div class="entity-detail-section-title">Pastor Announcements</div>`;
+                d.pastorPSAs.forEach(psa => {
+                    html += `<div class="entity-detail-psa"><div class="entity-detail-psa-title">${escapeHTML(psa.title || '')}</div><div class="entity-detail-psa-text">${escapeHTML(psa.message || '')}</div>`;
+                    if (psa.pastorName) html += `<div class="entity-detail-psa-meta">— ${escapeHTML(psa.pastorName)}</div>`;
+                    html += `</div>`;
+                });
+            }
+
             // Programs & Sacraments
             const programs = [];
             if (d.hasOCIA === true || d.prepClassSignupURL) programs.push('OCIA');
@@ -2019,8 +2544,26 @@
             if (programs.length > 0) {
                 html += `<div class="entity-detail-section-title">Programs & Sacraments</div><div class="entity-detail-programs">`;
                 programs.forEach(p => { html += `<div class="entity-detail-program-pill">${escapeHTML(p)}</div>`; });
+                if (d.prepClassSignupURL) html += `<a href="${d.prepClassSignupURL}" target="_blank" rel="noopener" class="entity-detail-program-pill" style="text-decoration:none;color:#3366CC;background:rgba(51,102,204,0.08);border-color:rgba(51,102,204,0.25);">Sign Up</a>`;
                 html += '</div>';
             }
+
+            // Staff & Leadership (from subcollection)
+            if (d._staff && d._staff.length > 0) html += buildStaffList(d._staff);
+
+            // Groups & Ministries (from subcollection)
+            if (d._groups && d._groups.length > 0) {
+                html += `<div class="entity-detail-section-title">Groups & Ministries</div>`;
+                d._groups.forEach(g => {
+                    html += buildInfoFull(g.name || 'Ministry', g.description || g.meetingTime || '');
+                });
+            }
+
+            // Gallery (from subcollection)
+            if (d._gallery && d._gallery.length > 0) html += buildGallery(d._gallery);
+
+            // Social Media
+            if (d.socialMedia && typeof d.socialMedia === 'object') html += buildSocialMedia(d.socialMedia);
 
             return html;
         }
@@ -2032,10 +2575,13 @@
         function renderBusiness(d) {
             let html = '';
 
-            // Features
+            // Features (top capsules like iOS hero)
             if (Array.isArray(d.features) && d.features.length > 0) {
                 html += `<div class="entity-detail-section-title">Highlights</div><div class="entity-detail-programs">`;
-                d.features.slice(0, 5).forEach(f => { html += `<div class="entity-detail-program-pill">${escapeHTML(f)}</div>`; });
+                d.features.slice(0, 5).forEach(f => {
+                    const text = typeof f === 'object' ? (f.name || f.title || JSON.stringify(f)) : f;
+                    html += `<div class="entity-detail-program-pill">${escapeHTML(text)}</div>`;
+                });
                 html += '</div>';
             }
 
@@ -2044,8 +2590,9 @@
                 html += `<div class="entity-detail-section-title">Hours</div><div class="entity-detail-hours">`;
                 d.hours.forEach(h => {
                     const day = h.day || h.dayOfWeek || '';
-                    const time = h.hours || h.time || h.open || '';
-                    if (day && time) html += `<div class="entity-detail-hours-row"><span class="day">${escapeHTML(day)}</span><span class="time">${escapeHTML(time)}</span></div>`;
+                    const isClosed = h.isClosed === true;
+                    const time = isClosed ? 'Closed' : (h.openTime && h.closeTime ? `${h.openTime} - ${h.closeTime}` : h.hours || h.time || h.open || '');
+                    if (day) html += `<div class="entity-detail-hours-row"><span class="day">${escapeHTML(day)}</span><span class="time">${escapeHTML(time)}</span></div>`;
                 });
                 html += '</div>';
             } else if (typeof d.hours === 'object' && d.hours && !Array.isArray(d.hours)) {
@@ -2056,37 +2603,71 @@
                 html += '</div>';
             }
 
+            // Services
+            const serviceFields = [
+                ['Services Offered', d.servicesOffered], ['Special Offers', d.specialOffers],
+                ['Loyalty Program', d.loyaltyProgram], ['Membership Benefits', d.membershipBenefits]
+            ].filter(([,v]) => v);
+            if (serviceFields.length) {
+                html += `<div class="entity-detail-section-title">Services</div>`;
+                serviceFields.forEach(([label, value]) => { html += buildInfoFull(label, value); });
+            }
+
+            // Events (premium events array + single event)
+            const hasEvents = d.eventTitle || (Array.isArray(d.premiumEvents) && d.premiumEvents.length > 0);
+            if (hasEvents) {
+                html += `<div class="entity-detail-section-title">Events</div>`;
+                if (Array.isArray(d.premiumEvents)) {
+                    d.premiumEvents.forEach(evt => {
+                        let evtHTML = `<div class="entity-detail-info-full"><div class="info-title">${escapeHTML(evt.name || '')}</div><div class="info-text">${evt.date ? escapeHTML(evt.date) : ''}${evt.time ? ' at ' + escapeHTML(evt.time) : ''}${evt.details ? '<br>' + escapeHTML(evt.details) : ''}</div>`;
+                        if (evt.signUpLink) evtHTML += `<a href="${evt.signUpLink}" target="_blank" rel="noopener" style="color:#3366CC;font-size:0.82rem;">Sign Up →</a>`;
+                        evtHTML += `</div>`;
+                        html += evtHTML;
+                    });
+                }
+                if (d.eventTitle) {
+                    html += `<div class="entity-detail-info-full"><div class="info-title">${escapeHTML(d.eventTitle)}${d.eventSubtitle ? ' — ' + escapeHTML(d.eventSubtitle) : ''}</div><div class="info-text">${d.eventDate ? escapeHTML(d.eventDate) : ''}${d.eventTime ? ' at ' + escapeHTML(d.eventTime) : ''}</div></div>`;
+                }
+                if (d.cateringOptions) html += buildInfoFull('Catering Options', d.cateringOptions);
+                if (d.privateEventsInfo) html += buildInfoFull('Private Events', d.privateEventsInfo);
+            }
+
             // Philanthropy
             const hasPhilanthropy = d.communityPartnerships || d.communityInvolvement || d.additionalEventsSummary;
             if (hasPhilanthropy) {
                 html += `<div class="entity-detail-section-title">Community & Philanthropy</div>`;
-                html += buildInfoFull('Parish Support', d.communityPartnerships);
-                html += buildInfoFull('Nonprofit Partnerships', d.communityInvolvement);
-                html += buildInfoFull('Event Sponsorships', d.additionalEventsSummary);
-            }
-
-            // Events
-            if (d.eventTitle) {
-                html += `<div class="entity-detail-section-title">Events</div>`;
-                html += `<div class="entity-detail-info-full"><div class="info-title">${escapeHTML(d.eventTitle)}${d.eventSubtitle ? ' — ' + escapeHTML(d.eventSubtitle) : ''}</div><div class="info-text">${d.eventDate ? escapeHTML(d.eventDate) : ''}${d.eventTime ? ' at ' + escapeHTML(d.eventTime) : ''}</div></div>`;
+                if (d.communityPartnerships) html += buildInfoFull('Parish Support', d.communityPartnerships);
+                if (d.communityInvolvement) html += buildInfoFull('Nonprofit Partnerships', d.communityInvolvement);
+                if (d.additionalEventsSummary) html += buildInfoFull('Event Sponsorships', d.additionalEventsSummary);
             }
 
             // Awards & Reviews
             if (d.awardsRecognition) html += buildInfoFull('Awards & Recognition', d.awardsRecognition);
             if (d.customerReviewsSummary) html += buildInfoFull('Customer Reviews', d.customerReviewsSummary);
-
-            // Newsletter
             if (d.marketingNewsletter) html += buildInfoFull('Newsletter', d.marketingNewsletter);
 
-            // Social Media
-            const social = d.socialMedia || d.contactInfo?.socialMedia;
-            if (social && typeof social === 'object') {
-                html += `<div class="entity-detail-section-title">Social Media</div><div class="entity-detail-social">`;
-                for (const [platform, url] of Object.entries(social)) {
-                    if (url) { const link = String(url).startsWith('http') ? url : 'https://' + url; html += `<a href="${link}" target="_blank" rel="noopener">${escapeHTML(platform)}</a>`; }
-                }
-                html += '</div>';
+            // SENT Integration
+            if (d.isSentMember && (d.sentInvestingStage || d.sentConnectionType || d.sentCalendlyLink)) {
+                html += `<div class="entity-detail-section-title">SENT Ventures</div>`;
+                if (d.sentInvestingStage) html += buildInfoFull('Investing Stage', d.sentInvestingStage);
+                if (d.sentConnectionType) html += buildInfoFull('Connection Type', d.sentConnectionType);
+                if (d.sentCalendlyLink) html += `<div style="margin:0 16px 12px;"><a href="${d.sentCalendlyLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Schedule with SENT</a></div>`;
             }
+
+            // Job Openings (from subcollection)
+            if (d._jobs && d._jobs.length > 0) {
+                html += `<div class="entity-detail-section-title">Job Openings</div>`;
+                d._jobs.forEach(job => {
+                    html += `<div class="entity-detail-job"><div class="entity-detail-job-title">${escapeHTML(job.title || '')}</div>`;
+                    const meta = [job.type, job.salary].filter(Boolean).join(' · ');
+                    if (meta) html += `<div class="entity-detail-job-meta">${escapeHTML(meta)}</div>`;
+                    if (job.description) html += `<div class="entity-detail-job-desc">${escapeHTML(job.description)}</div>`;
+                    html += '</div>';
+                });
+            }
+
+            // Social Media
+            html += buildSocialMedia(d.socialMedia || d.contactInfo?.socialMedia);
 
             return html;
         }
@@ -2097,6 +2678,10 @@
 
         function renderSchool(d) {
             let html = '';
+
+            // Administration
+            const principal = d.principalName || d.headmasterName || '';
+            if (principal) html += buildInfoFull('Principal / Headmaster', principal);
 
             // Academics grid
             const academicFields = [
@@ -2118,7 +2703,6 @@
                 ['Trivium & Quadrivium', d.triviumQuadrivium], ['Latin & Greek', d.latinGreekStudies],
                 ['Great Books', d.greatBooks], ['Socratic Method', d.socraticMethod]
             ].filter(([, v]) => v);
-
             if (classicalFields.length) {
                 html += `<div class="entity-detail-section-title">Classical Education</div>`;
                 classicalFields.forEach(([label, value]) => { html += buildInfoFull(label, value); });
@@ -2130,11 +2714,23 @@
                 ['Daily Mass', d.dailyMass], ['Confession', d.confessionSchedule],
                 ['Adoration', d.adoration], ['Virtue Formation', d.virtueFormation]
             ].filter(([, v]) => v);
-
             if (formationFields.length) {
                 html += `<div class="entity-detail-section-title">Catholic Formation</div>`;
                 formationFields.forEach(([label, value]) => {
                     if (typeof value === 'object') html += buildInfoFull(label, JSON.stringify(value));
+                    else html += buildInfoFull(label, value);
+                });
+            }
+
+            // Marketing
+            const marketingFields = [
+                ['Social Media', d.socialMedia], ['Newsletter', d.newsletter],
+                ['Virtual Tours', d.virtualTours], ['Open Houses', d.openHouses]
+            ].filter(([, v]) => v);
+            if (marketingFields.length) {
+                html += `<div class="entity-detail-section-title">Marketing & Connect</div>`;
+                marketingFields.forEach(([label, value]) => {
+                    if (typeof value === 'object') html += buildSocialMedia(value);
                     else html += buildInfoFull(label, value);
                 });
             }
@@ -2149,7 +2745,8 @@
         function renderMissionary(d) {
             let html = '';
 
-            // Organization & Campus
+            // Role & Organization
+            if (d.role) html += buildInfoFull('Role', d.role);
             if (d.organization) html += buildInfoFull('Organization', d.organization);
             if (d.campus) html += buildInfoFull('Campus', d.campus);
 
@@ -2161,6 +2758,18 @@
                 if (stats.campusesCovered) html += `<div class="entity-detail-stat"><div class="stat-value">${escapeHTML(String(stats.campusesCovered))}</div><div class="stat-label">Campuses</div></div>`;
                 if (stats.yearsOfService) html += `<div class="entity-detail-stat"><div class="stat-value">${escapeHTML(String(stats.yearsOfService))}</div><div class="stat-label">Years</div></div>`;
                 html += '</div>';
+            }
+
+            // Edit mode fields for missionary
+            if (detailEditMode && isOwner(d)) {
+                html += buildEditableField(d, 'name', 'Name', d.name, false);
+                html += buildEditableField(d, 'role', 'Role', d.role, false);
+                html += buildEditableField(d, 'organization', 'Organization', d.organization, false);
+                html += buildEditableField(d, 'website', 'Website', d.website, false);
+                html += buildEditableField(d, 'donationLink', 'Donation Link', d.donationLink, false);
+                html += buildEditableField(d, 'email', 'Email', d.email, false);
+                html += buildEditableField(d, 'phone', 'Phone', d.phone, false);
+                html += buildEditableField(d, 'calendlyLink', 'Calendly Link', d.calendlyLink, false);
             }
 
             // FOCUS Bible Studies
@@ -2185,10 +2794,11 @@
         function renderRetreat(d) {
             let html = '';
 
-            // Dates & Pricing
+            // Dates & Pricing grid
             const dateFields = [
                 ['Date', d.date ? (typeof d.date === 'string' ? d.date : '') : ''],
-                ['Duration', d.duration], ['Price', d.price], ['Capacity', d.capacity]
+                ['Duration', d.duration], ['Price', d.price], ['Capacity', d.capacity],
+                ['Formats', d.retreatFormats], ['Group Sizes', d.groupSizes]
             ].filter(([, v]) => v);
             if (dateFields.length) {
                 html += `<div class="entity-detail-section-title">Details</div><div class="entity-detail-info-grid">`;
@@ -2246,20 +2856,22 @@
             }
 
             // Address
-            const addr = [d.address, d.city, d.state, d.zipCode].filter(Boolean).join(', ');
-            if (addr && !d.address) html += buildInfoFull('Address', addr);
+            const addr = [d.city, d.state, d.zipCode].filter(Boolean).join(', ');
+            if (addr) html += buildInfoFull('Location', addr);
 
             // Testimonials
             if (d.testimonials) html += buildInfoFull('Testimonials', d.testimonials);
 
-            // Social
-            if (d.socialMedia && typeof d.socialMedia === 'object') {
-                html += `<div class="entity-detail-section-title">Social Media</div><div class="entity-detail-social">`;
-                for (const [platform, url] of Object.entries(d.socialMedia)) {
-                    if (url) { const link = String(url).startsWith('http') ? url : 'https://' + url; html += `<a href="${link}" target="_blank" rel="noopener">${escapeHTML(platform)}</a>`; }
-                }
-                html += '</div>';
+            // Other retreat offerings
+            if (d._otherRetreats && d._otherRetreats.length > 0) {
+                html += `<div class="entity-detail-section-title">Other Retreats</div>`;
+                d._otherRetreats.forEach(r => {
+                    html += buildInfoFull(r.title || r.retreatTitle || r.name || 'Retreat', r.description || r.date || '');
+                });
             }
+
+            // Social
+            html += buildSocialMedia(d.socialMedia);
 
             return html;
         }
@@ -2292,6 +2904,14 @@
                 html += '</div>';
             }
 
+            // Other offerings at this site
+            if (d._offerings && d._offerings.length > 0) {
+                html += `<div class="entity-detail-section-title">Pilgrimage Offerings</div>`;
+                d._offerings.forEach(o => {
+                    html += buildInfoFull(o.title || o.name || 'Offering', [o.date, o.description].filter(Boolean).join(' · '));
+                });
+            }
+
             // Pilgrimage type
             if (d.type && d.type !== d._type) html += buildInfoFull('Pilgrimage Type', d.type);
 
@@ -2305,7 +2925,7 @@
         function renderVocation(d) {
             let html = '';
 
-            // Director & Community
+            // Overview grid
             const infoFields = [
                 ['Vocation Director', d.directorName], ['Community', d.communityName],
                 ['Vocation Type', d.type && d.type !== d._type ? d.type : '']
@@ -2325,24 +2945,53 @@
             if (formFields.length) {
                 html += `<div class="entity-detail-section-title">Formation & Discernment</div>`;
                 formFields.forEach(([label, value]) => { html += buildInfoFull(label, value); });
+            } else {
+                // Show hardcoded process steps like iOS does when no formation data
+                const vocType = d.type || 'Priesthood';
+                const steps = getVocationProcessSteps(vocType);
+                html += `<div class="entity-detail-section-title">Formation Process</div>`;
+                steps.forEach((step, i) => {
+                    html += `<div class="entity-detail-step"><div class="entity-detail-step-num">${i + 1}</div><div class="entity-detail-step-text"><div class="entity-detail-step-title">${escapeHTML(step.title)}</div><div class="entity-detail-step-desc">${escapeHTML(step.desc)}</div></div></div>`;
+                });
             }
 
             // Location details
             const addr = [d.address, d.city, d.state, d.zipCode].filter(Boolean).join(', ');
             if (addr) html += buildInfoFull('Location', addr);
 
+            // Edit mode fields
+            if (detailEditMode && isOwner(d)) {
+                html += `<div class="entity-detail-section-title">Edit Fields</div>`;
+                html += buildEditableField(d, 'title', 'Title', d.title, false);
+                html += buildEditableField(d, 'email', 'Email', d.email, false);
+                html += buildEditableField(d, 'phone', 'Phone', d.phone, false);
+                html += buildEditableField(d, 'website', 'Website', d.website, false);
+                html += buildEditableField(d, 'applicationLink', 'Application Link', d.applicationLink, false);
+                html += buildEditableField(d, 'directorName', 'Director Name', d.directorName, false);
+                html += buildEditableField(d, 'communityName', 'Community Name', d.communityName, false);
+            }
+
             return html;
         }
 
         // ══════════════════════════════════════════════════════
-        // CAMPUS — follows Missionary pattern
+        // CAMPUS — Campus Ministry detail
         // ══════════════════════════════════════════════════════
 
         function renderCampus(d) {
             let html = '';
             if (d.university) html += buildInfoFull('University', d.university);
             if (d.organization) html += buildInfoFull('Organization', d.organization);
-            if (d.type) html += buildInfoFull('Type', d.type);
+            if (d.type && d.type !== d._type) html += buildInfoFull('Type', d.type);
+            if (d.meetingTimes || d.meetingTime) html += buildInfoFull('Meeting Times', d.meetingTimes || d.meetingTime);
+            if (d.chaplainName) html += buildInfoFull('Chaplain', d.chaplainName + (d.chaplainEmail ? ' · ' + d.chaplainEmail : ''));
+            if (d.introduction) html += buildInfoFull('About', d.introduction);
+            if (d.parishAddress) html += buildInfoFull('Parish Address', d.parishAddress);
+            if (d.memberCount) html += buildInfoItem('Members', d.memberCount);
+
+            // Social
+            if (d.socialMedia && typeof d.socialMedia === 'object') html += buildSocialMedia(d.socialMedia);
+
             return html;
         }
 
