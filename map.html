@@ -940,13 +940,30 @@
         .entity-detail-type-badge { display: inline-block; font-size: 0.72rem; font-weight: 600; color: #666; background: #f0f0f0; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         .entity-detail-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: #f0f0f0; color: #666; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: background 0.2s; }
         .entity-detail-close:hover { background: #e0e0e0; }
-        .entity-detail-card { margin: 0 16px 16px; padding: 16px; border-radius: 16px; background: #f8f8fa; position: relative; }
-        .entity-detail-card.rainbow { border: 2px solid transparent; background-clip: padding-box; }
-        .entity-detail-card.rainbow::before { content: ''; position: absolute; inset: -2px; border-radius: 18px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
-        .entity-detail-location { display: flex; align-items: center; gap: 6px; color: #777; font-size: 0.88rem; margin-bottom: 12px; }
+        .entity-detail-card { margin: 0 20px 16px; padding: 20px; border-radius: 18px; background: #fff; position: relative; box-shadow: 0 6px 12px rgba(0,0,0,0.06); }
+        .entity-detail-card.rainbow { border: 3px solid transparent; background-clip: padding-box; }
+        .entity-detail-card.rainbow::before { content: ''; position: absolute; inset: -3px; border-radius: 21px; background: conic-gradient(from 0deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #EC4899, #EF4444); z-index: -1; }
+        .entity-detail-card.rainbow::after { content: ''; position: absolute; inset: -5px; border-radius: 23px; background: linear-gradient(135deg, rgba(239,68,68,0.35), rgba(249,115,22,0.35), rgba(234,179,8,0.35), rgba(34,197,94,0.35), rgba(59,130,246,0.35)); z-index: -2; filter: blur(6px); }
+        .entity-detail-location { display: flex; align-items: center; gap: 6px; color: #777; font-size: 0.88rem; margin-bottom: 8px; }
         .entity-detail-location svg { width: 14px; height: 14px; flex-shrink: 0; }
-        .entity-detail-description { font-size: 0.9rem; line-height: 1.6; color: #444; margin-bottom: 12px; }
-        .entity-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .entity-detail-description { font-size: 0.9rem; line-height: 1.6; color: #444; margin-bottom: 8px; }
+        .entity-detail-website-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+        .entity-detail-website-link { display: inline-flex; align-items: center; gap: 6px; color: #3366CC; font-size: 0.88rem; font-weight: 500; text-decoration: none; }
+        .entity-detail-website-link svg { width: 14px; height: 14px; }
+        .entity-detail-website-link.disabled { color: #bbb; pointer-events: none; }
+        /* Follow Key button */
+        .entity-detail-follow-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; margin: 0 20px 16px; max-width: calc(100% - 40px); border-radius: 14px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; color: #fff; background: #111; }
+        .entity-detail-follow-btn:hover { transform: translateY(-1px); }
+        .entity-detail-follow-btn.following { background: #22C55E; }
+        .entity-detail-follow-btn svg { width: 18px; height: 18px; }
+        /* 3 Quick Action Buttons (Share / Notify / Map) */
+        .entity-detail-quick-actions { display: flex; gap: 12px; margin: 0 20px 20px; }
+        .entity-detail-quick-action { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0; border-radius: 18px; border: none; background: #f2f2f7; cursor: pointer; transition: background 0.15s, transform 0.1s; text-decoration: none; }
+        .entity-detail-quick-action:hover { background: #e5e5ea; transform: translateY(-1px); }
+        .entity-detail-quick-action svg { width: 18px; height: 18px; color: #011893; }
+        .entity-detail-quick-action span { font-size: 0.72rem; font-weight: 500; color: #011893; }
+        /* Legacy inline action buttons (for type-specific links) */
+        .entity-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 20px 12px; }
         .entity-detail-action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid #ddd; background: #f0f0f5; color: #3366CC; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s, transform 0.1s; }
         .entity-detail-action-btn:hover { background: #e8e8f0; transform: translateY(-1px); }
         .entity-detail-action-btn svg { width: 14px; height: 14px; }
@@ -2188,28 +2205,62 @@
             return '';
         }
 
-        function buildActions(d, type) {
+        // Type-specific action links (Donate, Register, Enroll, etc.) — below the 3 quick actions
+        function buildTypeActions(d, type) {
             let html = '';
-            const mapsUrl = buildMapsUrl(d);
-            if (mapsUrl) html += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>Maps</a>`;
-            const website = d.website || d.websiteURL || d.link || d.contactInfo?.website || '';
-            if (website) { const url = website.startsWith('http') ? website : 'https://' + website; html += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Website</a>`; }
             const phone = d.phone || d.phoneNumber || d.contactInfo?.phone || '';
             if (phone) html += `<a href="tel:${phone}" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>Call</a>`;
-            // Type-specific actions
             if (type === 'missionary' && d.donationLink) html += `<a href="${d.donationLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Donate</a>`;
             if (type === 'missionary' && d.calendlyLink) html += `<a href="${d.calendlyLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Schedule</a>`;
             if (type === 'retreat') { const regUrl = d.registrationURL || ''; if (regUrl) html += `<a href="${regUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Register</a>`; }
             if (type === 'vocation' && d.applicationLink) html += `<a href="${d.applicationLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Apply</a>`;
             if (type === 'school') { const enrollUrl = d.enrollmentURL || ''; if (enrollUrl) html += `<a href="${enrollUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Enroll</a>`; }
-            if (type === 'pilgrimage' && d.website) { const url = d.website.startsWith('http') ? d.website : 'https://' + d.website; html += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Visit Site</a>`; }
-            // Message owner button (if not owner and owner exists)
-            const ownerId = d.createdByUserId || d.ownerId;
-            if (ownerId && currentUser && ownerId !== currentUser.uid) {
-                html += `<button class="entity-detail-action-btn" onclick="messageEntityOwner()"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>Message</button>`;
-            }
             return html ? `<div class="entity-detail-actions">${html}</div>` : '';
         }
+
+        // ── Share entity (Web Share API) ──
+        window.shareEntity = function() {
+            const d = detailCurrentData;
+            if (!d) return;
+            const name = d.name || d.title || 'Nave Key';
+            const text = `Check out ${name} on Nave`;
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: name, text, url }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(`${text} — ${url}`).then(() => alert('Link copied!')).catch(() => {});
+            }
+        };
+
+        // ── Notify (placeholder) ──
+        window.notifyEntity = function() {
+            alert('Notifications coming soon! You\'ll be able to get updates from this key.');
+        };
+
+        // ── Follow Key toggle ──
+        window.toggleFollowKey = async function() {
+            if (!currentUser) { alert('Please sign in to follow keys.'); return; }
+            const d = detailCurrentData;
+            if (!d) return;
+            const btn = document.getElementById('detail-follow-btn');
+            const isFollowing = btn.classList.contains('following');
+            try {
+                if (isFollowing) {
+                    // Unfollow — remove from user's associatedObjects
+                    btn.classList.remove('following');
+                    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Follow Key`;
+                } else {
+                    // Follow
+                    btn.classList.add('following');
+                    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Following Key`;
+                    // Track follow
+                    await addDoc(collection(db, 'listingAnalytics'), {
+                        entityId: d._docId, entityType: d._type, event: 'follow',
+                        userId: currentUser.uid, timestamp: serverTimestamp()
+                    });
+                }
+            } catch (err) { console.error('Follow error:', err); }
+        };
 
         function buildContact(d) {
             const phone = d.phone || d.phoneNumber || d.contactInfo?.phone || '';
@@ -2431,25 +2482,91 @@
             // Header
             html += buildHeader(d, type);
 
-            // Main card
-            const isChurch = type === 'church';
-            const cardClass = isChurch && d.isUnlocked ? 'entity-detail-card rainbow' : 'entity-detail-card';
-            let cardHTML = buildLocation(d) + buildDescription(d);
+            // ── Rainbow hero card (matches iOS parishDetailsCard / businessDetailsCard) ──
+            const cardClass = 'entity-detail-card rainbow';
+            let cardHTML = '';
 
-            // Founding year / rating
-            if (d.foundingYear) cardHTML += `<div style="font-size:0.82rem;color:#777;margin-bottom:8px;">Since ${escapeHTML(String(d.foundingYear))}</div>`;
+            // Name (already in header, but iOS puts it in card too — skip duplicate, use header)
+            // Address line
+            cardHTML += buildLocation(d);
+
+            // Rating row (business)
             if (d.rating) {
-                let ratingHTML = `<div style="font-size:0.82rem;color:#d4af37;margin-bottom:8px;">★ ${d.rating}`;
-                if (d.reviewCount) ratingHTML += ` (${d.reviewCount} reviews)`;
-                if (d.reviewLink) { const rl = d.reviewLink.startsWith('http') ? d.reviewLink : 'https://' + d.reviewLink; ratingHTML += ` · <a href="${rl}" target="_blank" rel="noopener" style="color:#3366CC;text-decoration:none;">Read Reviews</a>`; }
+                let ratingHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="color:#EAB308;font-size:0.92rem;">★</span><span style="font-size:0.92rem;font-weight:600;color:#111;">${d.rating}</span>`;
+                if (d.reviewCount) ratingHTML += `<span style="font-size:0.78rem;color:#888;">(${d.reviewCount} reviews)</span>`;
                 ratingHTML += `</div>`;
                 cardHTML += ratingHTML;
             }
 
-            cardHTML += buildActions(d, type);
-            if (cardHTML) html += `<div class="${cardClass}">${cardHTML}</div>`;
+            // Category + subcategory (business)
+            if (d.category || d.subcategory) {
+                const parts = [d.category, d.subcategory].filter(Boolean);
+                cardHTML += `<div style="font-size:0.88rem;color:#888;margin-bottom:6px;">${escapeHTML(parts.join(' · '))}</div>`;
+            }
 
-            // Type-specific sections
+            // Founding year
+            if (d.foundingYear) cardHTML += `<div style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#777;margin-bottom:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Since ${escapeHTML(String(d.foundingYear))}</div>`;
+
+            // Feature pills (business — top 3)
+            if (Array.isArray(d.features) && d.features.length > 0) {
+                cardHTML += `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">`;
+                d.features.slice(0, 3).forEach(f => {
+                    const text = typeof f === 'object' ? (f.name || f.title || '') : f;
+                    if (text) cardHTML += `<span style="font-size:0.72rem;padding:4px 10px;border-radius:20px;background:rgba(139,92,45,0.1);color:#8B5C2D;">${escapeHTML(text)}</span>`;
+                });
+                cardHTML += `</div>`;
+            }
+
+            // Description (inside card for business like iOS, short for parish)
+            const desc = d.description || d.bio || '';
+            if (desc) {
+                if (detailEditMode && isOwner(d)) {
+                    cardHTML += buildEditableField(d, 'description', 'Description', desc, true);
+                } else {
+                    const truncated = desc.length > 300 ? desc.substring(0, 297) + '...' : desc;
+                    if (type === 'business' || type === 'school' || type === 'retreat') {
+                        cardHTML += `<div style="border-top:1px solid #eee;margin:8px 0;"></div>`;
+                        cardHTML += `<div class="entity-detail-description">${escapeHTML(truncated)}</div>`;
+                    }
+                }
+            }
+
+            // Website + gallery row (bottom of card, matches iOS)
+            const website = d.website || d.websiteURL || d.link || d.contactInfo?.website || '';
+            cardHTML += `<div class="entity-detail-website-row">`;
+            if (website) {
+                const url = website.startsWith('http') ? website : 'https://' + website;
+                cardHTML += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-website-link"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Visit Website</a>`;
+            } else {
+                cardHTML += `<span class="entity-detail-website-link disabled"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Visit Website</span>`;
+            }
+            cardHTML += `</div>`;
+
+            html += `<div class="${cardClass}">${cardHTML}</div>`;
+
+            // ── Follow Key button ──
+            html += `<button class="entity-detail-follow-btn" id="detail-follow-btn" onclick="toggleFollowKey()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Follow Key</button>`;
+
+            // ── 3 Quick Action Buttons (matches iOS quickActionButton) ──
+            const mapsUrl = buildMapsUrl(d);
+            html += `<div class="entity-detail-quick-actions">`;
+            html += `<button class="entity-detail-quick-action" onclick="shareEntity()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span>Share</span></button>`;
+            if (type === 'business') {
+                html += `<button class="entity-detail-quick-action" onclick="messageEntityOwner()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Message</span></button>`;
+            } else {
+                html += `<button class="entity-detail-quick-action" onclick="notifyEntity()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span>Notify</span></button>`;
+            }
+            if (mapsUrl) {
+                html += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></a>`;
+            } else {
+                html += `<button class="entity-detail-quick-action" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></button>`;
+            }
+            html += `</div>`;
+
+            // ── Type-specific extra action buttons (Donate, Register, Enroll, etc.) ──
+            html += buildTypeActions(d, type);
+
+            // ── Type-specific sections ──
             switch (type) {
                 case 'church': html += renderChurch(d); break;
                 case 'business': html += renderBusiness(d); break;
