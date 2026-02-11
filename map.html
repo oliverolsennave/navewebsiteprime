@@ -941,9 +941,8 @@
         .entity-detail-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: #f0f0f0; color: #666; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: background 0.2s; }
         .entity-detail-close:hover { background: #e0e0e0; }
         .entity-detail-card { margin: 0 20px 16px; padding: 20px; border-radius: 18px; background: #fff; position: relative; box-shadow: 0 6px 12px rgba(0,0,0,0.06); }
-        .entity-detail-card.rainbow { border: 3px solid transparent; background-clip: padding-box; }
-        .entity-detail-card.rainbow::before { content: ''; position: absolute; inset: -3px; border-radius: 21px; background: conic-gradient(from 0deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #EC4899, #EF4444); z-index: -1; }
-        .entity-detail-card.rainbow::after { content: ''; position: absolute; inset: -5px; border-radius: 23px; background: linear-gradient(135deg, rgba(239,68,68,0.35), rgba(249,115,22,0.35), rgba(234,179,8,0.35), rgba(34,197,94,0.35), rgba(59,130,246,0.35)); z-index: -2; filter: blur(6px); }
+        .entity-detail-card.rainbow { border: 3px solid transparent; background: linear-gradient(#fff, #fff) padding-box, conic-gradient(from 0deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #EC4899, #EF4444) border-box; box-shadow: 0 6px 12px rgba(0,0,0,0.08), 0 0 16px 2px rgba(239,68,68,0.12), 0 0 16px 2px rgba(59,130,246,0.12); }
+        .entity-detail-gallery-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: #3366CC; cursor: pointer; }
         .entity-detail-location { display: flex; align-items: center; gap: 6px; color: #777; font-size: 0.88rem; margin-bottom: 8px; }
         .entity-detail-location svg { width: 14px; height: 14px; flex-shrink: 0; }
         .entity-detail-description { font-size: 0.9rem; line-height: 1.6; color: #444; margin-bottom: 8px; }
@@ -2531,7 +2530,7 @@
                 }
             }
 
-            // Website + gallery row (bottom of card, matches iOS)
+            // Website (bottom-left) + Gallery icon (bottom-right) — matches iOS
             const website = d.website || d.websiteURL || d.link || d.contactInfo?.website || '';
             cardHTML += `<div class="entity-detail-website-row">`;
             if (website) {
@@ -2540,6 +2539,7 @@
             } else {
                 cardHTML += `<span class="entity-detail-website-link disabled"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Visit Website</span>`;
             }
+            cardHTML += `<div class="entity-detail-gallery-icon" title="Photo Gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="16" height="14" rx="2"/><rect x="6" y="3" width="16" height="14" rx="2" fill="white"/><circle cx="14" cy="9" r="2"/><path d="M6 17l3-3a2 2 0 0 1 2.8 0L17 19"/></svg></div>`;
             cardHTML += `</div>`;
 
             html += `<div class="${cardClass}">${cardHTML}</div>`;
