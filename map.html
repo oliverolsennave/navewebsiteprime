@@ -1048,8 +1048,6 @@
         .entity-detail-job-title { font-size: 0.88rem; font-weight: 600; color: #111; }
         .entity-detail-job-meta { font-size: 0.78rem; color: #777; margin-top: 2px; }
         .entity-detail-job-desc { font-size: 0.82rem; color: #444; margin-top: 6px; line-height: 1.5; }
-        /* SENT badge */
-        .entity-detail-sent-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 6px; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.25); color: #d4af37; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px; }
         /* Vocation process steps */
         .entity-detail-step { display: flex; gap: 12px; margin: 0 16px 8px; }
         .entity-detail-step-num { width: 28px; height: 28px; border-radius: 50%; background: #3366CC; color: #fff; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -2141,7 +2139,6 @@
             const badge = d.diocese || d.category || d.type || d.schoolType || d.retreatType || d.organization || getTypeLabel(type);
             badgeHTML = `<span class="entity-detail-type-badge">${escapeHTML(badge)}</span>`;
             if (d.isVerified) badgeHTML += `<span class="entity-detail-type-badge" style="background:rgba(34,197,94,0.1);color:#16a34a;margin-left:4px;">✓ Verified</span>`;
-            if (d.isSentMember) badgeHTML += `<span class="entity-detail-sent-badge">SENT</span>`;
             if (d.subcategory && type === 'business') badgeHTML += `<span class="entity-detail-type-badge" style="margin-left:4px;">${escapeHTML(d.subcategory)}</span>`;
             let memberHTML = '';
             if (d.memberCount) memberHTML = `<div class="entity-detail-member-count"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>${d.memberCount} members</div>`;
@@ -2645,14 +2642,6 @@
             if (d.awardsRecognition) html += buildInfoFull('Awards & Recognition', d.awardsRecognition);
             if (d.customerReviewsSummary) html += buildInfoFull('Customer Reviews', d.customerReviewsSummary);
             if (d.marketingNewsletter) html += buildInfoFull('Newsletter', d.marketingNewsletter);
-
-            // SENT Integration
-            if (d.isSentMember && (d.sentInvestingStage || d.sentConnectionType || d.sentCalendlyLink)) {
-                html += `<div class="entity-detail-section-title">SENT Ventures</div>`;
-                if (d.sentInvestingStage) html += buildInfoFull('Investing Stage', d.sentInvestingStage);
-                if (d.sentConnectionType) html += buildInfoFull('Connection Type', d.sentConnectionType);
-                if (d.sentCalendlyLink) html += `<div style="margin:0 16px 12px;"><a href="${d.sentCalendlyLink}" target="_blank" rel="noopener" class="entity-detail-action-btn primary-action">Schedule with SENT</a></div>`;
-            }
 
             // Job Openings (from subcollection)
             if (d._jobs && d._jobs.length > 0) {
