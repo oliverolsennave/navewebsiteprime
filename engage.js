@@ -129,17 +129,29 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// Normalize Firebase Storage URLs (remove :443 port that iOS sometimes adds)
+function normalizePhotoURL(url) {
+    if (!url) return null;
+    return url.replace('firebasestorage.googleapis.com:443', 'firebasestorage.googleapis.com');
+}
+
 function updateUserInfo(user) {
     const name = user.displayName || user.email || 'User';
     $('eg-user-name').textContent = name;
-    const avatarEl = $('eg-user-avatar');
-    // Use Firebase Auth photoURL or Firestore photoURL
-    const photoURL = user.photoURL || state.userPhotoURL;
-    if (photoURL) {
-        avatarEl.innerHTML = `<img src="${photoURL}" alt="">`;
-        state.userPhotoURL = photoURL;
+    setAvatarPhoto($('eg-user-avatar'), state.userPhotoURL || user.photoURL, name);
+}
+
+function setAvatarPhoto(el, photoURL, fallbackName) {
+    const url = normalizePhotoURL(photoURL);
+    if (url) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = '';
+        img.onerror = () => { el.textContent = (fallbackName || '?').charAt(0).toUpperCase(); };
+        el.innerHTML = '';
+        el.appendChild(img);
     } else {
-        avatarEl.textContent = name.charAt(0).toUpperCase();
+        el.textContent = (fallbackName || '?').charAt(0).toUpperCase();
     }
 }
 
@@ -150,14 +162,14 @@ async function loadUserProfile() {
         const userDoc = await getDoc(doc(db, 'users', state.currentUser.uid));
         if (userDoc.exists()) {
             state.userProfile = userDoc.data();
-            // Cache own photo
-            const photoURL = state.userProfile.photoURL || state.currentUser.photoURL;
+            // Prefer Firestore photoURL (custom uploaded), then Auth photoURL
+            const photoURL = normalizePhotoURL(state.userProfile.photoURL)
+                || normalizePhotoURL(state.currentUser.photoURL);
             if (photoURL) {
                 state.userPhotoURL = photoURL;
                 state.photoCache[state.currentUser.uid] = photoURL;
-                // Update sidebar avatar with Firestore photo
-                const avatarEl = $('eg-user-avatar');
-                avatarEl.innerHTML = `<img src="${photoURL}" alt="">`;
+                // Update sidebar avatar
+                setAvatarPhoto($('eg-user-avatar'), photoURL, state.currentUser.displayName);
             }
         }
     } catch (err) {
@@ -172,8 +184,9 @@ async function getUserPhotoURL(userId) {
         const userDoc = await getDoc(doc(db, 'users', userId));
         if (userDoc.exists()) {
             const data = userDoc.data();
-            state.photoCache[userId] = data.photoURL || null;
-            return data.photoURL || null;
+            const url = normalizePhotoURL(data.photoURL);
+            state.photoCache[userId] = url;
+            return url;
         }
     } catch (err) {
         // Silently fail — will show initial instead
@@ -190,12 +203,7 @@ function openProfileModal() {
     const photoURL = state.userPhotoURL || user.photoURL;
 
     // Photo
-    const photoEl = $('eg-profile-photo');
-    if (photoURL) {
-        photoEl.innerHTML = `<img src="${photoURL}" alt="">`;
-    } else {
-        photoEl.textContent = name.charAt(0).toUpperCase();
-    }
+    setAvatarPhoto($('eg-profile-photo'), photoURL, name);
 
     // Name and username
     $('eg-profile-name').textContent = name;
@@ -608,7 +616,7 @@ async function loadThreadAvatarPhotos(container) {
         if (!uid) continue;
         const photoURL = await getUserPhotoURL(uid);
         if (photoURL) {
-            el.innerHTML = `<img src="${photoURL}" alt="">`;
+            setAvatarPhoto(el, photoURL, el.textContent);
         }
     }
 }
