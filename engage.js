@@ -129,12 +129,6 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Normalize Firebase Storage URLs (remove :443 port that iOS sometimes adds)
-function normalizePhotoURL(url) {
-    if (!url) return null;
-    return url.replace('firebasestorage.googleapis.com:443', 'firebasestorage.googleapis.com');
-}
-
 function updateUserInfo(user) {
     const name = user.displayName || user.email || 'User';
     $('eg-user-name').textContent = name;
@@ -142,10 +136,9 @@ function updateUserInfo(user) {
 }
 
 function setAvatarPhoto(el, photoURL, fallbackName) {
-    const url = normalizePhotoURL(photoURL);
-    if (url) {
+    if (photoURL) {
         const img = document.createElement('img');
-        img.src = url;
+        img.src = photoURL;
         img.alt = '';
         img.onerror = () => { el.textContent = (fallbackName || '?').charAt(0).toUpperCase(); };
         el.innerHTML = '';
@@ -162,13 +155,10 @@ async function loadUserProfile() {
         const userDoc = await getDoc(doc(db, 'users', state.currentUser.uid));
         if (userDoc.exists()) {
             state.userProfile = userDoc.data();
-            // Prefer Firestore photoURL (custom uploaded), then Auth photoURL
-            const photoURL = normalizePhotoURL(state.userProfile.photoURL)
-                || normalizePhotoURL(state.currentUser.photoURL);
+            const photoURL = state.userProfile.photoURL || state.currentUser.photoURL || null;
             if (photoURL) {
                 state.userPhotoURL = photoURL;
                 state.photoCache[state.currentUser.uid] = photoURL;
-                // Update sidebar avatar
                 setAvatarPhoto($('eg-user-avatar'), photoURL, state.currentUser.displayName);
             }
         }
@@ -183,8 +173,7 @@ async function getUserPhotoURL(userId) {
     try {
         const userDoc = await getDoc(doc(db, 'users', userId));
         if (userDoc.exists()) {
-            const data = userDoc.data();
-            const url = normalizePhotoURL(data.photoURL);
+            const url = userDoc.data().photoURL || null;
             state.photoCache[userId] = url;
             return url;
         }
@@ -549,6 +538,17 @@ $('eg-org-search').addEventListener('input', (e) => {
 });
 
 // ── Threads ────────────────────────────────────────────────────────────
+function getThreadOtherPhotoURL(thread) {
+    // Use denormalized participantPhotoURLs when available (no extra reads)
+    if (thread.participantPhotoURLs) {
+        const uid = state.currentUser.uid;
+        for (const [id, url] of Object.entries(thread.participantPhotoURLs)) {
+            if (id !== uid && url) return url;
+        }
+    }
+    return null;
+}
+
 function renderThreads(filter = 'all') {
     const container = $('eg-thread-list');
     let threads = state.threads;
@@ -562,14 +562,29 @@ function renderThreads(filter = 'all') {
         return;
     }
 
+    // Seed photo cache from thread data to avoid extra Firestore reads
+    for (const t of threads) {
+        if (t.participantPhotoURLs) {
+            for (const [id, url] of Object.entries(t.participantPhotoURLs)) {
+                if (url && state.photoCache[id] === undefined) {
+                    state.photoCache[id] = url;
+                }
+            }
+        }
+    }
+
     container.innerHTML = threads.map(t => {
         const otherName = getThreadDisplayName(t);
         const initial = otherName.charAt(0).toUpperCase();
         const otherId = getThreadOtherUserId(t);
+        const inlinePhoto = getThreadOtherPhotoURL(t) || state.photoCache[otherId];
         const isUnread = t.unreadCount?.[state.currentUser.uid] > 0;
+        const avatarContent = inlinePhoto
+            ? `<img src="${escapeHtml(inlinePhoto)}" alt="" onerror="this.replaceWith(document.createTextNode('${initial}'))">`
+            : initial;
         return `
             <div class="eg-thread-row" data-thread-id="${t.id}" data-other-id="${otherId || ''}">
-                <div class="eg-thread-avatar" data-uid="${otherId || ''}">${initial}</div>
+                <div class="eg-thread-avatar" data-uid="${otherId || ''}">${avatarContent}</div>
                 <div class="eg-thread-info">
                     <div class="eg-thread-name">${escapeHtml(otherName)}</div>
                     <div class="eg-thread-preview">${escapeHtml(t.lastMessage || '')}</div>
@@ -586,7 +601,7 @@ function renderThreads(filter = 'all') {
         row.addEventListener('click', () => openDmChat(row.dataset.threadId));
     });
 
-    // Load profile photos for thread avatars
+    // Only fetch photos for avatars that don't already have an image
     loadThreadAvatarPhotos(container);
 }
 
@@ -611,14 +626,17 @@ function getThreadOtherUserId(thread) {
 
 async function loadThreadAvatarPhotos(container) {
     const avatars = container.querySelectorAll('.eg-thread-avatar[data-uid]');
+    const pending = [];
     for (const el of avatars) {
         const uid = el.dataset.uid;
-        if (!uid) continue;
-        const photoURL = await getUserPhotoURL(uid);
-        if (photoURL) {
-            setAvatarPhoto(el, photoURL, el.textContent);
-        }
+        if (!uid || el.querySelector('img')) continue; // skip if already has photo
+        pending.push(
+            getUserPhotoURL(uid).then(photoURL => {
+                if (photoURL) setAvatarPhoto(el, photoURL, el.textContent);
+            })
+        );
     }
+    await Promise.all(pending);
 }
 
 function updateInboxBadge() {
@@ -723,9 +741,14 @@ function renderHomePreview() {
         inboxContainer.innerHTML = preview.map(t => {
             const name = getThreadDisplayName(t);
             const otherId = getThreadOtherUserId(t);
+            const initial = name.charAt(0).toUpperCase();
+            const inlinePhoto = getThreadOtherPhotoURL(t) || state.photoCache[otherId];
+            const avatarContent = inlinePhoto
+                ? `<img src="${escapeHtml(inlinePhoto)}" alt="" onerror="this.replaceWith(document.createTextNode('${initial}'))">`
+                : initial;
             return `
                 <div class="eg-thread-row" data-thread-id="${t.id}">
-                    <div class="eg-thread-avatar" data-uid="${otherId || ''}">${name.charAt(0).toUpperCase()}</div>
+                    <div class="eg-thread-avatar" data-uid="${otherId || ''}">${avatarContent}</div>
                     <div class="eg-thread-info">
                         <div class="eg-thread-name">${escapeHtml(name)}</div>
                         <div class="eg-thread-preview">${escapeHtml(t.lastMessage || '')}</div>
