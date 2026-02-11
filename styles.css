@@ -361,6 +361,41 @@ input {
     }
 }
 
+/* About page — green theme override */
+body.about-page {
+    background: #0d2818;
+}
+
+body.about-page .nav {
+    background: rgba(13, 40, 24, 0.95);
+}
+
+body.about-page .about-vision {
+    background: #132e1d;
+}
+
+body.about-page .about-founders {
+    background: #0d2818;
+}
+
+body.about-page .founder-card {
+    background: #132e1d;
+    border-color: #1a3d26;
+}
+
+body.about-page .social-proof {
+    background: #132e1d;
+}
+
+body.about-page .bulk-cta {
+    border-color: #1a3d26;
+}
+
+body.about-page .footer {
+    background: #091f14;
+    border-color: #1a3d26;
+}
+
 /* ==========================================================================
    Hero Section
    ========================================================================== */
