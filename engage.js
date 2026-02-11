@@ -129,6 +129,9 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// Strip :443 port from Firebase Storage URLs (iOS SDK writes them this way, breaks browser loading)
+const cleanURL = (url) => url ? url.replace(':443/', '/') : null;
+
 function updateUserInfo(user) {
     const name = user.displayName || user.email || 'User';
     $('eg-user-name').textContent = name;
@@ -155,7 +158,7 @@ async function loadUserProfile() {
         const userDoc = await getDoc(doc(db, 'users', state.currentUser.uid));
         if (userDoc.exists()) {
             state.userProfile = userDoc.data();
-            const photoURL = state.userProfile.photoURL || state.currentUser.photoURL || null;
+            const photoURL = cleanURL(state.userProfile.photoURL) || cleanURL(state.currentUser.photoURL);
             if (photoURL) {
                 state.userPhotoURL = photoURL;
                 state.photoCache[state.currentUser.uid] = photoURL;
@@ -173,7 +176,7 @@ async function getUserPhotoURL(userId) {
     try {
         const userDoc = await getDoc(doc(db, 'users', userId));
         if (userDoc.exists()) {
-            const url = userDoc.data().photoURL || null;
+            const url = cleanURL(userDoc.data().photoURL);
             state.photoCache[userId] = url;
             return url;
         }
@@ -543,7 +546,7 @@ function getThreadOtherPhotoURL(thread) {
     if (thread.participantPhotoURLs) {
         const uid = state.currentUser.uid;
         for (const [id, url] of Object.entries(thread.participantPhotoURLs)) {
-            if (id !== uid && url) return url;
+            if (id !== uid && url) return cleanURL(url);
         }
     }
     return null;
@@ -567,7 +570,7 @@ function renderThreads(filter = 'all') {
         if (t.participantPhotoURLs) {
             for (const [id, url] of Object.entries(t.participantPhotoURLs)) {
                 if (url && state.photoCache[id] === undefined) {
-                    state.photoCache[id] = url;
+                    state.photoCache[id] = cleanURL(url);
                 }
             }
         }
