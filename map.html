@@ -316,11 +316,11 @@
             color: #a0a0a0;
         }
         
-        /* Add To Map button */
+        /* Add To Map button — left of locate button */
         .add-to-map-btn {
             position: absolute;
-            top: 16px;
-            right: 16px;
+            bottom: 80px;
+            right: 64px;
             z-index: 1000;
             padding: 10px 20px;
             font-size: 0.9rem;
@@ -328,11 +328,10 @@
             font-family: 'Instrument Sans', -apple-system, sans-serif;
             color: #111;
             background: #fff;
-            border: 2px solid transparent;
+            border: none;
             border-radius: 10px;
             cursor: pointer;
             text-decoration: none;
-            background-clip: padding-box;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -340,14 +339,9 @@
         .add-to-map-btn::before {
             content: '';
             position: absolute;
-            inset: -1.5px;
-            border-radius: 11px;
-            background: linear-gradient(135deg,
-                rgba(200, 80, 80, 0.45),
-                rgba(200, 160, 60, 0.45),
-                rgba(80, 180, 80, 0.45),
-                rgba(60, 130, 200, 0.45),
-                rgba(140, 80, 200, 0.45));
+            inset: -2px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e06060, #e0b040, #50c050, #4090e0, #9050d0);
             z-index: -1;
         }
 
