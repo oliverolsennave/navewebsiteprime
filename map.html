@@ -316,31 +316,36 @@
             color: #a0a0a0;
         }
         
-        /* Add To Map button — left of locate button */
-        .add-to-map-btn {
+        /* Add To Map — rainbow wrapper + white inner button */
+        .add-to-map-wrap {
             position: absolute;
             bottom: 80px;
             right: 64px;
             z-index: 1000;
+            padding: 2px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e06060, #e0b040, #50c050, #4090e0, #9050d0);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .add-to-map-wrap:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .add-to-map-btn {
+            display: block;
             padding: 10px 20px;
             font-size: 0.9rem;
             font-weight: 700;
             font-family: 'Instrument Sans', -apple-system, sans-serif;
             color: #111;
-            background:
-                linear-gradient(#fff, #fff) padding-box,
-                linear-gradient(135deg, #e06060, #e0b040, #50c050, #4090e0, #9050d0) border-box;
-            border: 2px solid transparent;
+            background: #fff;
+            border: none;
             border-radius: 10px;
             cursor: pointer;
             text-decoration: none;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .add-to-map-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
 
         /* Locate me button */
@@ -764,7 +769,7 @@
             }
 
             /* Hide Add To Map on mobile */
-            .add-to-map-btn {
+            .add-to-map-wrap {
                 display: none;
             }
 
@@ -1096,7 +1101,7 @@
         <div id="map"></div>
         
         <!-- Add To Map Button (desktop only) -->
-        <a href="join.html" class="add-to-map-btn">Add To Map</a>
+        <div class="add-to-map-wrap"><a href="join.html" class="add-to-map-btn">Add To Map</a></div>
 
         <!-- Legend / Filters -->
         <div id="map-legend" class="map-legend">
