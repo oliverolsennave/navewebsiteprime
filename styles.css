@@ -2466,6 +2466,13 @@ input {
     font-size: 1rem;
     color: #fff;
     flex-shrink: 0;
+    overflow: hidden;
+}
+
+.eg-org-logo-img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
 }
 
 .eg-org-info {
@@ -2709,6 +2716,7 @@ input {
     color: #fff;
     flex-shrink: 0;
     background: #4C8BF5;
+    overflow: hidden;
 }
 
 .eg-org-modal-info {

@@ -333,6 +333,34 @@ function getOrgInitials(org) {
         : name.substring(0, 2).toUpperCase();
 }
 
+// Logo asset mapping: Firestore logoURL/logoAssetName → web asset path
+const logoAssetMap = {
+    'sentdove': 'assets/logo-sentdove.png',
+    'navewhitelogo': 'assets/whitenavelogo.png',
+    'clilogofinal': 'assets/logo-clilogofinal.png',
+    'focuslogo': 'assets/logo-focus.png',
+};
+
+function getOrgLogoSrc(org) {
+    // Check logoAssetName first, then logoURL
+    const key = org.logoAssetName || org.logoURL;
+    if (key && logoAssetMap[key]) return logoAssetMap[key];
+    // If logoURL looks like an actual URL, use it directly
+    if (org.logoURL && (org.logoURL.startsWith('http://') || org.logoURL.startsWith('https://'))) {
+        return org.logoURL;
+    }
+    return null;
+}
+
+function renderOrgAvatar(org, sizeClass = '') {
+    const logoSrc = getOrgLogoSrc(org);
+    const bgColor = org.backgroundColorHex || getOrgColor(org);
+    if (logoSrc) {
+        return `<div class="eg-org-avatar ${sizeClass}" style="background:${bgColor}"><img src="${logoSrc}" alt="" class="eg-org-logo-img"></div>`;
+    }
+    return `<div class="eg-org-avatar ${sizeClass}" style="background:${bgColor}">${getOrgInitials(org)}</div>`;
+}
+
 function formatTime(timestamp) {
     if (!timestamp) return '';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -365,7 +393,7 @@ function renderOrganizations(filter = '') {
 
     container.innerHTML = orgs.map(org => `
         <div class="eg-org-row" data-org-id="${org.id}">
-            <div class="eg-org-avatar" style="background:${getOrgColor(org)}">${getOrgInitials(org)}</div>
+            ${renderOrgAvatar(org)}
             <div class="eg-org-info">
                 <div class="eg-org-name">${escapeHtml(org.name || 'Unnamed')}</div>
                 <div class="eg-org-tagline">${escapeHtml(org.tagline || org.description || '')}</div>
@@ -455,9 +483,14 @@ function renderInvitations() {
         return;
     }
 
-    container.innerHTML = state.invitations.map(inv => `
+    container.innerHTML = state.invitations.map(inv => {
+        // Try to find the org to get its logo
+        const invOrg = state.organizations.find(o => o.id === inv.organizationId)
+            || state.suggestions.find(o => o.id === inv.organizationId);
+        const avatarHtml = invOrg ? renderOrgAvatar(invOrg) : `<div class="eg-org-avatar" style="background:#4C8BF5">${(inv.organizationName || '?')[0].toUpperCase()}</div>`;
+        return `
         <div class="eg-invitation-row" data-inv-id="${inv.id}">
-            <div class="eg-org-avatar" style="background:#4C8BF5">${(inv.organizationName || '?')[0].toUpperCase()}</div>
+            ${avatarHtml}
             <div class="eg-invitation-info">
                 <div class="eg-invitation-name">${escapeHtml(inv.organizationName || 'Organization')}</div>
                 <div class="eg-invitation-from">Invited by ${escapeHtml(inv.invitedByName || 'someone')}</div>
@@ -467,7 +500,7 @@ function renderInvitations() {
                 <button class="eg-btn-decline" data-inv-id="${inv.id}">Decline</button>
             </div>
         </div>
-    `).join('');
+    `; }).join('');
 
     container.querySelectorAll('.eg-btn-accept').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -494,7 +527,7 @@ function renderSuggestions() {
 
     container.innerHTML = state.suggestions.map(org => `
         <div class="eg-suggestion-row" data-org-id="${org.id}">
-            <div class="eg-org-avatar" style="background:${getOrgColor(org)}">${getOrgInitials(org)}</div>
+            ${renderOrgAvatar(org)}
             <div class="eg-suggestion-info">
                 <div class="eg-suggestion-name">${escapeHtml(org.name || 'Organization')}</div>
                 <div class="eg-suggestion-desc">${escapeHtml(org.tagline || org.description || '')}</div>
@@ -556,7 +589,7 @@ function renderHomePreview() {
         const preview = state.organizations.slice(0, 5);
         networkContainer.innerHTML = preview.map(org => `
             <div class="eg-org-row" data-org-id="${org.id}">
-                <div class="eg-org-avatar" style="background:${getOrgColor(org)}">${getOrgInitials(org)}</div>
+                ${renderOrgAvatar(org)}
                 <div class="eg-org-info">
                     <div class="eg-org-name">${escapeHtml(org.name || 'Unnamed')}</div>
                     <div class="eg-org-tagline">${escapeHtml(org.tagline || '')}</div>
@@ -600,8 +633,15 @@ async function openOrgModal(orgId) {
     state.activeOrg = org;
 
     // Set header
-    $('eg-org-avatar-lg').textContent = getOrgInitials(org);
-    $('eg-org-avatar-lg').style.background = getOrgColor(org);
+    const avatarEl = $('eg-org-avatar-lg');
+    const logoSrc = getOrgLogoSrc(org);
+    const bgColor = org.backgroundColorHex || getOrgColor(org);
+    avatarEl.style.background = bgColor;
+    if (logoSrc) {
+        avatarEl.innerHTML = `<img src="${logoSrc}" alt="" class="eg-org-logo-img">`;
+    } else {
+        avatarEl.textContent = getOrgInitials(org);
+    }
     $('eg-org-modal-name').textContent = org.name || 'Organization';
     $('eg-org-modal-desc').textContent = org.tagline || org.description || '';
 
