@@ -316,6 +316,41 @@
             color: #a0a0a0;
         }
         
+        /* Add To Map button */
+        .add-to-map-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 1000;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: 'Instrument Sans', -apple-system, sans-serif;
+            color: #111;
+            background: #fff;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            background-clip: padding-box;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .add-to-map-btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff0000, #ff8000, #ffff00, #00ff00, #0080ff, #8000ff, #ff0080);
+            z-index: -1;
+        }
+
+        .add-to-map-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
         /* Locate me button */
         .locate-btn {
             position: absolute;
@@ -736,6 +771,11 @@
                 height: 13px;
             }
 
+            /* Hide Add To Map on mobile */
+            .add-to-map-btn {
+                display: none;
+            }
+
             /* Hide zoom controls on mobile (pinch to zoom) */
             .leaflet-control-zoom {
                 display: none !important;
@@ -1063,6 +1103,9 @@
         <!-- Map -->
         <div id="map"></div>
         
+        <!-- Add To Map Button (desktop only) -->
+        <a href="join.html" class="add-to-map-btn">Add To Map</a>
+
         <!-- Legend / Filters -->
         <div id="map-legend" class="map-legend">
             <div class="legend-drag-handle" onclick="toggleLegend()"><span></span></div>
