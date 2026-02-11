@@ -115,12 +115,17 @@ if (isSignInWithEmailLink(auth, window.location.href)) {
     }
 }
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     state.currentUser = user;
     if (user) {
+        // Load profile + preload photo BEFORE showing the app (no flash)
+        await loadUserProfile();
+        const name = user.displayName || state.userProfile?.displayName || user.email || 'User';
+        $('eg-user-name').textContent = name;
+        setAvatarPhoto($('eg-user-avatar'), state.userPhotoURL, name);
+
         authGate.classList.add('hidden');
         app.classList.remove('hidden');
-        updateUserInfo(user);
         loadAllData();
     } else {
         authGate.classList.remove('hidden');
@@ -131,13 +136,6 @@ onAuthStateChanged(auth, (user) => {
 
 // Strip :443 port from Firebase Storage URLs (iOS SDK writes them this way, breaks browser loading)
 const cleanURL = (url) => url ? url.replace(':443/', '/') : null;
-
-function updateUserInfo(user) {
-    const name = user.displayName || user.email || 'User';
-    $('eg-user-name').textContent = name;
-    // Show initial as placeholder — loadUserProfile will set the real photo
-    $('eg-user-avatar').textContent = name.charAt(0).toUpperCase();
-}
 
 function setAvatarPhoto(el, photoURL, fallbackName) {
     if (photoURL) {
@@ -152,6 +150,16 @@ function setAvatarPhoto(el, photoURL, fallbackName) {
     }
 }
 
+// Preload an image and resolve when loaded (or on error)
+function preloadImage(url) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(url);
+        img.onerror = () => resolve(null);
+        img.src = url;
+    });
+}
+
 // Load user profile from Firestore
 async function loadUserProfile() {
     if (!state.currentUser) return;
@@ -161,9 +169,9 @@ async function loadUserProfile() {
             state.userProfile = userDoc.data();
             const photoURL = cleanURL(state.userProfile.photoURL) || cleanURL(state.currentUser.photoURL);
             if (photoURL) {
+                await preloadImage(photoURL);
                 state.userPhotoURL = photoURL;
                 state.photoCache[state.currentUser.uid] = photoURL;
-                setAvatarPhoto($('eg-user-avatar'), photoURL, state.currentUser.displayName);
             }
         }
     } catch (err) {
@@ -320,7 +328,6 @@ $('eg-inbox-filters').addEventListener('click', (e) => {
 // ==========================================================================
 async function loadAllData() {
     await Promise.all([
-        loadUserProfile(),
         loadOrganizations(),
         loadThreads(),
         loadInvitations(),
