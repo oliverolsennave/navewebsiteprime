@@ -3082,8 +3082,7 @@ input {
 }
 
 .eg-user-info-active {
-    background: rgba(76, 139, 245, 0.08);
-    border-radius: 8px;
+    background: none;
 }
 
 .eg-user-info-active .eg-user-avatar {
