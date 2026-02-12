@@ -1029,9 +1029,9 @@
         .entity-detail-schedule-row .times { text-align: right; color: #666; }
         /* Upcoming Events — horizontal scroll cards matching iOS */
         .entity-detail-events-heading { font-size: 1.15rem; font-weight: 700; color: #111; padding: 16px 24px 10px; }
-        .entity-detail-events { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .entity-detail-events { overflow-x: auto; padding-bottom: 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .entity-detail-events::-webkit-scrollbar { display: none; }
-        .entity-detail-events::before, .entity-detail-events::after { content: ''; flex: 0 0 12px; }
+        .entity-detail-events-inner { display: flex; gap: 12px; padding: 0 24px; }
         .entity-detail-event-item { flex: 0 0 auto; width: 48%; min-width: 180px; max-width: 240px; padding: 16px; background: #f2f2f7; border-radius: 14px; scroll-snap-align: start; }
         .entity-detail-event-title { font-size: 0.92rem; font-weight: 700; color: #111; margin-bottom: 8px; line-height: 1.3; }
         .entity-detail-event-meta { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #888; margin-bottom: 4px; }
@@ -2759,7 +2759,7 @@
             if (Array.isArray(d.events) && d.events.length > 0) {
                 const upcoming = d.events.map(e => parseEvent(e)).filter(e => e !== null).sort((a, b) => a.date - b.date).slice(0, 5);
                 if (upcoming.length) {
-                    html += `<div class="entity-detail-events-heading">Upcoming Events</div><div class="entity-detail-events">`;
+                    html += `<div class="entity-detail-events-heading">Upcoming Events</div><div class="entity-detail-events"><div class="entity-detail-events-inner">`;
                     for (const evt of upcoming) {
                         const dateStr = evt.rawDate || (evt.month + ' ' + evt.dayNum);
                         html += `<div class="entity-detail-event-item">`;
@@ -2768,7 +2768,7 @@
                         if (evt.time) html += `<div class="entity-detail-event-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${escapeHTML(evt.time)}</div>`;
                         html += `</div>`;
                     }
-                    html += '</div>';
+                    html += '</div></div>';
                 }
             }
 
