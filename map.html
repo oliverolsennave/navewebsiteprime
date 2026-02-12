@@ -1641,13 +1641,18 @@
             const bounds = map.getBounds();
             let total = 0;
             document.querySelectorAll('.legend-filter input[type="checkbox"]').forEach(cb => {
-                if (cb.checked && layers[cb.dataset.type]) {
-                    layers[cb.dataset.type].eachLayer(marker => {
+                const type = cb.dataset.type;
+                let typeCount = 0;
+                if (layers[type]) {
+                    layers[type].eachLayer(marker => {
                         if (marker.getLatLng && bounds.contains(marker.getLatLng())) {
-                            total++;
+                            typeCount++;
                         }
                     });
                 }
+                const countEl = document.getElementById(`count-${type}`);
+                if (countEl) countEl.textContent = typeCount.toLocaleString();
+                if (cb.checked) total += typeCount;
             });
             document.getElementById('total-visible').textContent = total.toLocaleString();
         };
