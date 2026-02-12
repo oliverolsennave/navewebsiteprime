@@ -2585,16 +2585,29 @@
             // Owner edit bar
             html += buildEditBar(d);
 
-            // Header
-            html += buildHeader(d, type);
+            // Header (skip for churches — name goes inside rainbow card like iOS)
+            if (type !== 'church') {
+                html += buildHeader(d, type);
+            }
 
             // ── Rainbow hero card (matches iOS parishDetailsCard / businessDetailsCard) ──
             const cardClass = 'entity-detail-card rainbow';
             let cardHTML = '';
 
-            // Name (already in header, but iOS puts it in card too — skip duplicate, use header)
-            // Address line
-            cardHTML += buildLocation(d);
+            // Name inside card for churches (matches iOS PrimeParishDetailView / PrimeParishUnlockedView)
+            if (type === 'church') {
+                const name = d.name || d.parishName || 'Unknown';
+                cardHTML += `<div style="font-size:1.35rem;font-weight:700;color:#111;margin-bottom:6px;">${escapeHTML(name)}</div>`;
+            }
+
+            // Address line (street only for churches, matching iOS)
+            if (type === 'church') {
+                const addr = d.address || '';
+                const street = addr.includes(',') ? addr.split(',')[0].trim() : addr;
+                if (street) cardHTML += `<div style="font-size:0.92rem;color:#888;margin-bottom:8px;">${escapeHTML(street)}</div>`;
+            } else {
+                cardHTML += buildLocation(d);
+            }
 
             // Rating row (business)
             if (d.rating) {
