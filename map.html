@@ -686,12 +686,12 @@
                 margin-top: 52px;
             }
 
-            /* Legend panel — compact floating card, top-right on mobile */
+            /* Legend panel — compact floating card, bottom-left on mobile */
             .map-legend {
-                top: 8px;
-                right: 8px;
-                bottom: auto;
-                left: auto;
+                top: auto;
+                right: auto;
+                bottom: 96px;
+                left: 12px;
                 min-width: auto;
                 width: auto;
                 border-radius: 12px;
@@ -701,7 +701,7 @@
             }
 
             .map-legend.collapsed {
-                transform: translateX(calc(100% + 12px));
+                transform: translateX(calc(-100% - 12px));
                 opacity: 0;
             }
 
@@ -794,7 +794,7 @@
             /* Locate me — bottom-left, above stats bar */
             .locate-btn {
                 top: auto;
-                bottom: 48px;
+                bottom: 58px;
                 left: 12px;
                 right: auto;
                 padding: 10px;
