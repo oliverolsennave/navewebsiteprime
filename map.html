@@ -3639,14 +3639,12 @@
             let html = '';
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-            // ── Retreat Offerings (matches iOS RetreatOfferingCard) ──
+            // ── Retreat Offerings (matches iOS retreatOfferingsSection) ──
             const offerings = d._retreatOfferings || [];
+            html += `<div class="entity-detail-travel-section"><div class="travel-heading">Retreat Offerings</div>`;
             if (offerings.length > 0) {
-                html += `<div class="entity-detail-retreat-offerings">`;
-                html += `<div class="offerings-heading"><h3>Retreat Offerings</h3><span style="font-size:0.78rem;color:#8B5CF6;font-weight:600;">${offerings.length} available</span></div>`;
                 offerings.forEach(o => {
                     const price = o.price ? `$${Math.round(o.price)}` : '';
-                    // Format date
                     let dateText = '';
                     const oDate = o.date?.toDate ? o.date.toDate() : (o.date?.seconds ? new Date(o.date.seconds * 1000) : (typeof o.date === 'string' ? new Date(o.date) : null));
                     if (oDate && !isNaN(oDate.getTime())) dateText = `${months[oDate.getMonth()]} ${oDate.getDate()}, ${oDate.getFullYear()}`;
@@ -3669,8 +3667,10 @@
                     if (loc) html += `<div class="retreat-offering-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${escapeHTML(loc)}</div>`;
                     html += `</div>`;
                 });
-                html += `</div>`;
+            } else {
+                html += `<div class="entity-detail-travel-empty">No upcoming retreats are currently available.</div>`;
             }
+            html += `</div>`;
 
             // Dates & Pricing grid
             const dateFields = [
