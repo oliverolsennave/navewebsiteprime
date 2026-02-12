@@ -2172,13 +2172,34 @@
         function parseEvent(data) {
             const title = data.title || data.name || '';
             if (!title) return null;
-            let eventDate = new Date();
-            if (data.date && data.date.toDate) eventDate = data.date.toDate();
-            else if (data.date && data.date.seconds) eventDate = new Date(data.date.seconds * 1000);
-            else if (typeof data.date === 'string') eventDate = new Date(data.date);
+            let eventDate = null;
+            if (data.date && data.date.toDate) {
+                eventDate = data.date.toDate();
+            } else if (data.date && data.date.seconds) {
+                eventDate = new Date(data.date.seconds * 1000);
+            } else if (typeof data.date === 'string' && data.date.trim()) {
+                // Handle "Month Day" strings (e.g. "March 22") by appending current year
+                let dateStr = data.date.trim();
+                let parsed = new Date(dateStr);
+                if (isNaN(parsed.getTime())) {
+                    // Try appending current year: "March 22" → "March 22, 2026"
+                    parsed = new Date(dateStr + ', ' + new Date().getFullYear());
+                }
+                if (!isNaN(parsed.getTime())) {
+                    eventDate = parsed;
+                }
+            }
+            // If we still don't have a valid date, show the event anyway with raw date text
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            return { title, date: eventDate, time: data.time || null, location: data.location || null,
-                month: months[eventDate.getMonth()] || '', dayNum: eventDate.getDate() || '' };
+            if (eventDate && !isNaN(eventDate.getTime())) {
+                return { title, date: eventDate, time: data.time || null, location: data.location || null,
+                    month: months[eventDate.getMonth()] || '', dayNum: eventDate.getDate() || '',
+                    rawDate: data.date, description: data.description || null };
+            }
+            // Fallback: show event with raw date string
+            return { title, date: new Date(9999, 0, 1), time: data.time || null, location: data.location || null,
+                month: (typeof data.date === 'string' ? data.date.split(' ')[0].substring(0, 3) : ''), dayNum: (typeof data.date === 'string' ? data.date.split(' ')[1] || '' : ''),
+                rawDate: data.date, description: data.description || null };
         }
 
         // ── Shared builders ────────────────────────────────
@@ -2705,8 +2726,7 @@
 
             // ── 1. UPCOMING EVENTS (shown above schedules for prominence, matches iOS) ──
             if (Array.isArray(d.events) && d.events.length > 0) {
-                const now = new Date();
-                const upcoming = d.events.map(e => parseEvent(e)).filter(e => e && e.date >= now).sort((a, b) => a.date - b.date).slice(0, 5);
+                const upcoming = d.events.map(e => parseEvent(e)).filter(e => e !== null).sort((a, b) => a.date - b.date).slice(0, 5);
                 if (upcoming.length) {
                     html += `<div class="entity-detail-section-title">Upcoming Events</div><div class="entity-detail-events">`;
                     for (const evt of upcoming) {
