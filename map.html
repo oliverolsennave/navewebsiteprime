@@ -940,6 +940,7 @@
         .entity-detail-nav-btn svg { width: 16px; height: 16px; color: #111; }
         .entity-detail-nav-btn.editing { border-color: #3366CC; }
         .entity-detail-nav-btn.editing svg { color: #3366CC; }
+        .entity-detail-nav-btn.favorited svg { color: #EF4444; fill: #EF4444; }
         .entity-detail-header { display: flex; align-items: flex-start; gap: 14px; padding: 8px 20px 16px; }
         .entity-detail-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; background: #f0f0f0; }
         .entity-detail-header-info { flex: 1; min-width: 0; }
@@ -962,7 +963,7 @@
         .entity-detail-follow-btn:hover { transform: translateY(-1px); }
         .entity-detail-follow-btn.following { background: #22C55E; }
         .entity-detail-follow-btn svg { width: 18px; height: 18px; }
-        /* 3 Quick Action Buttons (Share / Notify / Map) */
+        /* 3 Quick Action Buttons — type-specific (Parish: Share/Notify/Map, others: Save/Message/[type]) */
         .entity-detail-quick-actions { display: flex; gap: 12px; margin: 0 20px 20px; }
         .entity-detail-quick-action { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0; border-radius: 18px; border: none; background: #f2f2f7; cursor: pointer; transition: background 0.15s, transform 0.1s; text-decoration: none; }
         .entity-detail-quick-action:hover { background: #e5e5ea; transform: translateY(-1px); }
@@ -1338,15 +1339,8 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
                 </div>
-                <div class="entity-detail-topnav-right">
-                    <button class="entity-detail-nav-btn" onclick="notifyEntity()" title="Notify">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                    </button>
-                    <button class="entity-detail-nav-btn" id="detail-nav-context-btn" title="Message" style="display:none;">
-                    </button>
-                    <button class="entity-detail-nav-btn" onclick="shareEntity()" title="Share">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-                    </button>
+                <div class="entity-detail-topnav-right" id="entity-detail-topnav-right">
+                    <!-- Populated dynamically by updateTopNavButtons() -->
                 </div>
             </div>
             <div id="entity-detail-content"></div>
@@ -1397,7 +1391,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, getDoc, doc, query, where, addDoc, setDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         
         // Firebase config (same project as iOS app)
@@ -1989,7 +1983,7 @@
             detailEditMode = false;
             detailCurrentData = data;
             detailOverlay.classList.add('active');
-            updateContextButton();
+            await updateTopNavButtons();
             renderMapEntityDetail(data);
             trackDetailView(data);
             // Load subcollection data async
@@ -2116,29 +2110,71 @@
             if (e.target.id === 'add-section-modal') closeAddSectionModal();
         });
 
-        // ── Update context button (message for non-owners, pencil for owners) ──
-        function updateContextButton() {
-            const btn = document.getElementById('detail-nav-context-btn');
-            if (!btn || !detailCurrentData) { if (btn) btn.style.display = 'none'; return; }
-            const owner = isOwner(detailCurrentData);
-            btn.style.display = 'flex';
-            if (owner) {
-                btn.title = 'Edit';
-                btn.className = 'entity-detail-nav-btn' + (detailEditMode ? ' editing' : '');
-                btn.onclick = function() { window.toggleDetailEditMode(); };
-                btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+        // ── SVG icon constants for nav buttons ──
+        const NAV_ICONS = {
+            pencil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+            message: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+            heartOutline: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+            heartFilled: `<svg viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+            bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+            house: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+            lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+            share: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`
+        };
+
+        // ── Update top nav buttons per entity type (matches iOS detail view nav) ──
+        let _detailIsFavorited = false;
+        async function updateTopNavButtons() {
+            const container = document.getElementById('entity-detail-topnav-right');
+            if (!container || !detailCurrentData) return;
+            const d = detailCurrentData;
+            const type = d._type;
+            const owner = isOwner(d);
+            const isLockedChurch = type === 'church' && d.isUnlocked !== true;
+            let html = '';
+
+            if (type === 'church') {
+                // Parish — Owner (unlocked): Pencil | Bell | House | Share
+                // Parish — Non-owner: Bell | House | Share
+                // Parish (Locked): House | Lock | Share
+                if (owner && !isLockedChurch) {
+                    html += `<button class="entity-detail-nav-btn${detailEditMode ? ' editing' : ''}" onclick="toggleDetailEditMode()" title="Edit">${NAV_ICONS.pencil}</button>`;
+                }
+                if (!isLockedChurch) {
+                    html += `<button class="entity-detail-nav-btn" onclick="notifyEntity()" title="Notify">${NAV_ICONS.bell}</button>`;
+                }
+                html += `<button class="entity-detail-nav-btn" onclick="toggleHomeParish()" title="Home Parish">${NAV_ICONS.house}</button>`;
+                if (isLockedChurch) {
+                    html += `<button class="entity-detail-nav-btn" onclick="window.location.href='join.html'" title="Unlock">${NAV_ICONS.lock}</button>`;
+                }
             } else {
-                btn.title = 'Message';
-                btn.className = 'entity-detail-nav-btn';
-                btn.onclick = function() { window.messageEntityOwner(); };
-                btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+                // Non-parish — Owner: Pencil | Share
+                // Non-parish — Non-owner: Message | Heart | Share
+                if (owner) {
+                    html += `<button class="entity-detail-nav-btn${detailEditMode ? ' editing' : ''}" onclick="toggleDetailEditMode()" title="Edit">${NAV_ICONS.pencil}</button>`;
+                } else {
+                    html += `<button class="entity-detail-nav-btn" onclick="messageEntityOwner()" title="Message">${NAV_ICONS.message}</button>`;
+                    // Check favorite status
+                    _detailIsFavorited = false;
+                    if (currentUser && d._docId) {
+                        try {
+                            const favSnap = await getDoc(doc(db, 'users', currentUser.uid, 'favorites', d._docId));
+                            _detailIsFavorited = favSnap.exists();
+                        } catch(e) {}
+                    }
+                    html += `<button class="entity-detail-nav-btn${_detailIsFavorited ? ' favorited' : ''}" id="detail-nav-heart-btn" onclick="toggleFavorite()" title="Save">${_detailIsFavorited ? NAV_ICONS.heartFilled : NAV_ICONS.heartOutline}</button>`;
+                }
             }
+
+            // Share always last
+            html += `<button class="entity-detail-nav-btn" onclick="shareEntity()" title="Share">${NAV_ICONS.share}</button>`;
+            container.innerHTML = html;
         }
 
         // ── Toggle edit mode ──
         window.toggleDetailEditMode = function() {
             detailEditMode = !detailEditMode;
-            updateContextButton();
+            updateTopNavButtons();
             if (detailCurrentData) renderMapEntityDetail(detailCurrentData);
         };
 
@@ -2157,6 +2193,63 @@
             } catch (err) {
                 console.error('Delete error:', err);
                 alert('Failed to delete. Please try again.');
+            }
+        };
+
+        // ── Toggle favorite (Save / Heart) ──
+        window.toggleFavorite = async function() {
+            if (!currentUser) { alert('Please sign in to save keys.'); return; }
+            const d = detailCurrentData;
+            if (!d || !d._docId) return;
+            const favRef = doc(db, 'users', currentUser.uid, 'favorites', d._docId);
+            try {
+                if (_detailIsFavorited) {
+                    await deleteDoc(favRef);
+                    _detailIsFavorited = false;
+                } else {
+                    await setDoc(favRef, { entityId: d._docId, entityType: d._type, entityName: d.name || d.title || '', savedAt: serverTimestamp() });
+                    _detailIsFavorited = true;
+                    // Track analytics
+                    await addDoc(collection(db, 'listingAnalytics'), { entityId: d._docId, entityType: d._type, event: 'favorite', userId: currentUser.uid, timestamp: serverTimestamp() });
+                }
+                // Update heart button appearance
+                const btn = document.getElementById('detail-nav-heart-btn');
+                if (btn) {
+                    btn.className = 'entity-detail-nav-btn' + (_detailIsFavorited ? ' favorited' : '');
+                    btn.innerHTML = _detailIsFavorited ? NAV_ICONS.heartFilled : NAV_ICONS.heartOutline;
+                }
+                // Update quick action save button text
+                const qaBtn = document.getElementById('detail-qa-save-btn');
+                if (qaBtn) {
+                    const span = qaBtn.querySelector('span');
+                    if (span) span.textContent = _detailIsFavorited ? 'Saved' : 'Save';
+                }
+            } catch (err) {
+                console.error('Favorite error:', err);
+            }
+        };
+
+        // ── Toggle home parish (House button — parish only) ──
+        window.toggleHomeParish = async function() {
+            if (!currentUser) { alert('Please sign in to set your home parish.'); return; }
+            const d = detailCurrentData;
+            if (!d || d._type !== 'church') return;
+            try {
+                const userRef = doc(db, 'users', currentUser.uid);
+                const userSnap = await getDoc(userRef);
+                const userData = userSnap.exists() ? userSnap.data() : {};
+                if (userData.homeParishId === d._docId) {
+                    // Unset home parish
+                    await updateDoc(userRef, { homeParishId: null, homeParishName: null });
+                    alert('Removed as home parish.');
+                } else {
+                    // Set home parish
+                    await setDoc(userRef, { homeParishId: d._docId, homeParishName: d.name || d.parishName || '' }, { merge: true });
+                    alert(`${d.name || d.parishName || 'Parish'} set as your home parish!`);
+                }
+            } catch (err) {
+                console.error('Home parish error:', err);
+                alert('Could not update home parish. Please try again.');
             }
         };
 
@@ -2699,17 +2792,15 @@
                 cardHTML += `</div>`;
             }
 
-            // Description (inside card for business like iOS, short for parish)
+            // Description (inside rainbow card for all types that have one)
             const desc = d.description || d.bio || '';
             if (desc) {
                 if (detailEditMode && isOwner(d)) {
                     cardHTML += buildEditableField(d, 'description', 'Description', desc, true);
                 } else {
                     const truncated = desc.length > 300 ? desc.substring(0, 297) + '...' : desc;
-                    if (type === 'business' || type === 'school' || type === 'retreat') {
-                        cardHTML += `<div style="border-top:1px solid #eee;margin:8px 0;"></div>`;
-                        cardHTML += `<div class="entity-detail-description">${escapeHTML(truncated)}</div>`;
-                    }
+                    cardHTML += `<div style="border-top:1px solid #eee;margin:8px 0;"></div>`;
+                    cardHTML += `<div class="entity-detail-description">${escapeHTML(truncated)}</div>`;
                 }
             }
 
@@ -2741,24 +2832,34 @@
             // ── Follow Key button ──
             html += `<button class="entity-detail-follow-btn" id="detail-follow-btn" onclick="toggleFollowKey()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Follow Key</button>`;
 
-            // ── 3 Quick Action Buttons (matches iOS quickActionButton) ──
+            // ── 3 Quick Action Buttons (type-specific, matches iOS) ──
+            // Parish: Share / Notify / Map
+            // Business, Retreat, Pilgrimage, Campus: Save / Message / Map
+            // School, Vocation: Save / Message / Apply
+            // Missionary: Save / Message / Donate
             const mapsUrl = buildMapsUrl(d);
+            const QA_SHARE = `<button class="entity-detail-quick-action" onclick="shareEntity()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span>Share</span></button>`;
+            const QA_NOTIFY = `<button class="entity-detail-quick-action" onclick="notifyEntity()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span>Notify</span></button>`;
+            const QA_MAP = mapsUrl ? `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></a>` : `<button class="entity-detail-quick-action" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></button>`;
+            const QA_SAVE = `<button class="entity-detail-quick-action" id="detail-qa-save-btn" onclick="toggleFavorite()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>${_detailIsFavorited ? 'Saved' : 'Save'}</span></button>`;
+            const QA_MESSAGE = `<button class="entity-detail-quick-action" onclick="messageEntityOwner()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Message</span></button>`;
+            const applyUrl = d.applicationLink || d.enrollmentURL || '';
+            const QA_APPLY = applyUrl ? `<a href="${applyUrl}" target="_blank" rel="noopener" class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg><span>Apply</span></a>` : `<button class="entity-detail-quick-action" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Apply</span></button>`;
+            const donateUrl = d.donationLink || '';
+            const QA_DONATE = donateUrl ? `<a href="${donateUrl}" target="_blank" rel="noopener" class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Donate</span></a>` : `<button class="entity-detail-quick-action" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>Donate</span></button>`;
+
             html += `<div class="entity-detail-quick-actions">`;
-            html += `<button class="entity-detail-quick-action" onclick="shareEntity()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span>Share</span></button>`;
-            if (type === 'business') {
-                html += `<button class="entity-detail-quick-action" onclick="messageEntityOwner()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Message</span></button>`;
+            if (type === 'church') {
+                html += QA_SHARE + QA_NOTIFY + QA_MAP;
+            } else if (type === 'school' || type === 'vocation') {
+                html += QA_SAVE + QA_MESSAGE + QA_APPLY;
+            } else if (type === 'missionary') {
+                html += QA_SAVE + QA_MESSAGE + QA_DONATE;
             } else {
-                html += `<button class="entity-detail-quick-action" onclick="notifyEntity()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span>Notify</span></button>`;
-            }
-            if (mapsUrl) {
-                html += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></a>`;
-            } else {
-                html += `<button class="entity-detail-quick-action" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></button>`;
+                // business, retreat, pilgrimage, campus
+                html += QA_SAVE + QA_MESSAGE + QA_MAP;
             }
             html += `</div>`;
-
-            // ── Type-specific extra action buttons (Donate, Register, Enroll, etc.) ──
-            html += buildTypeActions(d, type);
 
             // ── Type-specific sections ──
             switch (type) {
@@ -3246,6 +3347,12 @@
             // Social
             html += buildSocialMedia(d.socialMedia);
 
+            // Message Retreat (full-width blue button — matches iOS)
+            html += `<button class="entity-detail-message-btn" onclick="messageEntityOwner()">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                Message Retreat
+            </button>`;
+
             return html;
         }
 
@@ -3287,6 +3394,12 @@
 
             // Pilgrimage type
             if (d.type && d.type !== d._type) html += buildInfoFull('Pilgrimage Type', d.type);
+
+            // Message Pilgrimage (full-width blue button — matches iOS)
+            html += `<button class="entity-detail-message-btn" onclick="messageEntityOwner()">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                Message Pilgrimage
+            </button>`;
 
             return html;
         }
