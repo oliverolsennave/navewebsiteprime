@@ -2609,22 +2609,15 @@
             // Owner edit bar
             html += buildEditBar(d);
 
-            // Header (skip for churches — name goes inside rainbow card like iOS)
-            if (type !== 'church') {
-                html += buildHeader(d, type);
-            }
-
-            // ── Rainbow hero card (matches iOS parishDetailsCard / businessDetailsCard) ──
+            // ── Rainbow hero card (name inside card for all types) ──
             const cardClass = 'entity-detail-card rainbow';
             let cardHTML = '';
 
-            // Name inside card for churches (matches iOS PrimeParishDetailView / PrimeParishUnlockedView)
-            if (type === 'church') {
-                const name = d.name || d.parishName || 'Unknown';
-                cardHTML += `<div style="font-size:1.35rem;font-weight:700;color:#111;margin-bottom:6px;">${escapeHTML(name)}</div>`;
-            }
+            // Name at top of rainbow card
+            const name = d.name || d.parishName || d.title || 'Unknown';
+            cardHTML += `<div style="font-size:1.35rem;font-weight:700;color:#111;margin-bottom:6px;">${escapeHTML(name)}</div>`;
 
-            // Address line (street only for churches, matching iOS)
+            // Address line (street only for churches, full for others)
             if (type === 'church') {
                 const addr = d.address || '';
                 const street = addr.includes(',') ? addr.split(',')[0].trim() : addr;
