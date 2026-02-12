@@ -1022,15 +1022,14 @@
         .entity-detail-schedule-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: #777; padding: 3px 0; }
         .entity-detail-schedule-row .day { color: #333; font-weight: 500; }
         .entity-detail-schedule-row .times { text-align: right; color: #666; }
-        .entity-detail-events { margin: 0 16px 12px; }
-        .entity-detail-event-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #fff; border-radius: 12px; margin-bottom: 6px; position: relative; border: 1.5px solid transparent; }
-        .entity-detail-event-item::before { content: ''; position: absolute; inset: -1.5px; border-radius: 14px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
-        .entity-detail-event-date { width: 44px; text-align: center; flex-shrink: 0; }
-        .entity-detail-event-date .month { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #EF4444; }
-        .entity-detail-event-date .day-num { font-size: 1.1rem; font-weight: 700; color: #111; }
-        .entity-detail-event-info { flex: 1; }
-        .entity-detail-event-title { font-size: 0.85rem; font-weight: 600; color: #111; }
-        .entity-detail-event-time { font-size: 0.78rem; color: #777; margin-top: 2px; }
+        /* Upcoming Events — horizontal scroll cards matching iOS */
+        .entity-detail-events-heading { font-size: 1.15rem; font-weight: 700; color: #111; padding: 16px 20px 10px; }
+        .entity-detail-events { display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .entity-detail-events::-webkit-scrollbar { display: none; }
+        .entity-detail-event-item { flex: 0 0 auto; width: 48%; min-width: 180px; max-width: 240px; padding: 16px; background: #f2f2f7; border-radius: 14px; scroll-snap-align: start; }
+        .entity-detail-event-title { font-size: 0.92rem; font-weight: 700; color: #111; margin-bottom: 8px; line-height: 1.3; }
+        .entity-detail-event-meta { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #888; margin-bottom: 4px; }
+        .entity-detail-event-meta svg { width: 14px; height: 14px; flex-shrink: 0; color: #888; }
         .entity-detail-programs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 16px 16px; }
         .entity-detail-program-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; color: #16a34a; font-size: 0.75rem; font-weight: 600; }
         .entity-detail-info-grid { margin: 0 16px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -2723,9 +2722,14 @@
             if (Array.isArray(d.events) && d.events.length > 0) {
                 const upcoming = d.events.map(e => parseEvent(e)).filter(e => e !== null).sort((a, b) => a.date - b.date).slice(0, 5);
                 if (upcoming.length) {
-                    html += `<div class="entity-detail-section-title">Upcoming Events</div><div class="entity-detail-events">`;
+                    html += `<div class="entity-detail-events-heading">Upcoming Events</div><div class="entity-detail-events">`;
                     for (const evt of upcoming) {
-                        html += `<div class="entity-detail-event-item"><div class="entity-detail-event-date"><div class="month">${evt.month}</div><div class="day-num">${evt.dayNum}</div></div><div class="entity-detail-event-info"><div class="entity-detail-event-title">${escapeHTML(evt.title)}</div>${evt.time ? `<div class="entity-detail-event-time">${escapeHTML(evt.time)}${evt.location ? ' · ' + escapeHTML(evt.location) : ''}</div>` : ''}</div></div>`;
+                        const dateStr = evt.rawDate || (evt.month + ' ' + evt.dayNum);
+                        html += `<div class="entity-detail-event-item">`;
+                        html += `<div class="entity-detail-event-title">${escapeHTML(evt.title)}</div>`;
+                        html += `<div class="entity-detail-event-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${escapeHTML(dateStr)}</div>`;
+                        if (evt.time) html += `<div class="entity-detail-event-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${escapeHTML(evt.time)}</div>`;
+                        html += `</div>`;
                     }
                     html += '</div>';
                 }
