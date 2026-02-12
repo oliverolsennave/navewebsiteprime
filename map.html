@@ -931,8 +931,7 @@
         .entity-detail-overlay.active { display: flex; }
         .entity-detail-panel { background: #ffffff; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; overflow-y: auto; animation: slideUpDetail 0.35s ease-out; overscroll-behavior: contain; }
         @keyframes slideUpDetail { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .entity-detail-handle { display: flex; justify-content: center; padding: 10px 0 4px; cursor: grab; }
-        .entity-detail-handle span { width: 36px; height: 4px; border-radius: 2px; background: #ccc; }
+        .entity-detail-handle { display: none; }
         /* Top navigation bar — circular buttons matching iOS */
         .entity-detail-topnav { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px 12px; }
         .entity-detail-topnav-left, .entity-detail-topnav-right { display: flex; align-items: center; gap: 12px; }
@@ -1029,8 +1028,8 @@
         .entity-detail-schedule-row .day { color: #333; font-weight: 500; }
         .entity-detail-schedule-row .times { text-align: right; color: #666; }
         /* Upcoming Events — horizontal scroll cards matching iOS */
-        .entity-detail-events-heading { font-size: 1.15rem; font-weight: 700; color: #111; padding: 16px 20px 10px; }
-        .entity-detail-events { display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .entity-detail-events-heading { font-size: 1.15rem; font-weight: 700; color: #111; padding: 16px 24px 10px; }
+        .entity-detail-events { display: flex; gap: 12px; overflow-x: auto; padding: 0 24px 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .entity-detail-events::-webkit-scrollbar { display: none; }
         .entity-detail-event-item { flex: 0 0 auto; width: 48%; min-width: 180px; max-width: 240px; padding: 16px; background: #f2f2f7; border-radius: 14px; scroll-snap-align: start; }
         .entity-detail-event-title { font-size: 0.92rem; font-weight: 700; color: #111; margin-bottom: 8px; line-height: 1.3; }
