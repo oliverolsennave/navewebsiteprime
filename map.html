@@ -2130,43 +2130,31 @@
             const d = detailCurrentData;
             const type = d._type;
             const owner = isOwner(d);
-            const isLockedChurch = type === 'church' && d.isUnlocked !== true;
             let html = '';
 
-            if (type === 'church') {
-                // Parish — Owner (unlocked): Pencil | Bell | House | Share
-                // Parish — Non-owner: Bell | House | Share
-                // Parish (Locked): House | Lock | Share
-                if (owner && !isLockedChurch) {
-                    html += `<button class="entity-detail-nav-btn${detailEditMode ? ' editing' : ''}" onclick="toggleDetailEditMode()" title="Edit">${NAV_ICONS.pencil}</button>`;
-                }
-                if (!isLockedChurch) {
-                    html += `<button class="entity-detail-nav-btn" onclick="notifyEntity()" title="Notify">${NAV_ICONS.bell}</button>`;
-                }
-                html += `<button class="entity-detail-nav-btn" onclick="toggleHomeParish()" title="Home Parish">${NAV_ICONS.house}</button>`;
-                if (isLockedChurch) {
-                    html += `<button class="entity-detail-nav-btn" onclick="window.location.href='join.html'" title="Unlock">${NAV_ICONS.lock}</button>`;
-                }
+            // Always 3 buttons: [Message or Pencil] | [middle] | Share
+            // Button 1: Pencil (owner) or Message (non-owner)
+            if (owner) {
+                html += `<button class="entity-detail-nav-btn${detailEditMode ? ' editing' : ''}" onclick="toggleDetailEditMode()" title="Edit">${NAV_ICONS.pencil}</button>`;
             } else {
-                // Non-parish — Owner: Pencil | Share
-                // Non-parish — Non-owner: Message | Heart | Share
-                if (owner) {
-                    html += `<button class="entity-detail-nav-btn${detailEditMode ? ' editing' : ''}" onclick="toggleDetailEditMode()" title="Edit">${NAV_ICONS.pencil}</button>`;
-                } else {
-                    html += `<button class="entity-detail-nav-btn" onclick="messageEntityOwner()" title="Message">${NAV_ICONS.message}</button>`;
-                    // Check favorite status
-                    _detailIsFavorited = false;
-                    if (currentUser && d._docId) {
-                        try {
-                            const favSnap = await getDoc(doc(db, 'users', currentUser.uid, 'favorites', d._docId));
-                            _detailIsFavorited = favSnap.exists();
-                        } catch(e) {}
-                    }
-                    html += `<button class="entity-detail-nav-btn${_detailIsFavorited ? ' favorited' : ''}" id="detail-nav-heart-btn" onclick="toggleFavorite()" title="Save">${_detailIsFavorited ? NAV_ICONS.heartFilled : NAV_ICONS.heartOutline}</button>`;
-                }
+                html += `<button class="entity-detail-nav-btn" onclick="messageEntityOwner()" title="Message">${NAV_ICONS.message}</button>`;
             }
 
-            // Share always last
+            // Button 2: Bell (parish) or Heart (non-parish)
+            if (type === 'church') {
+                html += `<button class="entity-detail-nav-btn" onclick="notifyEntity()" title="Notify">${NAV_ICONS.bell}</button>`;
+            } else {
+                _detailIsFavorited = false;
+                if (currentUser && d._docId) {
+                    try {
+                        const favSnap = await getDoc(doc(db, 'users', currentUser.uid, 'favorites', d._docId));
+                        _detailIsFavorited = favSnap.exists();
+                    } catch(e) {}
+                }
+                html += `<button class="entity-detail-nav-btn${_detailIsFavorited ? ' favorited' : ''}" id="detail-nav-heart-btn" onclick="toggleFavorite()" title="Save">${_detailIsFavorited ? NAV_ICONS.heartFilled : NAV_ICONS.heartOutline}</button>`;
+            }
+
+            // Button 3: Share (always)
             html += `<button class="entity-detail-nav-btn" onclick="shareEntity()" title="Share">${NAV_ICONS.share}</button>`;
             container.innerHTML = html;
         }
