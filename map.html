@@ -2314,6 +2314,62 @@
             if (e.target.id === 'pilgrimage-reserve-overlay') closePilgrimageReserve();
         });
 
+        // ── Pilgrimage offering detail (reuses reserve modal) ──
+        window.openPilgrimageOfferingDetail = function(offeringId) {
+            const d = detailCurrentData;
+            if (!d || !d._offerings) return;
+            const o = d._offerings.find(x => x.id === offeringId);
+            if (!o) return;
+
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const startDate = o.date?.toDate ? o.date.toDate() : (o.date?.seconds ? new Date(o.date.seconds * 1000) : (typeof o.date === 'string' ? new Date(o.date) : null));
+            const endDate = o.endDate?.toDate ? o.endDate.toDate() : (o.endDate?.seconds ? new Date(o.endDate.seconds * 1000) : (typeof o.endDate === 'string' ? new Date(o.endDate) : null));
+            let dateText = '';
+            if (startDate && !isNaN(startDate.getTime())) {
+                const sd = startDate.getDate(), sm = months[startDate.getMonth()], sy = startDate.getFullYear();
+                if (endDate && !isNaN(endDate.getTime())) {
+                    const ed = endDate.getDate(), em = months[endDate.getMonth()];
+                    dateText = `${sm} ${sd}–${em} ${ed}, ${sy}`;
+                } else {
+                    dateText = `${sm} ${sd}, ${sy}`;
+                }
+            } else if (typeof o.date === 'string') { dateText = o.date; }
+            const price = o.price ? `$${Math.round(o.price)}` : 'TBD';
+            const dest = o.destination || o.location || d.name || '';
+            const spots = o.spots || 0;
+            const agency = o.travelAgency || '';
+            const includes = o.includes || '';
+            const itinerary = o.itinerary || '';
+            const regUrl = o.registrationURL || '';
+            const desc = o.description || '';
+
+            let html = '';
+            // Info grid
+            html += `<div class="pilgrimage-reserve-info-grid">`;
+            html += `<div class="pilgrimage-reserve-info-card"><div class="label">Dates</div><div class="value">${escapeHTML(dateText || 'TBD')}</div></div>`;
+            html += `<div class="pilgrimage-reserve-info-card"><div class="label">Price</div><div class="value">${escapeHTML(price)}</div></div>`;
+            html += `<div class="pilgrimage-reserve-info-card"><div class="label">Destination</div><div class="value">${escapeHTML(dest)}</div></div>`;
+            html += `<div class="pilgrimage-reserve-info-card"><div class="label">Spots</div><div class="value">${spots > 0 ? spots + ' available' : 'Contact for availability'}</div></div>`;
+            html += `</div>`;
+
+            if (desc) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">About</div><div style="font-size:0.88rem;color:#444;line-height:1.6;">${escapeHTML(desc)}</div></div>`;
+            if (agency) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">Travel Agency</div><div style="font-size:0.92rem;color:#111;font-weight:500;">${escapeHTML(agency)}</div></div>`;
+            if (includes) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">What's Included</div><div style="font-size:0.88rem;color:#444;line-height:1.6;">${escapeHTML(includes)}</div></div>`;
+            if (itinerary) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">Itinerary</div><div style="font-size:0.88rem;color:#444;line-height:1.6;white-space:pre-line;">${escapeHTML(itinerary)}</div></div>`;
+
+            // CTA
+            if (regUrl) {
+                html += `<a href="${regUrl}" target="_blank" rel="noopener" class="pilgrimage-reserve-cta"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Submit Free Application</a>`;
+            } else {
+                html += `<button class="pilgrimage-reserve-cta" onclick="messageEntityOwner(); closePilgrimageReserve();"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Contact for Details</button>`;
+            }
+
+            const title = o.title || o.name || 'Offering';
+            document.getElementById('reserve-title').textContent = title;
+            document.getElementById('reserve-content').innerHTML = html;
+            document.getElementById('pilgrimage-reserve-overlay').classList.add('active');
+        };
+
         // ── Retreat offering detail modal (matches iOS RetreatOfferingDetailView) ──
         window.openRetreatOfferingDetail = function(offeringId) {
             const d = detailCurrentData;
@@ -3723,6 +3779,8 @@
             // ── Travel Facilitations (matches iOS PilgrimageListingCard) ──
             html += `<div class="entity-detail-travel-section"><div class="travel-heading">Travel Facilitations</div>`;
             const listings = d._listings || [];
+            const offerings = d._offerings || [];
+            const hasContent = listings.length > 0 || offerings.length > 0;
             if (listings.length > 0) {
                 listings.forEach(listing => {
                     const price = listing.price ? `$${Math.round(listing.price)}` : '';
@@ -3762,21 +3820,29 @@
                     html += `<button class="entity-detail-listing-explore${spots === 0 ? ' disabled' : ''}" onclick="openPilgrimageReserve('${escapeHTML(listingId)}')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Explore</button>`;
                     html += `</div>`;
                 });
-            } else {
+            }
+            // Pilgrimage offerings — also inside Travel Facilitations
+            if (offerings.length > 0) {
+                offerings.forEach(o => {
+                    const title = o.title || o.name || 'Offering';
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    let oDateText = '';
+                    const oStartDate = o.date?.toDate ? o.date.toDate() : (o.date?.seconds ? new Date(o.date.seconds * 1000) : (typeof o.date === 'string' ? new Date(o.date) : null));
+                    if (oStartDate && !isNaN(oStartDate.getTime())) oDateText = `${months[oStartDate.getMonth()]} ${oStartDate.getDate()}, ${oStartDate.getFullYear()}`;
+                    else if (typeof o.date === 'string') oDateText = o.date;
+                    const oDesc = o.description || '';
+                    const oId = o.id || '';
+                    html += `<div class="entity-detail-listing-card" style="flex-direction:column;gap:10px;">`;
+                    html += `<div style="font-size:1.05rem;font-weight:700;color:#111;">${escapeHTML(title)}</div>`;
+                    if (oDateText || oDesc) html += `<div style="font-size:0.88rem;color:#666;line-height:1.5;">${oDateText ? escapeHTML(oDateText) + (oDesc ? ' · ' : '') : ''}${oDesc ? escapeHTML(oDesc.length > 150 ? oDesc.substring(0, 147) + '...' : oDesc) : ''}</div>`;
+                    html += `<button class="entity-detail-listing-explore" onclick="openPilgrimageOfferingDetail('${escapeHTML(oId)}')" style="align-self:flex-start;margin-top:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>Learn More</button>`;
+                    html += `</div>`;
+                });
+            }
+            if (!hasContent) {
                 html += `<div class="entity-detail-travel-empty">No upcoming trips are currently available.</div>`;
             }
             html += `</div>`;
-
-            // ── Other Offerings at this site ──
-            if (d._offerings && d._offerings.length > 0) {
-                html += `<div class="entity-detail-section-title">Other Pilgrimage Offerings</div>`;
-                d._offerings.forEach(o => {
-                    const title = o.title || o.name || 'Offering';
-                    const oDate = o.date || '';
-                    const oDesc = o.description || '';
-                    html += buildInfoFull(title, [oDate, oDesc].filter(Boolean).join(' · '));
-                });
-            }
 
             // Pilgrimage type
             if (d.type && d.type !== d._type) html += buildInfoFull('Pilgrimage Type', d.type);
