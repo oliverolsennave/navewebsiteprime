@@ -1054,6 +1054,59 @@
         .pilgrimage-reserve-cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; background: linear-gradient(135deg, #DC2626, #DC2626cc); color: #fff; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 16px; text-decoration: none; box-shadow: 0 2px 8px rgba(220,38,38,0.3); }
         .pilgrimage-reserve-cta:hover { transform: translateY(-1px); }
         .pilgrimage-reserve-cta svg { width: 16px; height: 16px; }
+        /* Retreat offering cards (matches iOS RetreatOfferingCard) */
+        .entity-detail-retreat-offerings { margin: 12px 20px 16px; padding: 14px; background: #fff; border: 1px solid rgba(168,85,247,0.3); border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .entity-detail-retreat-offerings .offerings-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .entity-detail-retreat-offerings .offerings-heading h3 { font-size: 1.05rem; font-weight: 700; color: #111; margin: 0; }
+        .retreat-offering-card { padding: 16px; background: #fff; border: 1px solid rgba(168,85,247,0.3); border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 10px; cursor: pointer; transition: transform 0.1s, box-shadow 0.15s; }
+        .retreat-offering-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .retreat-offering-card:last-child { margin-bottom: 0; }
+        .retreat-offering-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+        .retreat-offering-left { flex: 1; min-width: 0; }
+        .retreat-offering-price { font-size: 1.15rem; font-weight: 700; color: #111; margin-bottom: 4px; }
+        .retreat-offering-price .per-person { font-size: 0.72rem; font-weight: 400; color: #888; margin-left: 4px; }
+        .retreat-offering-meta { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: #888; margin-bottom: 2px; }
+        .retreat-offering-meta svg { width: 13px; height: 13px; color: #8B5CF6; flex-shrink: 0; }
+        .retreat-offering-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+        .retreat-offering-chevron { color: #8B5CF6; }
+        .retreat-offering-chevron svg { width: 14px; height: 14px; }
+        .retreat-offering-spots { font-size: 0.72rem; color: #888; }
+        .retreat-offering-title { font-size: 0.95rem; font-weight: 600; color: #111; margin-bottom: 4px; }
+        .retreat-offering-desc { font-size: 0.78rem; color: #888; line-height: 1.5; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .retreat-offering-location { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; color: #888; }
+        .retreat-offering-location svg { width: 11px; height: 11px; flex-shrink: 0; }
+        .retreat-offerings-empty { font-size: 0.88rem; color: #888; padding: 8px 0; }
+        /* Retreat offering detail modal (matches iOS RetreatOfferingDetailView) */
+        .retreat-detail-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-end; }
+        .retreat-detail-overlay.active { display: flex; }
+        .retreat-detail-panel { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; overflow-y: auto; animation: slideUpDetail 0.35s ease-out; }
+        .retreat-detail-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; }
+        .retreat-detail-header h2 { font-size: 1.15rem; font-weight: 700; color: #111; margin: 0; }
+        .retreat-detail-type-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 1px; color: #fff; background: #22C55E; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+        .retreat-detail-type-badge svg { width: 11px; height: 11px; }
+        .retreat-detail-stats { display: flex; justify-content: space-between; padding: 16px 24px; }
+        .retreat-detail-stat { text-align: center; flex: 1; }
+        .retreat-detail-stat svg { width: 18px; height: 18px; color: #22C55E; margin-bottom: 4px; }
+        .retreat-detail-stat .stat-val { font-size: 0.92rem; font-weight: 600; color: #111; }
+        .retreat-detail-stat .stat-lbl { font-size: 0.68rem; color: #888; }
+        .retreat-detail-stat-divider { width: 1px; background: #e5e5e5; align-self: stretch; margin: 4px 0; }
+        .retreat-detail-body { padding: 0 24px 24px; }
+        .retreat-detail-row { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 12px; }
+        .retreat-detail-row-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .retreat-detail-row-icon svg { width: 16px; height: 16px; }
+        .retreat-detail-row-text .row-label { font-size: 0.72rem; color: #888; }
+        .retreat-detail-row-text .row-value { font-size: 0.88rem; color: #111; font-weight: 500; }
+        .retreat-spiritual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 16px; }
+        .retreat-spiritual-badge { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: rgba(34,197,94,0.08); border-radius: 10px; font-size: 0.82rem; color: #111; }
+        .retreat-spiritual-badge svg { width: 14px; height: 14px; color: #22C55E; flex-shrink: 0; }
+        .retreat-detail-section-title { font-size: 0.92rem; font-weight: 700; color: #111; margin: 16px 0 8px; }
+        .retreat-detail-text { font-size: 0.88rem; color: #444; line-height: 1.6; margin-bottom: 12px; white-space: pre-line; }
+        .retreat-detail-cta-primary { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; background: linear-gradient(135deg, #22C55E, #14B8A6); color: #fff; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(34,197,94,0.4); margin-top: 16px; text-decoration: none; }
+        .retreat-detail-cta-primary:hover { transform: translateY(-1px); }
+        .retreat-detail-cta-primary svg { width: 18px; height: 18px; }
+        .retreat-detail-cta-secondary { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 14px; background: #f2f2f7; color: #111; border: none; border-radius: 14px; font-size: 0.92rem; font-weight: 500; cursor: pointer; margin-top: 8px; text-decoration: none; }
+        .retreat-detail-trust { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.75rem; color: #888; margin-top: 12px; }
+        .retreat-detail-trust svg { width: 14px; height: 14px; color: #22C55E; }
         .entity-detail-section-title { font-size: 0.75rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 20px 6px; }
         .entity-detail-schedule { margin: 0 16px 8px; padding: 12px 14px; background: #f8f8fa; border-radius: 12px; }
         .entity-detail-schedule-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: #777; padding: 3px 0; }
@@ -1395,6 +1448,17 @@
                 <button onclick="closePilgrimageReserve()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
             </div>
             <div id="reserve-content"></div>
+        </div>
+    </div>
+
+    <!-- Retreat Offering Detail Modal (matches iOS RetreatOfferingDetailView) -->
+    <div class="retreat-detail-overlay" id="retreat-detail-overlay">
+        <div class="retreat-detail-panel">
+            <div class="retreat-detail-header">
+                <h2 id="retreat-detail-title">Retreat Details</h2>
+                <button onclick="closeRetreatOfferingDetail()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
+            </div>
+            <div id="retreat-detail-content"></div>
         </div>
     </div>
 
@@ -2056,12 +2120,23 @@
                     if (jobsSnap.size > 0) { d._jobs = jobsSnap.docs.map(j => ({ id: j.id, ...j.data() })); needsRerender = true; }
                 }
                 if (type === 'retreat') {
-                    // Other retreat offerings from same org
+                    // 1. retreatOfferings — individual retreat events for this organization (matches iOS fetchRetreatOfferings)
+                    const orgId = d.organizationId || docId;
+                    try {
+                        const roSnap = await getDocs(query(collection(db, 'retreatOfferings'), where('organizationId', '==', orgId), where('isActive', '==', true)));
+                        if (roSnap.size > 0) {
+                            d._retreatOfferings = roSnap.docs.map(o => ({ id: o.id, ...o.data() }));
+                            needsRerender = true;
+                        }
+                    } catch (e) { /* retreatOfferings may not exist */ }
+                    // 2. Other retreats from same org (legacy)
                     if (d.organizationId) {
-                        const offerQ = query(collection(db, 'retreats'), where('organizationId', '==', d.organizationId), where('isActive', '!=', false));
-                        const offerSnap = await getDocs(offerQ);
-                        const others = offerSnap.docs.filter(o => o.id !== docId).map(o => ({ id: o.id, ...o.data() }));
-                        if (others.length) { d._otherRetreats = others; needsRerender = true; }
+                        try {
+                            const offerQ = query(collection(db, 'retreats'), where('organizationId', '==', d.organizationId));
+                            const offerSnap = await getDocs(offerQ);
+                            const others = offerSnap.docs.filter(o => o.id !== docId).map(o => ({ id: o.id, ...o.data() }));
+                            if (others.length) { d._otherRetreats = others; needsRerender = true; }
+                        } catch (e) { /* silent */ }
                     }
                 }
                 if (type === 'pilgrimage') {
@@ -2237,6 +2312,128 @@
         };
         document.getElementById('pilgrimage-reserve-overlay')?.addEventListener('click', (e) => {
             if (e.target.id === 'pilgrimage-reserve-overlay') closePilgrimageReserve();
+        });
+
+        // ── Retreat offering detail modal (matches iOS RetreatOfferingDetailView) ──
+        window.openRetreatOfferingDetail = function(offeringId) {
+            const d = detailCurrentData;
+            if (!d || !d._retreatOfferings) return;
+            const o = d._retreatOfferings.find(x => x.id === offeringId);
+            if (!o) return;
+
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            // Parse dates
+            const startDate = o.date?.toDate ? o.date.toDate() : (o.date?.seconds ? new Date(o.date.seconds * 1000) : (typeof o.date === 'string' ? new Date(o.date) : null));
+            const endDate = o.endDate?.toDate ? o.endDate.toDate() : (o.endDate?.seconds ? new Date(o.endDate.seconds * 1000) : (typeof o.endDate === 'string' ? new Date(o.endDate) : null));
+            let startText = '', endText = '';
+            if (startDate && !isNaN(startDate.getTime())) startText = `${months[startDate.getMonth()]} ${startDate.getDate()}, ${startDate.getFullYear()}`;
+            if (endDate && !isNaN(endDate.getTime())) endText = `${months[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`;
+            const price = o.price ? `$${Math.round(o.price)}` : 'TBD';
+            const duration = o.duration || '';
+            const retreatType = o.retreatType || '';
+
+            let html = '';
+
+            // Type badge
+            if (retreatType) {
+                html += `<div style="padding:12px 24px 0;"><span class="retreat-detail-type-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>${escapeHTML(retreatType.toUpperCase())} RETREAT</span></div>`;
+            }
+
+            // Quick stats row
+            html += `<div class="retreat-detail-stats">`;
+            html += `<div class="retreat-detail-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><div class="stat-val">${escapeHTML(startText || 'TBD')}</div><div class="stat-lbl">Start Date</div></div>`;
+            html += `<div class="retreat-detail-stat-divider"></div>`;
+            html += `<div class="retreat-detail-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="stat-val">${escapeHTML(duration || 'TBD')}</div><div class="stat-lbl">Duration</div></div>`;
+            html += `<div class="retreat-detail-stat-divider"></div>`;
+            html += `<div class="retreat-detail-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><div class="stat-val">${escapeHTML(price)}</div><div class="stat-lbl">Price</div></div>`;
+            html += `</div>`;
+
+            // Retreat details rows
+            html += `<div class="retreat-detail-body">`;
+
+            if (o.location) {
+                html += `<div class="retreat-detail-row"><div class="retreat-detail-row-icon" style="background:rgba(34,197,94,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="retreat-detail-row-text"><div class="row-label">Location</div><div class="row-value">${escapeHTML(o.location)}</div></div></div>`;
+            }
+            if (endText) {
+                html += `<div class="retreat-detail-row"><div class="retreat-detail-row-icon" style="background:rgba(34,197,94,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="retreat-detail-row-text"><div class="row-label">End Date</div><div class="row-value">${escapeHTML(endText)}</div></div></div>`;
+            }
+            if (o.capacity && o.capacity > 0) {
+                html += `<div class="retreat-detail-row"><div class="retreat-detail-row-icon" style="background:rgba(34,197,94,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="retreat-detail-row-text"><div class="row-label">Group Size</div><div class="row-value">${o.capacity} spots</div></div></div>`;
+            }
+            if (o.massSchedule) {
+                html += `<div class="retreat-detail-row"><div class="retreat-detail-row-icon" style="background:rgba(34,197,94,0.1);"><svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg></div><div class="retreat-detail-row-text"><div class="row-label">Mass Schedule</div><div class="row-value">${escapeHTML(o.massSchedule)}</div></div></div>`;
+            }
+
+            // Spiritual offerings grid
+            const spiritualItems = [];
+            if (o.confessionAvailable) spiritualItems.push('Confession');
+            if (o.adorationAvailable) spiritualItems.push('Adoration');
+            if (o.spiritualDirection) spiritualItems.push('Spiritual Direction');
+            if (o.massSchedule) spiritualItems.push('Daily Mass');
+            if (spiritualItems.length > 0) {
+                html += `<div class="retreat-detail-section-title">Spiritual Offerings</div>`;
+                html += `<div class="retreat-spiritual-grid">`;
+                spiritualItems.forEach(item => {
+                    html += `<div class="retreat-spiritual-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${escapeHTML(item)}</div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Description
+            if (o.description) {
+                html += `<div class="retreat-detail-section-title">About This Retreat</div>`;
+                html += `<div class="retreat-detail-text">${escapeHTML(o.description)}</div>`;
+            }
+
+            // Topics
+            if (o.topics) {
+                html += `<div class="retreat-detail-section-title">Topics Covered</div>`;
+                html += `<div class="retreat-detail-text">${escapeHTML(o.topics)}</div>`;
+            }
+
+            // Speaker
+            if (o.speakerInfo) {
+                html += `<div class="retreat-detail-section-title">Retreat Leader</div>`;
+                html += `<div class="retreat-detail-text">${escapeHTML(o.speakerInfo)}</div>`;
+            }
+
+            // Schedule
+            if (o.scheduleStructure) {
+                html += `<div class="retreat-detail-section-title">Schedule</div>`;
+                html += `<div class="retreat-detail-text">${escapeHTML(o.scheduleStructure)}</div>`;
+            }
+
+            // CTA buttons
+            if (o.registrationURL) {
+                html += `<a href="${o.registrationURL}" target="_blank" rel="noopener" class="retreat-detail-cta-primary"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Reserve Your Spot</a>`;
+            }
+            if (o.website) {
+                const wUrl = o.website.startsWith('http') ? o.website : 'https://' + o.website;
+                html += `<a href="${wUrl}" target="_blank" rel="noopener" class="retreat-detail-cta-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Learn More</a>`;
+            }
+            if (!o.registrationURL && !o.website) {
+                html += `<button class="retreat-detail-cta-primary" onclick="messageEntityOwner(); closeRetreatOfferingDetail();"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Contact to Reserve</button>`;
+            }
+
+            // Trust badge
+            html += `<div class="retreat-detail-trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Verified by Nave</div>`;
+
+            html += `</div>`; // close .retreat-detail-body
+
+            document.getElementById('retreat-detail-title').textContent = o.title || 'Retreat Details';
+            document.getElementById('retreat-detail-content').innerHTML = html;
+            document.getElementById('retreat-detail-overlay').classList.add('active');
+
+            // Track analytics
+            if (d._docId) {
+                addDoc(collection(db, 'listingAnalytics'), { entityId: d._docId, entityType: 'retreat', event: 'view_offering', offeringId, userId: currentUser?.uid || null, timestamp: serverTimestamp() }).catch(() => {});
+            }
+        };
+        window.closeRetreatOfferingDetail = function() {
+            document.getElementById('retreat-detail-overlay').classList.remove('active');
+        };
+        document.getElementById('retreat-detail-overlay')?.addEventListener('click', (e) => {
+            if (e.target.id === 'retreat-detail-overlay') closeRetreatOfferingDetail();
         });
 
         // ── SVG icon constants for nav buttons ──
@@ -3384,6 +3581,40 @@
 
         function renderRetreat(d) {
             let html = '';
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+            // ── Retreat Offerings (matches iOS RetreatOfferingCard) ──
+            const offerings = d._retreatOfferings || [];
+            if (offerings.length > 0) {
+                html += `<div class="entity-detail-retreat-offerings">`;
+                html += `<div class="offerings-heading"><h3>Retreat Offerings</h3><span style="font-size:0.78rem;color:#8B5CF6;font-weight:600;">${offerings.length} available</span></div>`;
+                offerings.forEach(o => {
+                    const price = o.price ? `$${Math.round(o.price)}` : '';
+                    // Format date
+                    let dateText = '';
+                    const oDate = o.date?.toDate ? o.date.toDate() : (o.date?.seconds ? new Date(o.date.seconds * 1000) : (typeof o.date === 'string' ? new Date(o.date) : null));
+                    if (oDate && !isNaN(oDate.getTime())) dateText = `${months[oDate.getMonth()]} ${oDate.getDate()}, ${oDate.getFullYear()}`;
+                    const duration = o.duration && o.duration !== 'TBD' ? o.duration : '';
+                    const cap = o.capacity && o.capacity > 0 ? o.capacity : 0;
+                    const desc = o.description || '';
+                    const loc = o.location || '';
+                    const title = o.title || 'Retreat';
+
+                    html += `<div class="retreat-offering-card" onclick="openRetreatOfferingDetail('${o.id}')">`;
+                    html += `<div class="retreat-offering-top"><div class="retreat-offering-left">`;
+                    if (price) html += `<div class="retreat-offering-price">${escapeHTML(price)}<span class="per-person">per person</span></div>`;
+                    if (dateText) html += `<div class="retreat-offering-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${escapeHTML(dateText)}</div>`;
+                    if (duration) html += `<div class="retreat-offering-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${escapeHTML(duration)}</div>`;
+                    html += `</div><div class="retreat-offering-right"><div class="retreat-offering-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+                    if (cap > 0) html += `<div class="retreat-offering-spots">${cap} spots</div>`;
+                    html += `</div></div>`;
+                    html += `<div class="retreat-offering-title">${escapeHTML(title)}</div>`;
+                    if (desc) html += `<div class="retreat-offering-desc">${escapeHTML(desc)}</div>`;
+                    if (loc) html += `<div class="retreat-offering-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${escapeHTML(loc)}</div>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
 
             // Dates & Pricing grid
             const dateFields = [
@@ -3453,7 +3684,7 @@
             // Testimonials
             if (d.testimonials) html += buildInfoFull('Testimonials', d.testimonials);
 
-            // Other retreat offerings
+            // Other retreat offerings (legacy — from same org)
             if (d._otherRetreats && d._otherRetreats.length > 0) {
                 html += `<div class="entity-detail-section-title">Other Retreats</div>`;
                 d._otherRetreats.forEach(r => {
