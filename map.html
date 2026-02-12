@@ -935,9 +935,11 @@
         /* Top navigation bar — circular buttons matching iOS */
         .entity-detail-topnav { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px 12px; }
         .entity-detail-topnav-left, .entity-detail-topnav-right { display: flex; align-items: center; gap: 12px; }
-        .entity-detail-nav-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: rgba(245,245,245,0.92); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: background 0.15s; }
+        .entity-detail-nav-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; background: rgba(245,245,245,0.92); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.08); transition: background 0.15s, border-color 0.2s; }
         .entity-detail-nav-btn:hover { background: #e8e8e8; }
         .entity-detail-nav-btn svg { width: 16px; height: 16px; color: #111; }
+        .entity-detail-nav-btn.editing { border-color: #3366CC; }
+        .entity-detail-nav-btn.editing svg { color: #3366CC; }
         .entity-detail-header { display: flex; align-items: flex-start; gap: 14px; padding: 8px 20px 16px; }
         .entity-detail-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; background: #f0f0f0; }
         .entity-detail-header-info { flex: 1; min-width: 0; }
@@ -1084,6 +1086,9 @@
         .entity-detail-edit-toggle.active { background: #3366CC; color: #fff; border-color: #3366CC; }
         .entity-detail-add-section-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; border: 1px solid #ddd; background: #f8f8fa; color: #3366CC; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
         .entity-detail-add-section-btn:hover { background: #eee; }
+        .entity-detail-delete-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(220,38,38,0.3); background: rgba(220,38,38,0.06); color: #DC2626; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .entity-detail-delete-btn:hover { background: rgba(220,38,38,0.12); }
+        .entity-detail-delete-btn svg { color: #DC2626; }
         /* Editable field */
         .entity-detail-editable { position: relative; }
         .entity-detail-editable.editing { background: #f0f4ff; border-radius: 8px; padding: 8px; }
@@ -1337,6 +1342,8 @@
                     <button class="entity-detail-nav-btn" onclick="notifyEntity()" title="Notify">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                     </button>
+                    <button class="entity-detail-nav-btn" id="detail-nav-context-btn" title="Message" style="display:none;">
+                    </button>
                     <button class="entity-detail-nav-btn" onclick="shareEntity()" title="Share">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
                     </button>
@@ -1390,7 +1397,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, getDoc, doc, query, where, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         
         // Firebase config (same project as iOS app)
@@ -1982,6 +1989,7 @@
             detailEditMode = false;
             detailCurrentData = data;
             detailOverlay.classList.add('active');
+            updateContextButton();
             renderMapEntityDetail(data);
             trackDetailView(data);
             // Load subcollection data async
@@ -2108,10 +2116,48 @@
             if (e.target.id === 'add-section-modal') closeAddSectionModal();
         });
 
+        // ── Update context button (message for non-owners, pencil for owners) ──
+        function updateContextButton() {
+            const btn = document.getElementById('detail-nav-context-btn');
+            if (!btn || !detailCurrentData) { if (btn) btn.style.display = 'none'; return; }
+            const owner = isOwner(detailCurrentData);
+            btn.style.display = 'flex';
+            if (owner) {
+                btn.title = 'Edit';
+                btn.className = 'entity-detail-nav-btn' + (detailEditMode ? ' editing' : '');
+                btn.onclick = function() { window.toggleDetailEditMode(); };
+                btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+            } else {
+                btn.title = 'Message';
+                btn.className = 'entity-detail-nav-btn';
+                btn.onclick = function() { window.messageEntityOwner(); };
+                btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+            }
+        }
+
         // ── Toggle edit mode ──
         window.toggleDetailEditMode = function() {
             detailEditMode = !detailEditMode;
+            updateContextButton();
             if (detailCurrentData) renderMapEntityDetail(detailCurrentData);
+        };
+
+        // ── Delete entity ──
+        window.deleteEntity = async function() {
+            if (!detailCurrentData || !isOwner(detailCurrentData)) return;
+            if (!confirm('Are you sure you want to delete this listing? This cannot be undone.')) return;
+            const d = detailCurrentData;
+            const type = d._type;
+            const collectionName = Object.entries(COLLECTIONS).find(([t]) => t === type)?.[1];
+            if (!collectionName || !d._docId) { alert('Could not determine listing to delete.'); return; }
+            try {
+                await deleteDoc(doc(db, collectionName, d._docId));
+                alert('Listing deleted.');
+                closeEntityDetail();
+            } catch (err) {
+                console.error('Delete error:', err);
+                alert('Failed to delete. Please try again.');
+            }
         };
 
         // ── Save inline edit ──
@@ -2281,8 +2327,8 @@
         }
 
         function buildEditBar(d) {
-            if (!isOwner(d)) return '';
-            return `<div class="entity-detail-edit-bar"><button class="entity-detail-edit-toggle ${detailEditMode ? 'active' : ''}" onclick="toggleDetailEditMode()" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>${detailEditMode ? `<button class="entity-detail-add-section-btn" onclick="openAddSectionModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Section</button>` : ''}</div>`;
+            if (!isOwner(d) || !detailEditMode) return '';
+            return `<div class="entity-detail-edit-bar"><button class="entity-detail-add-section-btn" onclick="openAddSectionModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Section</button><button class="entity-detail-delete-btn" onclick="deleteEntity()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete</button></div>`;
         }
 
         function buildEditableField(d, field, label, currentVal, isTextarea) {
