@@ -2252,7 +2252,7 @@
             if (d.subcategory && type === 'business') badgeHTML += `<span class="entity-detail-type-badge" style="margin-left:4px;">${escapeHTML(d.subcategory)}</span>`;
             let memberHTML = '';
             if (d.memberCount) memberHTML = `<div class="entity-detail-member-count"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>${d.memberCount} members</div>`;
-            return `<div class="entity-detail-header"><div class="entity-detail-icon">${icon}</div><div class="entity-detail-header-info"><div class="entity-detail-name">${escapeHTML(name)}</div>${badgeHTML}${memberHTML}</div><button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button></div>`;
+            return `<div class="entity-detail-header"><div class="entity-detail-icon">${icon}</div><div class="entity-detail-header-info"><div class="entity-detail-name">${escapeHTML(name)}</div>${badgeHTML}${memberHTML}</div></div>`;
         }
 
         function buildEditBar(d) {
@@ -2382,12 +2382,7 @@
         }
 
         function buildFooter(d) {
-            let html = '<div class="entity-detail-footer">';
-            const mapsUrl = buildMapsUrl(d);
-            if (mapsUrl) html += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-footer-btn primary" style="text-decoration:none;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>Open in Maps</a>`;
-            html += `<button class="entity-detail-footer-btn secondary" onclick="closeEntityDetail()">Close</button>`;
-            html += '</div>';
-            return html;
+            return '';
         }
 
         function buildInfoItem(label, value) {
@@ -2807,10 +2802,6 @@
                     <div class="section-label">Location</div>
                     <div class="entity-detail-map-embed">
                         <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.005}%2C${lat-0.003}%2C${lng+0.005}%2C${lat+0.003}&layer=mapnik&marker=${lat}%2C${lng}" loading="lazy"></iframe>
-                        <a href="https://maps.apple.com/?q=${addr}&ll=${lat},${lng}" target="_blank" rel="noopener" class="entity-detail-map-open-btn">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                            Open in Maps
-                        </a>
                     </div>
                 </div>`;
             }
