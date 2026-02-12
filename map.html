@@ -1025,6 +1025,35 @@
         .entity-detail-message-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 20px 20px; padding: 16px; background: #3366CC; color: #fff; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; width: calc(100% - 40px); transition: background 0.15s; text-decoration: none; }
         .entity-detail-message-btn:hover { background: #2a57b0; }
         .entity-detail-message-btn svg { width: 16px; height: 16px; }
+        /* Pilgrimage listing cards (matches iOS PilgrimageListingCard) */
+        .entity-detail-travel-section { margin: 12px 20px 16px; padding: 14px; background: rgba(0,0,0,0.03); border-radius: 12px; }
+        .entity-detail-travel-section .travel-heading { font-size: 1.05rem; font-weight: 700; color: #111; margin-bottom: 12px; }
+        .entity-detail-listing-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px; background: #fff; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 10px; }
+        .entity-detail-listing-card:last-child { margin-bottom: 0; }
+        .entity-detail-listing-info { flex: 1; min-width: 0; }
+        .entity-detail-listing-price { font-size: 1.25rem; font-weight: 700; color: #DC2626; margin-bottom: 4px; }
+        .entity-detail-listing-price .limited-badge { display: inline-block; font-size: 0.65rem; font-weight: 600; color: #fff; background: #F97316; padding: 2px 8px; border-radius: 8px; margin-left: 8px; vertical-align: middle; }
+        .entity-detail-listing-date { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: #111; margin-bottom: 2px; }
+        .entity-detail-listing-date svg { width: 14px; height: 14px; color: #3366CC; flex-shrink: 0; }
+        .entity-detail-listing-spots { font-size: 0.78rem; color: #888; margin-top: 4px; }
+        .entity-detail-listing-explore { display: inline-flex; align-items: center; gap: 6px; padding: 14px 20px; background: linear-gradient(135deg, #DC2626, #DC2626cc); color: #fff; border: none; border-radius: 16px; font-size: 0.88rem; font-weight: 600; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 8px rgba(220,38,38,0.3); transition: transform 0.1s; flex-shrink: 0; text-decoration: none; }
+        .entity-detail-listing-explore:hover { transform: translateY(-1px); }
+        .entity-detail-listing-explore svg { width: 16px; height: 16px; }
+        .entity-detail-listing-explore.disabled { background: #999; box-shadow: none; pointer-events: none; }
+        .entity-detail-travel-empty { font-size: 0.88rem; color: #888; padding: 8px 0; }
+        /* Pilgrimage reserve modal */
+        .pilgrimage-reserve-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-end; }
+        .pilgrimage-reserve-overlay.active { display: flex; }
+        .pilgrimage-reserve-panel { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; overflow-y: auto; padding: 24px; animation: slideUpDetail 0.35s ease-out; }
+        .pilgrimage-reserve-close { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .pilgrimage-reserve-close h2 { font-size: 1.15rem; font-weight: 700; color: #111; margin: 0; }
+        .pilgrimage-reserve-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .pilgrimage-reserve-info-card { padding: 14px; background: #f2f2f7; border-radius: 12px; text-align: center; }
+        .pilgrimage-reserve-info-card .label { font-size: 0.72rem; font-weight: 600; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+        .pilgrimage-reserve-info-card .value { font-size: 1rem; font-weight: 700; color: #111; }
+        .pilgrimage-reserve-cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; background: linear-gradient(135deg, #DC2626, #DC2626cc); color: #fff; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 16px; text-decoration: none; box-shadow: 0 2px 8px rgba(220,38,38,0.3); }
+        .pilgrimage-reserve-cta:hover { transform: translateY(-1px); }
+        .pilgrimage-reserve-cta svg { width: 16px; height: 16px; }
         .entity-detail-section-title { font-size: 0.75rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 20px 6px; }
         .entity-detail-schedule { margin: 0 16px 8px; padding: 12px 14px; background: #f8f8fa; border-radius: 12px; }
         .entity-detail-schedule-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: #777; padding: 3px 0; }
@@ -1355,6 +1384,17 @@
                 <button onclick="closeAddSectionModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#666;">&times;</button>
             </div>
             <div id="add-section-list"></div>
+        </div>
+    </div>
+
+    <!-- Pilgrimage Reserve Modal (matches iOS PilgrimageReserveView) -->
+    <div class="pilgrimage-reserve-overlay" id="pilgrimage-reserve-overlay">
+        <div class="pilgrimage-reserve-panel">
+            <div class="pilgrimage-reserve-close">
+                <h2 id="reserve-title">Trip Details</h2>
+                <button onclick="closePilgrimageReserve()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">&times;</button>
+            </div>
+            <div id="reserve-content"></div>
         </div>
     </div>
 
@@ -2025,15 +2065,15 @@
                     }
                 }
                 if (type === 'pilgrimage') {
-                    // Multi-collection fetch: try pilgrimageOfferings first, merge with pilgrimageSites
+                    // 1. pilgrimageOfferings — other offerings for the same site
                     try {
                         const offeringSnap = await getDocs(query(collection(db, 'pilgrimageOfferings'), where('siteId', '==', docId)));
                         if (offeringSnap.size > 0) {
-                            d._offerings = offeringSnap.docs.map(o => ({ id: o.id, ...o.data() }));
+                            d._offerings = offeringSnap.docs.filter(o => o.id !== docId).map(o => ({ id: o.id, ...o.data() }));
                             needsRerender = true;
                         }
                     } catch (e) { /* pilgrimageOfferings may not exist */ }
-                    // Also check if this doc has a siteId pointing to pilgrimageSites
+                    // 2. Merge site data from pilgrimageSites
                     if (d.siteId) {
                         try {
                             const siteDoc = await getDoc(doc(db, 'pilgrimageSites', d.siteId));
@@ -2050,7 +2090,28 @@
                             }
                         } catch (e) { /* silent */ }
                     }
-                    // Travel facilitations subcollection
+                    // 3. pilgrimageListings — travel facilitation listings (matches iOS PilgrimageListingDataService)
+                    try {
+                        const listingSnap = await getDocs(query(collection(db, 'pilgrimageListings'), where('pilgrimageId', '==', docId)));
+                        if (listingSnap.size > 0) {
+                            const now = new Date();
+                            d._listings = listingSnap.docs.map(l => ({ id: l.id, ...l.data() }))
+                                .filter(l => {
+                                    // Filter: future dates and spots > 0
+                                    let listDate = null;
+                                    if (l.date && l.date.toDate) listDate = l.date.toDate();
+                                    else if (l.date && l.date.seconds) listDate = new Date(l.date.seconds * 1000);
+                                    else if (typeof l.date === 'string') listDate = new Date(l.date);
+                                    return (!listDate || listDate >= now) && (l.spots === undefined || l.spots > 0);
+                                })
+                                .sort((a, b) => {
+                                    const da = a.date?.seconds || 0, db2 = b.date?.seconds || 0;
+                                    return da - db2;
+                                });
+                            needsRerender = true;
+                        }
+                    } catch (e) { /* pilgrimageListings may not exist */ }
+                    // 4. Legacy travelFacilitations subcollection
                     try {
                         const travSnap = await getDocs(collection(db, 'pilgrimageSites', docId, 'travelFacilitations'));
                         if (travSnap.size > 0) { d.travelFacilitations = travSnap.docs.map(t => t.data()); needsRerender = true; }
@@ -2108,6 +2169,74 @@
         };
         document.getElementById('add-section-modal')?.addEventListener('click', (e) => {
             if (e.target.id === 'add-section-modal') closeAddSectionModal();
+        });
+
+        // ── Pilgrimage reserve modal (matches iOS PilgrimageReserveView) ──
+        window.openPilgrimageReserve = function(listingId) {
+            const d = detailCurrentData;
+            if (!d || !d._listings) return;
+            const listing = d._listings.find(l => l.id === listingId);
+            if (!listing) return;
+
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            // Parse dates
+            const startDate = listing.date?.toDate ? listing.date.toDate() : (listing.date?.seconds ? new Date(listing.date.seconds * 1000) : (typeof listing.date === 'string' ? new Date(listing.date) : null));
+            const endDate = listing.endDate?.toDate ? listing.endDate.toDate() : (listing.endDate?.seconds ? new Date(listing.endDate.seconds * 1000) : (typeof listing.endDate === 'string' ? new Date(listing.endDate) : null));
+            let dateText = '';
+            if (startDate && !isNaN(startDate.getTime())) {
+                const sd = startDate.getDate(), sm = months[startDate.getMonth()], sy = startDate.getFullYear();
+                if (endDate && !isNaN(endDate.getTime())) {
+                    const ed = endDate.getDate(), em = months[endDate.getMonth()];
+                    dateText = `${sm} ${sd}–${em} ${ed}, ${sy}`;
+                } else {
+                    dateText = `${sm} ${sd}, ${sy}`;
+                }
+            }
+            const price = listing.price ? `$${Math.round(listing.price)}` : 'TBD';
+            const dest = listing.destination || d.name || d.title || '';
+            const agency = listing.travelAgency || '';
+            const includes = listing.includes || '';
+            const itinerary = listing.itinerary || '';
+            const spots = listing.spots || 0;
+            const regUrl = listing.registrationURL || '';
+
+            let html = '';
+            // Info grid (dates, price, destination, spots)
+            html += `<div class="pilgrimage-reserve-info-grid">`;
+            html += `<div class="pilgrimage-reserve-info-card"><div class="label">Dates</div><div class="value">${escapeHTML(dateText || 'TBD')}</div></div>`;
+            html += `<div class="pilgrimage-reserve-info-card"><div class="label">Price</div><div class="value">${escapeHTML(price)}</div></div>`;
+            html += `<div class="pilgrimage-reserve-info-card"><div class="label">Destination</div><div class="value">${escapeHTML(dest)}</div></div>`;
+            html += `<div class="pilgrimage-reserve-info-card"><div class="label">Spots</div><div class="value">${spots > 0 ? spots + ' available' : 'Sold out'}</div></div>`;
+            html += `</div>`;
+
+            // Travel agency
+            if (agency) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">Travel Agency</div><div style="font-size:0.92rem;color:#111;font-weight:500;">${escapeHTML(agency)}</div></div>`;
+            // What's included
+            if (includes) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">What's Included</div><div style="font-size:0.88rem;color:#444;line-height:1.6;">${escapeHTML(includes)}</div></div>`;
+            // Itinerary
+            if (itinerary) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">Itinerary</div><div style="font-size:0.88rem;color:#444;line-height:1.6;white-space:pre-line;">${escapeHTML(itinerary)}</div></div>`;
+
+            // CTA button
+            if (regUrl && spots > 0) {
+                html += `<a href="${regUrl}" target="_blank" rel="noopener" class="pilgrimage-reserve-cta"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Submit Free Application</a>`;
+            } else if (spots > 0) {
+                html += `<button class="pilgrimage-reserve-cta" onclick="messageEntityOwner(); closePilgrimageReserve();"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Contact to Reserve</button>`;
+            }
+
+            document.getElementById('reserve-title').textContent = dest ? `Trip to ${dest}` : 'Trip Details';
+            document.getElementById('reserve-content').innerHTML = html;
+            document.getElementById('pilgrimage-reserve-overlay').classList.add('active');
+
+            // Track analytics
+            if (d._docId) {
+                addDoc(collection(db, 'listingAnalytics'), { entityId: d._docId, entityType: 'pilgrimage', event: 'explore_listing', listingId, userId: currentUser?.uid || null, timestamp: serverTimestamp() }).catch(() => {});
+            }
+        };
+        window.closePilgrimageReserve = function() {
+            document.getElementById('pilgrimage-reserve-overlay').classList.remove('active');
+        };
+        document.getElementById('pilgrimage-reserve-overlay')?.addEventListener('click', (e) => {
+            if (e.target.id === 'pilgrimage-reserve-overlay') closePilgrimageReserve();
         });
 
         // ── SVG icon constants for nav buttons ──
@@ -3360,23 +3489,61 @@
                 if (d.siteAdmissionInfo) html += buildInfoFull('Admission', d.siteAdmissionInfo);
             }
 
-            // Travel facilitations (trips)
-            if (Array.isArray(d.travelFacilitations) && d.travelFacilitations.length > 0) {
-                html += `<div class="entity-detail-section-title">Upcoming Trips</div><div class="entity-detail-events">`;
-                d.travelFacilitations.forEach(trip => {
-                    const date = trip.date || '';
-                    const price = trip.price || '';
-                    const spots = trip.spots || '';
-                    html += `<div class="entity-detail-event-item"><div class="entity-detail-event-date"><div class="month">${price ? '$' : ''}</div><div class="day-num">${escapeHTML(String(price || ''))}</div></div><div class="entity-detail-event-info"><div class="entity-detail-event-title">${escapeHTML(String(date))}${trip.endDate ? ' — ' + escapeHTML(String(trip.endDate)) : ''}</div>${spots ? `<div class="entity-detail-event-time">${escapeHTML(String(spots))} spots available</div>` : ''}</div></div>`;
+            // ── Travel Facilitations (matches iOS PilgrimageListingCard) ──
+            html += `<div class="entity-detail-travel-section"><div class="travel-heading">Travel Facilitations</div>`;
+            const listings = d._listings || [];
+            if (listings.length > 0) {
+                listings.forEach(listing => {
+                    const price = listing.price ? `$${Math.round(listing.price)}` : '';
+                    const spots = listing.spots || 0;
+                    const limited = spots > 0 && spots <= 5;
+                    // Format date range
+                    let dateText = '';
+                    const startDate = listing.date?.toDate ? listing.date.toDate() : (listing.date?.seconds ? new Date(listing.date.seconds * 1000) : (typeof listing.date === 'string' ? new Date(listing.date) : null));
+                    const endDate = listing.endDate?.toDate ? listing.endDate.toDate() : (listing.endDate?.seconds ? new Date(listing.endDate.seconds * 1000) : (typeof listing.endDate === 'string' ? new Date(listing.endDate) : null));
+                    if (startDate && !isNaN(startDate.getTime())) {
+                        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                        const sd = startDate.getDate(), sm = months[startDate.getMonth()], sy = startDate.getFullYear();
+                        if (endDate && !isNaN(endDate.getTime()) && endDate.getTime() !== startDate.getTime()) {
+                            const ed = endDate.getDate(), em = months[endDate.getMonth()], ey = endDate.getFullYear();
+                            if (sy === ey && startDate.getMonth() === endDate.getMonth()) {
+                                dateText = `${sm} ${sd}–${ed}, ${sy}`;
+                            } else if (sy === ey) {
+                                dateText = `${sm} ${sd}–${em} ${ed}, ${sy}`;
+                            } else {
+                                dateText = `${sm} ${sd}, ${sy}–${em} ${ed}, ${ey}`;
+                            }
+                        } else {
+                            dateText = `${sm} ${sd}, ${sy}`;
+                        }
+                    } else if (typeof listing.date === 'string') {
+                        dateText = listing.date;
+                    }
+                    const dest = listing.destination || '';
+                    const regUrl = listing.registrationURL || '';
+                    const listingId = listing.id || '';
+                    html += `<div class="entity-detail-listing-card">`;
+                    html += `<div class="entity-detail-listing-info">`;
+                    html += `<div class="entity-detail-listing-price">${escapeHTML(price)}${limited ? '<span class="limited-badge">Limited</span>' : ''}</div>`;
+                    if (dateText) html += `<div class="entity-detail-listing-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${escapeHTML(dateText)}</div>`;
+                    if (spots > 0) html += `<div class="entity-detail-listing-spots">${spots} spots available</div>`;
+                    html += `</div>`;
+                    html += `<button class="entity-detail-listing-explore${spots === 0 ? ' disabled' : ''}" onclick="openPilgrimageReserve('${escapeHTML(listingId)}')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8l4 4-4 4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Explore</button>`;
+                    html += `</div>`;
                 });
-                html += '</div>';
+            } else {
+                html += `<div class="entity-detail-travel-empty">No upcoming trips are currently available.</div>`;
             }
+            html += `</div>`;
 
-            // Other offerings at this site
+            // ── Other Offerings at this site ──
             if (d._offerings && d._offerings.length > 0) {
-                html += `<div class="entity-detail-section-title">Pilgrimage Offerings</div>`;
+                html += `<div class="entity-detail-section-title">Other Pilgrimage Offerings</div>`;
                 d._offerings.forEach(o => {
-                    html += buildInfoFull(o.title || o.name || 'Offering', [o.date, o.description].filter(Boolean).join(' · '));
+                    const title = o.title || o.name || 'Offering';
+                    const oDate = o.date || '';
+                    const oDesc = o.description || '';
+                    html += buildInfoFull(title, [oDate, oDesc].filter(Boolean).join(' · '));
                 });
             }
 
