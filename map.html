@@ -2368,13 +2368,13 @@
 
         // ── Shared builders ────────────────────────────────
         function buildHeroImage(d) {
-            const images = d.images || d.imageNames || [];
-            const singleImg = d.imageURL || d.ownerProfileImageURL || d.organizationImageURL || d.siteImageURL || '';
+            const images = (d.images || d.imageNames || []).filter(img => img && typeof img === 'string' && img.trim());
+            const singleImg = d.imageURL || d.siteImageURL || '';
             if (images.length > 1) {
                 let html = `<div class="entity-detail-hero-carousel" id="detail-hero-carousel">`;
                 images.forEach((img, i) => {
-                    const url = img.startsWith && img.startsWith('http') ? img : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(img)}?alt=media`;
-                    html += `<img src="${url}" alt="" class="${i === 0 ? 'active' : ''}" loading="lazy">`;
+                    const url = img.startsWith('http') ? img : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(img)}?alt=media`;
+                    html += `<img src="${url}" alt="" class="${i === 0 ? 'active' : ''}" loading="lazy" onerror="this.style.display='none'">`;
                 });
                 html += `<div class="entity-detail-hero-dots">`;
                 images.forEach((_, i) => { html += `<span class="${i === 0 ? 'active' : ''}" onclick="heroCarouselTo(${i})"></span>`; });
@@ -2382,8 +2382,8 @@
                 return html;
             }
             const url = (images.length === 1 ? images[0] : singleImg);
-            if (!url) return '';
-            const src = url.startsWith && url.startsWith('http') ? url : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(url)}?alt=media`;
+            if (!url || typeof url !== 'string' || !url.trim()) return '';
+            const src = url.startsWith('http') ? url : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(url)}?alt=media`;
             return `<img class="entity-detail-hero" src="${src}" alt="" loading="lazy" onerror="this.style.display='none'">`;
         }
 
