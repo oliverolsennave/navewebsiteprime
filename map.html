@@ -3195,11 +3195,11 @@
             cardHTML += `<div class="entity-detail-website-row">`;
             if (website) {
                 const url = website.startsWith('http') ? website : 'https://' + website;
-                cardHTML += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-website-link"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Visit Website</a>`;
+                cardHTML += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-website-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Visit Website</a>`;
             } else {
-                cardHTML += `<span class="entity-detail-website-link disabled"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Visit Website</span>`;
+                cardHTML += `<span class="entity-detail-website-link disabled"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Visit Website</span>`;
             }
-            cardHTML += `<div class="entity-detail-gallery-icon" title="Photo Gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="16" height="14" rx="2"/><rect x="6" y="3" width="16" height="14" rx="2" fill="white"/><circle cx="14" cy="9" r="2"/><path d="M6 17l3-3a2 2 0 0 1 2.8 0L17 19"/></svg></div>`;
+            cardHTML += `<div class="entity-detail-gallery-icon" title="Photo Gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="16" height="13" rx="2"/><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h11A1.5 1.5 0 0 1 17 5.5V7H5V5.5A1.5 1.5 0 0 1 6.5 4"/><circle cx="15" cy="12" r="1.5"/><path d="M5 20l4-4a1.5 1.5 0 0 1 2 0l4 4"/></svg></div>`;
             cardHTML += `</div>`;
 
             html += `<div class="${cardClass}">${cardHTML}</div>`;
