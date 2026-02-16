@@ -1201,6 +1201,25 @@
         /* Gallery grid */
         .entity-detail-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 16px 12px; border-radius: 12px; overflow: hidden; }
         .entity-detail-gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; }
+        /* Gallery lightbox */
+        .gallery-lightbox { position: fixed; inset: 0; z-index: 100000; background: #000; display: none; flex-direction: column; }
+        .gallery-lightbox.active { display: flex; }
+        .gallery-lightbox-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); flex-shrink: 0; }
+        .gallery-lightbox-title { color: #fff; font-size: 0.95rem; font-weight: 600; text-align: center; flex: 1; }
+        .gallery-lightbox-subtitle { color: #888; font-size: 0.75rem; font-weight: 400; }
+        .gallery-lightbox-close { width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,0.12); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .gallery-lightbox-close:hover { background: rgba(255,255,255,0.2); }
+        .gallery-lightbox-body { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; min-height: 0; }
+        .gallery-lightbox-body img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .gallery-lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(0,0,0,0.5); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; }
+        .gallery-lightbox-nav:hover { background: rgba(0,0,0,0.7); }
+        .gallery-lightbox-nav.prev { left: 12px; }
+        .gallery-lightbox-nav.next { right: 12px; }
+        .gallery-lightbox-nav:disabled { opacity: 0.3; cursor: default; }
+        .gallery-lightbox-footer { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); flex-shrink: 0; }
+        .gallery-lightbox-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; padding: 0; cursor: pointer; transition: background 0.2s; }
+        .gallery-lightbox-dot.active { background: #fff; }
+        .gallery-lightbox-label { color: #aaa; font-size: 0.78rem; text-align: center; padding: 0 16px 4px; }
         /* Staff list */
         .entity-detail-staff-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; margin: 0 16px 4px; background: #f8f8fa; border-radius: 10px; }
         .entity-detail-staff-avatar { width: 36px; height: 36px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #666; flex-shrink: 0; }
@@ -1468,6 +1487,28 @@
             </div>
             <div id="retreat-detail-content"></div>
         </div>
+    </div>
+
+    <!-- Gallery Lightbox -->
+    <div class="gallery-lightbox" id="gallery-lightbox">
+        <div class="gallery-lightbox-header">
+            <button class="gallery-lightbox-close" onclick="closeGalleryLightbox()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div class="gallery-lightbox-title"><span id="gallery-lightbox-name"></span><br><span class="gallery-lightbox-subtitle">Gallery</span></div>
+            <div style="width:36px;"></div>
+        </div>
+        <div class="gallery-lightbox-label" id="gallery-lightbox-type"></div>
+        <div class="gallery-lightbox-body">
+            <button class="gallery-lightbox-nav prev" id="gallery-lb-prev" onclick="galleryLightboxNav(-1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <img id="gallery-lightbox-img" src="" alt="">
+            <button class="gallery-lightbox-nav next" id="gallery-lb-next" onclick="galleryLightboxNav(1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+        </div>
+        <div class="gallery-lightbox-footer" id="gallery-lightbox-dots"></div>
     </div>
 
     <!-- Waitlist Popup (30s) -->
@@ -2094,6 +2135,7 @@
             if (!data) return;
             detailEditMode = false;
             detailCurrentData = data;
+            window._currentDetailData = data;
             detailOverlay.classList.add('active');
             await updateTopNavButtons();
             renderMapEntityDetail(data);
@@ -2792,6 +2834,80 @@
             heroInterval = setInterval(() => { cur = (cur + 1) % imgs.length; heroCarouselTo(cur); }, 4000);
         }
 
+        // ── Gallery Lightbox ──
+        let _galleryImages = [];
+        let _galleryIndex = 0;
+
+        window.openGalleryLightbox = function(startIndex) {
+            // Collect images from the current entity's _gallery data or from hero/inline images
+            const d = window._currentDetailData;
+            if (!d) return;
+            _galleryImages = [];
+            // Parish gallery subcollection
+            if (d._gallery && d._gallery.length) {
+                d._gallery.forEach(p => {
+                    const url = p.storageUrl || p.imageURL || p.url || '';
+                    if (url) _galleryImages.push({ url, label: p.imageType || '' });
+                });
+            }
+            // Entity images array
+            const imgs = (d.images || d.imageNames || []).filter(img => img && typeof img === 'string' && img.trim());
+            imgs.forEach(img => {
+                const url = img.startsWith('http') ? img : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(img)}?alt=media`;
+                _galleryImages.push({ url, label: '' });
+            });
+            // Single image
+            const single = d.imageURL || d.siteImageURL || '';
+            if (single && !_galleryImages.some(g => g.url === single)) {
+                const url = single.startsWith('http') ? single : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(single)}?alt=media`;
+                _galleryImages.push({ url, label: '' });
+            }
+            if (!_galleryImages.length) return;
+            _galleryIndex = (typeof startIndex === 'number' && startIndex >= 0 && startIndex < _galleryImages.length) ? startIndex : 0;
+            const name = d.name || d.title || d.parishName || 'Unknown';
+            document.getElementById('gallery-lightbox-name').textContent = name;
+            galleryLightboxShow(_galleryIndex);
+            document.getElementById('gallery-lightbox').classList.add('active');
+        };
+
+        function galleryLightboxShow(idx) {
+            _galleryIndex = idx;
+            const img = _galleryImages[idx];
+            document.getElementById('gallery-lightbox-img').src = img.url;
+            document.getElementById('gallery-lightbox-type').textContent = img.label ? img.label.charAt(0).toUpperCase() + img.label.slice(1) : '';
+            document.getElementById('gallery-lb-prev').disabled = idx === 0;
+            document.getElementById('gallery-lb-next').disabled = idx === _galleryImages.length - 1;
+            // Dots
+            const dotsEl = document.getElementById('gallery-lightbox-dots');
+            dotsEl.innerHTML = '';
+            if (_galleryImages.length > 1) {
+                _galleryImages.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'gallery-lightbox-dot' + (i === idx ? ' active' : '');
+                    dot.onclick = () => galleryLightboxShow(i);
+                    dotsEl.appendChild(dot);
+                });
+            }
+        }
+
+        window.galleryLightboxNav = function(dir) {
+            const next = _galleryIndex + dir;
+            if (next < 0 || next >= _galleryImages.length) return;
+            galleryLightboxShow(next);
+        };
+
+        window.closeGalleryLightbox = function() {
+            document.getElementById('gallery-lightbox').classList.remove('active');
+        };
+
+        // Keyboard nav for lightbox
+        document.addEventListener('keydown', (e) => {
+            if (!document.getElementById('gallery-lightbox').classList.contains('active')) return;
+            if (e.key === 'Escape') closeGalleryLightbox();
+            if (e.key === 'ArrowLeft') galleryLightboxNav(-1);
+            if (e.key === 'ArrowRight') galleryLightboxNav(1);
+        });
+
         function buildHeader(d, type) {
             const icon = getEntityIcon(type);
             const name = d.name || d.title || d.parishName || 'Unknown';
@@ -2946,9 +3062,9 @@
         function buildGallery(photos) {
             if (!photos || !photos.length) return '';
             let html = `<div class="entity-detail-section-title">Gallery</div><div class="entity-detail-gallery">`;
-            photos.slice(0, 9).forEach(p => {
+            photos.slice(0, 9).forEach((p, i) => {
                 const url = p.storageUrl || p.imageURL || p.url || '';
-                if (url) html += `<img src="${url}" alt="${escapeHTML(p.imageType || '')}" loading="lazy" onerror="this.style.display='none'">`;
+                if (url) html += `<img src="${url}" alt="${escapeHTML(p.imageType || '')}" loading="lazy" onerror="this.style.display='none'" onclick="openGalleryLightbox(${i})">`;
             });
             html += '</div>';
             return html;
@@ -3199,7 +3315,7 @@
             } else {
                 cardHTML += `<span class="entity-detail-website-link disabled"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Visit Website</span>`;
             }
-            cardHTML += `<div class="entity-detail-gallery-icon" title="Photo Gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="16" height="13" rx="2"/><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h11A1.5 1.5 0 0 1 17 5.5V7H5V5.5A1.5 1.5 0 0 1 6.5 4"/><circle cx="15" cy="12" r="1.5"/><path d="M5 20l4-4a1.5 1.5 0 0 1 2 0l4 4"/></svg></div>`;
+            cardHTML += `<div class="entity-detail-gallery-icon" onclick="openGalleryLightbox()" title="Photo Gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 22H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2z"/><path d="M22 4v12a2 2 0 0 1-2 2"/><path d="M6 2h14a2 2 0 0 1 2 2v0"/><circle cx="10" cy="13" r="2"/><path d="M2 20l5-5a2 2 0 0 1 2.8 0L14 19"/></svg></div>`;
             cardHTML += `</div>`;
 
             html += `<div class="${cardClass}">${cardHTML}</div>`;
