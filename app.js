@@ -149,6 +149,10 @@ function animateCount(element, target, duration = 2000) {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Enable nav transition after load to prevent slide-closed flash
+    const navLinks = document.getElementById('nav-links');
+    if (navLinks) requestAnimationFrame(() => navLinks.classList.add('ready'));
+
     // Hero form
     const heroForm = document.getElementById('waitlist-form');
     if (heroForm) {

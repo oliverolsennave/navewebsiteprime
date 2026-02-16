@@ -1247,6 +1247,7 @@
         </div>
     </nav>
     <div class="nav-backdrop" id="nav-backdrop" onclick="document.getElementById('nav-links').classList.remove('open');this.classList.remove('visible');"></div>
+    <script>requestAnimationFrame(()=>document.getElementById('nav-links').classList.add('ready'));</script>
 
     <!-- Search Overlay (outside map-wrapper to escape its stacking context) -->
     <div class="map-search-overlay" id="map-search-overlay">
