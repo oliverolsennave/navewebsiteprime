@@ -70,6 +70,9 @@
         .leaflet-control-zoom a:hover {
             background: #2a2a2a !important;
         }
+        .leaflet-top.leaflet-left {
+            top: 14px;
+        }
         
         .leaflet-control-attribution {
             background: rgba(10, 10, 10, 0.8) !important;
@@ -874,7 +877,7 @@
         /* ═══════════════════════════════════════════════════════
            Search Bar + Overlay (matches iOS CatholicSearchOverlay)
            ═══════════════════════════════════════════════════════ */
-        .map-search-bar { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1001; display: flex; align-items: center; gap: 10px; background: rgba(20,20,20,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid #2a2a2a; border-radius: 22px; padding: 10px 16px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4); width: 100%; max-width: 560px; box-sizing: border-box; }
+        .map-search-bar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1001; display: flex; align-items: center; gap: 10px; background: rgba(20,20,20,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid #2a2a2a; border-radius: 22px; padding: 10px 16px; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4); width: 100%; max-width: 560px; box-sizing: border-box; }
         .map-search-bar svg { flex-shrink: 0; color: #888; }
         .map-search-placeholder { flex: 1; overflow: hidden; white-space: nowrap; }
         .map-search-placeholder-inner { display: inline-flex; align-items: baseline; }
