@@ -1218,6 +1218,9 @@
         .entity-detail-member-count { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #777; margin-top: 4px; }
         @media (min-width: 769px) { .entity-detail-overlay { align-items: center; } .entity-detail-panel { border-radius: 20px; max-height: 80vh; } }
         @media (max-width: 768px) { .entity-detail-panel { max-height: 90vh; } .entity-detail-header { padding: 6px 16px 12px; } .entity-detail-name { font-size: 1.15rem; } .entity-detail-card { margin: 0 12px 12px; } .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } .entity-detail-hero, .entity-detail-hero-carousel { height: 160px; } }
+        /* Booking success toast */
+        .booking-success-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: #166534; color: #fff; padding: 14px 24px; border-radius: 12px; font-size: 0.92rem; font-family: 'Instrument Sans', sans-serif; display: flex; align-items: center; gap: 10px; z-index: 99999; opacity: 0; transition: opacity 0.3s, transform 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .booking-success-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body class="map-page">
@@ -2292,8 +2295,11 @@
             // Itinerary
             if (itinerary) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">Itinerary</div><div style="font-size:0.88rem;color:#444;line-height:1.6;white-space:pre-line;">${escapeHTML(itinerary)}</div></div>`;
 
-            // CTA button
-            if (regUrl && spots > 0) {
+            // CTA button — priority: stripeEnabled + price → Stripe; registrationURL → external; else contact
+            if (listing.stripeEnabled && listing.price && spots > 0) {
+                const amountCents = Math.round(listing.price * 100);
+                html += `<button class="pilgrimage-reserve-cta" onclick="initiateBookingCheckout({ entityType: 'pilgrimage', entityId: '${escapeHTML(d._docId || '')}', offeringId: '${escapeHTML(listingId)}', offeringTitle: '${escapeHTML(dest || 'Pilgrimage Trip')}', amount: ${amountCents} })"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Book Now — ${escapeHTML(price)}</button>`;
+            } else if (regUrl && spots > 0) {
                 html += `<a href="${regUrl}" target="_blank" rel="noopener" class="pilgrimage-reserve-cta"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Submit Free Application</a>`;
             } else if (spots > 0) {
                 html += `<button class="pilgrimage-reserve-cta" onclick="messageEntityOwner(); closePilgrimageReserve();"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Contact to Reserve</button>`;
@@ -2358,8 +2364,11 @@
             if (includes) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">What's Included</div><div style="font-size:0.88rem;color:#444;line-height:1.6;">${escapeHTML(includes)}</div></div>`;
             if (itinerary) html += `<div style="margin-bottom:12px;"><div style="font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;margin-bottom:4px;">Itinerary</div><div style="font-size:0.88rem;color:#444;line-height:1.6;white-space:pre-line;">${escapeHTML(itinerary)}</div></div>`;
 
-            // CTA
-            if (regUrl) {
+            // CTA — priority: stripeEnabled + price → Stripe; registrationURL → external; else contact
+            if (o.stripeEnabled && o.price) {
+                const amountCents = Math.round(o.price * 100);
+                html += `<button class="pilgrimage-reserve-cta" onclick="initiateBookingCheckout({ entityType: 'pilgrimage', entityId: '${escapeHTML(d._docId || '')}', offeringId: '${escapeHTML(offeringId)}', offeringTitle: '${escapeHTML(o.title || o.name || 'Pilgrimage Offering')}', amount: ${amountCents} })"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Book Now — ${escapeHTML(price)}</button>`;
+            } else if (regUrl) {
                 html += `<a href="${regUrl}" target="_blank" rel="noopener" class="pilgrimage-reserve-cta"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Submit Free Application</a>`;
             } else {
                 html += `<button class="pilgrimage-reserve-cta" onclick="messageEntityOwner(); closePilgrimageReserve();"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Contact for Details</button>`;
@@ -2460,16 +2469,18 @@
                 html += `<div class="retreat-detail-text">${escapeHTML(o.scheduleStructure)}</div>`;
             }
 
-            // CTA buttons
-            if (o.registrationURL) {
+            // CTA buttons — priority: stripeEnabled + price → Stripe; registrationURL → external; website → learn more; else contact
+            if (o.stripeEnabled && o.price) {
+                const amountCents = Math.round(o.price * 100);
+                html += `<button class="retreat-detail-cta-primary" onclick="initiateBookingCheckout({ entityType: 'retreat', entityId: '${escapeHTML(d._docId || '')}', offeringId: '${escapeHTML(offeringId)}', offeringTitle: '${escapeHTML(o.title || 'Retreat')}', amount: ${amountCents} })"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Book Now — ${escapeHTML(price)}</button>`;
+            } else if (o.registrationURL) {
                 html += `<a href="${o.registrationURL}" target="_blank" rel="noopener" class="retreat-detail-cta-primary"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>Reserve Your Spot</a>`;
+            } else if (!o.website) {
+                html += `<button class="retreat-detail-cta-primary" onclick="messageEntityOwner(); closeRetreatOfferingDetail();"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Contact to Reserve</button>`;
             }
             if (o.website) {
                 const wUrl = o.website.startsWith('http') ? o.website : 'https://' + o.website;
                 html += `<a href="${wUrl}" target="_blank" rel="noopener" class="retreat-detail-cta-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Learn More</a>`;
-            }
-            if (!o.registrationURL && !o.website) {
-                html += `<button class="retreat-detail-cta-primary" onclick="messageEntityOwner(); closeRetreatOfferingDetail();"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Contact to Reserve</button>`;
             }
 
             // Trust badge
@@ -4200,6 +4211,52 @@
                 btn.disabled = false;
             }
         });
+
+        // ── Stripe Booking Checkout ──────────────────────────────────────
+        window.initiateBookingCheckout = async function({ entityType, entityId, offeringId, offeringTitle, amount, currency }) {
+            if (!currentUser) {
+                alert('Please sign in to book.');
+                return;
+            }
+            try {
+                const idToken = await currentUser.getIdToken();
+                const resp = await fetch('/api/create-booking-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        firebaseIdToken: idToken,
+                        entityType,
+                        entityId,
+                        offeringId,
+                        offeringTitle,
+                        amount,
+                        currency: currency || 'usd',
+                    }),
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Checkout failed');
+                window.location.href = data.sessionUrl;
+            } catch (err) {
+                alert('Booking failed: ' + err.message);
+            }
+        };
+
+        // Handle booking success return
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('booking') === 'success') {
+                const toast = document.createElement('div');
+                toast.className = 'booking-success-toast';
+                toast.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg> Booking confirmed! Check your email for details.';
+                document.body.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add('visible'));
+                setTimeout(() => {
+                    toast.classList.remove('visible');
+                    setTimeout(() => toast.remove(), 400);
+                }, 5000);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        })();
     </script>
 </body>
 </html>

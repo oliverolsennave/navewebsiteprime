@@ -14,6 +14,7 @@ import {
     collection,
     doc,
     setDoc,
+    getDoc,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
@@ -31,6 +32,7 @@ let maxStepReached = 0;
 let selectedType = null;
 let phoneConfirmation = null;
 let currentUser = null;
+let hasActiveSubscription = false;
 
 const typeConfig = {
     church: { collection: 'Churches', objectType: 'parish' },
@@ -198,9 +200,49 @@ toSubscriptionBtn.addEventListener('click', () => {
     maxStepReached = Math.max(maxStepReached, 2);
     showStep(2);
 });
-toFormBtn.addEventListener('click', () => {
-    maxStepReached = Math.max(maxStepReached, 3);
-    showStep(3);
+toFormBtn.addEventListener('click', async () => {
+    const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'trial';
+    const subStatus = document.getElementById('subscription-status');
+
+    if (selectedPlan === 'three_months') {
+        // Paid plan — redirect to Stripe Checkout
+        if (!currentUser) return showStep(0);
+        subStatus.textContent = 'Redirecting to checkout...';
+        subStatus.classList.remove('error');
+        try {
+            const idToken = await currentUser.getIdToken();
+            const resp = await fetch('/api/create-subscription-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ firebaseIdToken: idToken, plan: selectedPlan }),
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || 'Checkout failed');
+            window.location.href = data.sessionUrl;
+        } catch (err) {
+            subStatus.textContent = err.message;
+            subStatus.classList.add('error');
+        }
+    } else {
+        // Free / trial plan — write trial status to Firestore and proceed to form
+        if (currentUser) {
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid), {
+                    subscription: {
+                        status: 'trialing',
+                        plan: 'trial',
+                        trialEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        updatedAt: new Date(),
+                    }
+                }, { merge: true });
+                hasActiveSubscription = true;
+            } catch (err) {
+                console.error('Failed to write trial status:', err);
+            }
+        }
+        maxStepReached = Math.max(maxStepReached, 3);
+        showStep(3);
+    }
 });
 
 // Step indicator navigation (back or reached steps only)
@@ -314,12 +356,12 @@ joinForm.addEventListener('submit', async (e) => {
             name: name,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-            source: 'free_submission',
+            source: hasActiveSubscription ? 'paid_submission' : 'free_submission',
             createdFromSubmissionId: submissionId,
             createdByUserId: currentUser.uid,
             isActive: true,
             isVerified: false,
-            isPremium: false,
+            isPremium: hasActiveSubscription,
             country: 'USA'
         };
 
@@ -461,5 +503,50 @@ joinForm.addEventListener('submit', async (e) => {
     }
 });
 
+// Handle return from Stripe Checkout
+const urlParams = new URLSearchParams(window.location.search);
+const stripeSessionId = urlParams.get('session_id');
+const returnStep = urlParams.get('step');
+
+if (stripeSessionId && returnStep === 'form') {
+    // User returned from Stripe — mark subscription as active and go to form
+    hasActiveSubscription = true;
+    // Wait for auth to resolve, then jump to form step
+    const unsubReturn = onAuthStateChanged(auth, async (user) => {
+        if (!user) return;
+        unsubReturn();
+        // Check Firestore for subscription status (webhook may have already written it)
+        try {
+            const userSnap = await getDoc(doc(db, 'users', user.uid));
+            if (userSnap.exists() && userSnap.data().subscription?.status) {
+                hasActiveSubscription = ['trialing', 'active'].includes(userSnap.data().subscription.status);
+            }
+        } catch (err) {
+            console.error('Failed to check subscription status:', err);
+        }
+        maxStepReached = 3;
+        showStep(3);
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    });
+} else if (urlParams.get('canceled') === 'true') {
+    // User canceled Stripe checkout
+    const subStatus = document.getElementById('subscription-status');
+    if (subStatus) {
+        subStatus.textContent = 'Checkout was canceled. You can try again or choose the free plan.';
+        subStatus.classList.add('error');
+    }
+    // Wait for auth, then show subscription step
+    const unsubCancel = onAuthStateChanged(auth, (user) => {
+        if (!user) return;
+        unsubCancel();
+        maxStepReached = Math.max(maxStepReached, 2);
+        showStep(2);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    });
+}
+
 // Initialize
-showStep(0);
+if (!stripeSessionId && urlParams.get('canceled') !== 'true') {
+    showStep(0);
+}
