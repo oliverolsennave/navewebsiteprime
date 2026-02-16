@@ -689,12 +689,12 @@
                 margin-top: 52px;
             }
 
-            /* Legend panel — compact floating card, bottom-left on mobile */
+            /* Legend panel — compact floating card, bottom-right on mobile */
             .map-legend {
                 top: auto;
-                right: auto;
+                left: auto;
                 bottom: 96px;
-                left: 12px;
+                right: 12px;
                 min-width: auto;
                 width: auto;
                 border-radius: 12px;
@@ -704,7 +704,7 @@
             }
 
             .map-legend.collapsed {
-                transform: translateX(calc(-100% - 12px));
+                transform: translateX(calc(100% + 12px));
                 opacity: 0;
             }
 
