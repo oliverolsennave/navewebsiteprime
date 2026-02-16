@@ -1248,6 +1248,23 @@
     </nav>
     <div class="nav-backdrop" id="nav-backdrop" onclick="document.getElementById('nav-links').classList.remove('open');this.classList.remove('visible');"></div>
 
+    <!-- Search Overlay (outside map-wrapper to escape its stacking context) -->
+    <div class="map-search-overlay" id="map-search-overlay">
+        <div class="map-search-header">
+            <button class="map-search-back" onclick="closeMapSearch()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <input type="text" class="map-search-input" id="map-search-input" placeholder="Search Catholic Culture" autocomplete="off">
+            <button class="map-search-clear" id="map-search-clear" onclick="clearMapSearch()">&times;</button>
+        </div>
+        <div class="map-search-results" id="map-search-results">
+            <div class="map-search-empty" id="map-search-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <div class="map-search-empty-text">Search across all Catholic resources</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Map Container -->
     <div class="map-wrapper">
         <!-- Search Bar -->
@@ -1257,23 +1274,6 @@
                 <span class="map-search-placeholder-inner">
                     <span class="map-search-placeholder-static">Search Catholic</span><span class="map-search-placeholder-words"><span class="map-search-placeholder-word active" data-idx="0">Culture</span><span class="map-search-placeholder-word" data-idx="1">Churches</span><span class="map-search-placeholder-word" data-idx="2">Missionaries</span><span class="map-search-placeholder-word" data-idx="3">Businesses</span><span class="map-search-placeholder-word" data-idx="4">Schools</span><span class="map-search-placeholder-word" data-idx="5">Vocations</span><span class="map-search-placeholder-word" data-idx="6">Retreats</span><span class="map-search-placeholder-word" data-idx="7">Pilgrimages</span><span class="map-search-placeholder-word" data-idx="8">Campus</span></span>
                 </span>
-            </div>
-        </div>
-
-        <!-- Search Overlay -->
-        <div class="map-search-overlay" id="map-search-overlay">
-            <div class="map-search-header">
-                <button class="map-search-back" onclick="closeMapSearch()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                </button>
-                <input type="text" class="map-search-input" id="map-search-input" placeholder="Search Catholic Culture" autocomplete="off">
-                <button class="map-search-clear" id="map-search-clear" onclick="clearMapSearch()">&times;</button>
-            </div>
-            <div class="map-search-results" id="map-search-results">
-                <div class="map-search-empty" id="map-search-empty">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <div class="map-search-empty-text">Search across all Catholic resources</div>
-                </div>
             </div>
         </div>
 
