@@ -1,6 +1,12 @@
 const Stripe = require('stripe');
-const { adminDb } = require('./_lib/firebase-admin');
+const admin = require('firebase-admin');
 
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
+  });
+}
+const adminDb = admin.firestore();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
