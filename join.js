@@ -505,11 +505,31 @@ async function processBulletinFile(file) {
         return;
     }
 
-    // Show progress spinner
+    // Show progress spinner with cycling messages
     bulletinDropzone.classList.add('hidden');
     bulletinProgress.classList.remove('hidden');
     bulletinStatus.textContent = '';
     bulletinStatus.className = 'bulletin-status';
+
+    const progressMsgs = [
+        'Reading your bulletin...',
+        'Finding Mass times...',
+        'Extracting events...',
+        'Pulling confession & adoration schedules...',
+        'Writing descriptions...',
+        'Pulling Pastor PSAs...',
+        'Looking for contact info...',
+        'Almost there...',
+    ];
+    const progressText = document.getElementById('bulletin-progress-text');
+    let msgIndex = 0;
+    progressText.textContent = progressMsgs[0];
+    const progressInterval = setInterval(() => {
+        msgIndex++;
+        if (msgIndex < progressMsgs.length) {
+            progressText.textContent = progressMsgs[msgIndex];
+        }
+    }, 3000);
 
     try {
         if (!currentUser) throw new Error('Please sign in first.');
@@ -697,17 +717,20 @@ async function processBulletinFile(file) {
             }
 
             // Show receipt, hide progress
+            clearInterval(progressInterval);
             bulletinProgress.classList.add('hidden');
             bulletinStatus.textContent = 'Bulletin analyzed successfully.';
             bulletinStatus.className = 'bulletin-status success';
             document.getElementById('bulletin-receipt').classList.remove('hidden');
         } else {
+            clearInterval(progressInterval);
             bulletinProgress.classList.add('hidden');
             bulletinDropzone.classList.remove('hidden');
             bulletinStatus.textContent = "Couldn't extract details — please fill in manually.";
             bulletinStatus.className = 'bulletin-status error';
         }
     } catch (err) {
+        clearInterval(progressInterval);
         bulletinProgress.classList.add('hidden');
         bulletinDropzone.classList.remove('hidden');
         bulletinStatus.textContent = err.message || 'Upload failed. Please try again.';
