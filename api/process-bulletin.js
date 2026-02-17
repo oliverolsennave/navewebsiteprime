@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const formidable = require('formidable');
+const { formidable } = require('formidable');
 const fs = require('fs');
 const path = require('path');
 
