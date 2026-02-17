@@ -232,11 +232,19 @@ function resetBulletinUI() {
     bulletinUpload.classList.add('hidden');
     bulletinProgress.classList.add('hidden');
     bulletinDropzone.classList.remove('hidden');
+    document.getElementById('bulletin-receipt').classList.add('hidden');
     bulletinStatus.textContent = '';
     bulletinStatus.className = 'bulletin-status';
     keyTypeGrid.classList.remove('hidden');
     toSubscriptionBtn.classList.remove('hidden');
 }
+
+// "Looks Good — Continue" on receipt
+document.getElementById('btn-bulletin-continue').addEventListener('click', () => {
+    resetBulletinUI();
+    maxStepReached = Math.max(maxStepReached, 2);
+    showStep(2);
+});
 
 // "Fill Out Manually" — go straight to subscribe
 document.getElementById('btn-manual-entry').addEventListener('click', () => {
@@ -313,25 +321,42 @@ async function processBulletinFile(file) {
             bulletinUrl = data.bulletinUrl;
         }
 
-        // Pre-fill form fields
-        if (data.extractedData) {
-            const fieldMap = {
-                pastorName: 'field-pastor-name',
-                email: 'field-church-email',
-                phone: 'field-church-phone',
-                address: 'field-church-address',
-                city: 'field-church-city',
-                state: 'field-church-state',
-                zipCode: 'field-church-zip',
-                website: 'field-church-website',
-                description: 'field-church-description',
-                massTimes: 'field-mass-times',
-                confessionTimes: 'field-confession-times',
-                adorationTimes: 'field-adoration-times',
-                upcomingEvents: 'field-upcoming-events',
-                pastorPSAs: 'field-pastor-psas',
-            };
+        // Pre-fill form fields and show receipt
+        const fieldMap = {
+            pastorName: 'field-pastor-name',
+            email: 'field-church-email',
+            phone: 'field-church-phone',
+            address: 'field-church-address',
+            city: 'field-church-city',
+            state: 'field-church-state',
+            zipCode: 'field-church-zip',
+            website: 'field-church-website',
+            description: 'field-church-description',
+            massTimes: 'field-mass-times',
+            confessionTimes: 'field-confession-times',
+            adorationTimes: 'field-adoration-times',
+            upcomingEvents: 'field-upcoming-events',
+            pastorPSAs: 'field-pastor-psas',
+        };
 
+        const labelMap = {
+            pastorName: 'Pastor',
+            email: 'Email',
+            phone: 'Phone',
+            address: 'Address',
+            city: 'City',
+            state: 'State',
+            zipCode: 'ZIP Code',
+            website: 'Website',
+            description: 'Description',
+            massTimes: 'Mass Times',
+            confessionTimes: 'Confession',
+            adorationTimes: 'Adoration',
+            upcomingEvents: 'Events',
+            pastorPSAs: 'Pastor PSAs',
+        };
+
+        if (data.extractedData) {
             for (const [key, fieldId] of Object.entries(fieldMap)) {
                 const value = data.extractedData[key];
                 if (value) {
@@ -347,19 +372,34 @@ async function processBulletinFile(file) {
                 previewGeocode(parts.join(', '), 'geocode-church');
             }
 
-            bulletinStatus.textContent = 'Bulletin analyzed — review the details below.';
+            // Build receipt
+            const receiptList = document.getElementById('bulletin-receipt-list');
+            receiptList.innerHTML = '';
+            for (const [key, label] of Object.entries(labelMap)) {
+                const value = data.extractedData[key] || '';
+                const row = document.createElement('div');
+                row.className = 'bulletin-receipt-row';
+                const dt = document.createElement('dt');
+                dt.textContent = label;
+                const dd = document.createElement('dd');
+                dd.textContent = value || '—';
+                if (!value) dd.className = 'empty';
+                row.appendChild(dt);
+                row.appendChild(dd);
+                receiptList.appendChild(row);
+            }
+
+            // Show receipt, hide progress
+            bulletinProgress.classList.add('hidden');
+            bulletinStatus.textContent = 'Bulletin analyzed successfully.';
             bulletinStatus.className = 'bulletin-status success';
+            document.getElementById('bulletin-receipt').classList.remove('hidden');
         } else {
+            bulletinProgress.classList.add('hidden');
+            bulletinDropzone.classList.remove('hidden');
             bulletinStatus.textContent = "Couldn't extract details — please fill in manually.";
             bulletinStatus.className = 'bulletin-status error';
         }
-
-        // Advance to subscribe → form
-        setTimeout(() => {
-            resetBulletinUI();
-            maxStepReached = Math.max(maxStepReached, 2);
-            showStep(2);
-        }, 1500);
     } catch (err) {
         bulletinProgress.classList.add('hidden');
         bulletinDropzone.classList.remove('hidden');
