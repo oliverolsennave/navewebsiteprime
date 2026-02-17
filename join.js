@@ -233,14 +233,65 @@ function resetBulletinUI() {
     bulletinProgress.classList.add('hidden');
     bulletinDropzone.classList.remove('hidden');
     document.getElementById('bulletin-receipt').classList.add('hidden');
+    document.getElementById('bulletin-events').classList.add('hidden');
     bulletinStatus.textContent = '';
     bulletinStatus.className = 'bulletin-status';
     keyTypeGrid.classList.remove('hidden');
     toSubscriptionBtn.classList.remove('hidden');
 }
 
-// "Looks Good — Continue" on receipt
+// "Looks Good — Continue" on receipt — sync edited values back to form
 document.getElementById('btn-bulletin-continue').addEventListener('click', () => {
+    const fieldMap = {
+        pastorName: 'field-pastor-name',
+        email: 'field-church-email',
+        phone: 'field-church-phone',
+        address: 'field-church-address',
+        city: 'field-church-city',
+        state: 'field-church-state',
+        zipCode: 'field-church-zip',
+        website: 'field-church-website',
+        description: 'field-church-description',
+        massTimes: 'field-mass-times',
+        confessionTimes: 'field-confession-times',
+        adorationTimes: 'field-adoration-times',
+        pastorPSAs: 'field-pastor-psas',
+    };
+
+    // Sync all editable receipt fields back to the form
+    const receipt = document.getElementById('bulletin-receipt');
+    receipt.querySelectorAll('[data-key]').forEach(input => {
+        const key = input.dataset.key;
+        const formFieldId = fieldMap[key];
+        if (formFieldId) {
+            const el = document.getElementById(formFieldId);
+            if (el) el.value = input.value;
+        }
+    });
+
+    // Serialize event cards into the upcoming events textarea
+    const eventsScroll = document.getElementById('bulletin-events-scroll');
+    const eventCards = eventsScroll.querySelectorAll('.bulletin-event-card');
+    if (eventCards.length > 0) {
+        const lines = [];
+        eventCards.forEach(card => {
+            const title = card.querySelector('[data-event="title"]')?.value || '';
+            const date = card.querySelector('[data-event="date"]')?.value || '';
+            const time = card.querySelector('[data-event="time"]')?.value || '';
+            const parts = [title, date, time].filter(Boolean);
+            if (parts.length) lines.push(parts.join(' — '));
+        });
+        const eventsField = document.getElementById('field-upcoming-events');
+        if (eventsField) eventsField.value = lines.join('\n');
+    }
+
+    // Re-trigger geocoding if address fields were edited
+    const addrParts = ['field-church-address', 'field-church-city', 'field-church-state', 'field-church-zip']
+        .map(id => val(id)).filter(Boolean);
+    if (addrParts.length >= 2) {
+        previewGeocode(addrParts.join(', '), 'geocode-church');
+    }
+
     resetBulletinUI();
     maxStepReached = Math.max(maxStepReached, 2);
     showStep(2);
@@ -359,7 +410,7 @@ async function processBulletinFile(file) {
         if (data.extractedData) {
             for (const [key, fieldId] of Object.entries(fieldMap)) {
                 const value = data.extractedData[key];
-                if (value) {
+                if (value && typeof value === 'string') {
                     const el = document.getElementById(fieldId);
                     if (el) el.value = value;
                 }
@@ -372,21 +423,90 @@ async function processBulletinFile(file) {
                 previewGeocode(parts.join(', '), 'geocode-church');
             }
 
-            // Build receipt
+            // Fields that should use textarea (longer content)
+            const textareaKeys = new Set([
+                'address', 'description', 'massTimes', 'confessionTimes',
+                'adorationTimes', 'pastorPSAs'
+            ]);
+
+            // Build editable receipt (skip upcomingEvents — rendered as cards)
             const receiptList = document.getElementById('bulletin-receipt-list');
             receiptList.innerHTML = '';
             for (const [key, label] of Object.entries(labelMap)) {
+                if (key === 'upcomingEvents') continue;
                 const value = data.extractedData[key] || '';
                 const row = document.createElement('div');
                 row.className = 'bulletin-receipt-row';
                 const dt = document.createElement('dt');
                 dt.textContent = label;
                 const dd = document.createElement('dd');
-                dd.textContent = value || '—';
-                if (!value) dd.className = 'empty';
+                let inputEl;
+                if (textareaKeys.has(key)) {
+                    inputEl = document.createElement('textarea');
+                    inputEl.rows = 2;
+                } else {
+                    inputEl = document.createElement('input');
+                    inputEl.type = 'text';
+                }
+                inputEl.className = 'bulletin-receipt-input';
+                inputEl.dataset.key = key;
+                inputEl.value = value;
+                if (!value) inputEl.placeholder = '—';
+                dd.appendChild(inputEl);
                 row.appendChild(dt);
                 row.appendChild(dd);
                 receiptList.appendChild(row);
+            }
+
+            // Build event cards
+            const eventsContainer = document.getElementById('bulletin-events');
+            const eventsScroll = document.getElementById('bulletin-events-scroll');
+            eventsScroll.innerHTML = '';
+            const events = data.extractedData.upcomingEvents;
+            if (Array.isArray(events) && events.length > 0) {
+                events.forEach(evt => {
+                    const card = document.createElement('div');
+                    card.className = 'bulletin-event-card';
+
+                    const titleInput = document.createElement('input');
+                    titleInput.type = 'text';
+                    titleInput.className = 'bulletin-event-title';
+                    titleInput.dataset.event = 'title';
+                    titleInput.value = evt.title || '';
+                    titleInput.placeholder = 'Event title';
+                    card.appendChild(titleInput);
+
+                    // Date row
+                    const dateRow = document.createElement('div');
+                    dateRow.className = 'bulletin-event-row';
+                    dateRow.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+                    const dateInput = document.createElement('input');
+                    dateInput.type = 'text';
+                    dateInput.className = 'bulletin-event-field';
+                    dateInput.dataset.event = 'date';
+                    dateInput.value = evt.date || '';
+                    dateInput.placeholder = 'Date';
+                    dateRow.appendChild(dateInput);
+                    card.appendChild(dateRow);
+
+                    // Time row
+                    const timeRow = document.createElement('div');
+                    timeRow.className = 'bulletin-event-row';
+                    timeRow.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+                    const timeInput = document.createElement('input');
+                    timeInput.type = 'text';
+                    timeInput.className = 'bulletin-event-field';
+                    timeInput.dataset.event = 'time';
+                    timeInput.value = evt.time || '';
+                    timeInput.placeholder = 'Time';
+                    timeRow.appendChild(timeInput);
+                    card.appendChild(timeRow);
+
+                    eventsScroll.appendChild(card);
+                });
+                eventsContainer.classList.remove('hidden');
+            } else {
+                eventsContainer.classList.add('hidden');
             }
 
             // Show receipt, hide progress

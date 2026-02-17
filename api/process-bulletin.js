@@ -110,7 +110,7 @@ async function handler(req, res) {
           content: [
             {
               type: 'text',
-              text: `Extract parish information from this church bulletin. Return ONLY valid JSON with no markdown formatting:\n{\n  "pastorName": "",\n  "email": "",\n  "phone": "",\n  "address": "",\n  "city": "",\n  "state": "",\n  "zipCode": "",\n  "website": "",\n  "description": "",\n  "massTimes": "",\n  "confessionTimes": "",\n  "adorationTimes": "",\n  "upcomingEvents": "",\n  "pastorPSAs": ""\n}\nUse empty string for fields not found. For schedules, use concise format like "Sun 8am, 10am, 12pm; Daily 7am".`,
+              text: `Extract parish information from this church bulletin. Return ONLY valid JSON with no markdown formatting:\n{\n  "pastorName": "",\n  "email": "",\n  "phone": "",\n  "address": "",\n  "city": "",\n  "state": "",\n  "zipCode": "",\n  "website": "",\n  "description": "",\n  "massTimes": "",\n  "confessionTimes": "",\n  "adorationTimes": "",\n  "upcomingEvents": [\n    { "title": "", "date": "", "time": "", "description": "" }\n  ],\n  "pastorPSAs": ""\n}\nUse empty string for string fields not found. For schedules, use concise format like "Sun 8am, 10am, 12pm; Daily 7am". For upcomingEvents, return an array of event objects. Return an empty array [] if no events are found.`,
             },
             fileContent,
           ],
