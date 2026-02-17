@@ -35,6 +35,7 @@ let currentUser = null;
 let hasActiveSubscription = false;
 let bulletinUrl = null;
 let structuredSchedules = null;
+let structuredEvents = null;
 
 // ── Schedule dropdown helpers ────────────────────────────────────────
 const SCHEDULE_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Monday-Friday'];
@@ -420,17 +421,25 @@ document.getElementById('btn-bulletin-continue').addEventListener('click', () =>
     const adorFld = document.getElementById('field-adoration-times');
     if (adorFld) adorFld.value = flattenSchedule(adorationDict);
 
-    // Serialize event cards into the upcoming events textarea
+    // Collect structured events from cards
     const eventsScroll = document.getElementById('bulletin-events-scroll');
     const eventCards = eventsScroll.querySelectorAll('.bulletin-event-card');
     if (eventCards.length > 0) {
+        structuredEvents = [];
         const lines = [];
         eventCards.forEach(card => {
             const title = card.querySelector('[data-event="title"]')?.value || '';
             const date = card.querySelector('[data-event="date"]')?.value || '';
             const time = card.querySelector('[data-event="time"]')?.value || '';
-            const parts = [title, date, time].filter(Boolean);
-            if (parts.length) lines.push(parts.join(' — '));
+            const location = card.querySelector('[data-event="location"]')?.value || '';
+            const description = card.querySelector('[data-event="description"]')?.value || '';
+            if (title || date) {
+                const evt = { title, description, date, time };
+                if (location) evt.location = location;
+                structuredEvents.push(evt);
+                const parts = [title, date, time].filter(Boolean);
+                if (parts.length) lines.push(parts.join(' — '));
+            }
         });
         const eventsField = document.getElementById('field-upcoming-events');
         if (eventsField) eventsField.value = lines.join('\n');
@@ -641,7 +650,7 @@ async function processBulletinFile(file) {
                     dateInput.className = 'bulletin-event-field';
                     dateInput.dataset.event = 'date';
                     dateInput.value = evt.date || '';
-                    dateInput.placeholder = 'Date';
+                    dateInput.placeholder = 'Date (e.g. Feb 18)';
                     dateRow.appendChild(dateInput);
                     card.appendChild(dateRow);
 
@@ -657,6 +666,28 @@ async function processBulletinFile(file) {
                     timeInput.placeholder = 'Time';
                     timeRow.appendChild(timeInput);
                     card.appendChild(timeRow);
+
+                    // Location row
+                    const locRow = document.createElement('div');
+                    locRow.className = 'bulletin-event-row';
+                    locRow.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+                    const locInput = document.createElement('input');
+                    locInput.type = 'text';
+                    locInput.className = 'bulletin-event-field';
+                    locInput.dataset.event = 'location';
+                    locInput.value = evt.location || '';
+                    locInput.placeholder = 'Location';
+                    locRow.appendChild(locInput);
+                    card.appendChild(locRow);
+
+                    // Description
+                    const descInput = document.createElement('textarea');
+                    descInput.className = 'bulletin-event-desc';
+                    descInput.dataset.event = 'description';
+                    descInput.value = evt.description || '';
+                    descInput.placeholder = 'Description';
+                    descInput.rows = 2;
+                    card.appendChild(descInput);
 
                     eventsScroll.appendChild(card);
                 });
@@ -883,6 +914,11 @@ joinForm.addEventListener('submit', async (e) => {
             if (psas) objectData.pastorPSAs = psas;
             const prepUrl = val('field-prep-class-url');
             if (prepUrl) objectData.prepClassSignupUrl = prepUrl;
+
+            // Write structured events array if available (iOS reads "events")
+            if (structuredEvents && structuredEvents.length > 0) {
+                objectData.events = structuredEvents;
+            }
 
             // Write structured schedules if available
             if (structuredSchedules) {
