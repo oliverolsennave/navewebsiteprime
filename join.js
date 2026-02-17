@@ -33,6 +33,7 @@ let selectedType = null;
 let phoneConfirmation = null;
 let currentUser = null;
 let hasActiveSubscription = false;
+let bulletinUrl = null;
 
 const typeConfig = {
     church: { collection: 'Churches', objectType: 'parish' },
@@ -58,6 +59,15 @@ function showStep(index) {
         dot.classList.toggle('done', i <= maxStepReached && i !== index);
         dot.disabled = i > maxStepReached;
     });
+    // Reset bulletin sub-views when returning to step 1
+    if (index === 1) {
+        const bc = document.getElementById('bulletin-choice');
+        const bu = document.getElementById('bulletin-upload');
+        if (bc) bc.classList.add('hidden');
+        if (bu) bu.classList.add('hidden');
+        keyTypeGrid.classList.remove('hidden');
+        toSubscriptionBtn.classList.remove('hidden');
+    }
 }
 
 function requireAuthNext() {
@@ -197,9 +207,166 @@ keyTypeGrid.addEventListener('click', (e) => {
 });
 
 toSubscriptionBtn.addEventListener('click', () => {
+    if (selectedType === 'church') {
+        // Show bulletin choice instead of going straight to subscribe
+        keyTypeGrid.classList.add('hidden');
+        toSubscriptionBtn.classList.add('hidden');
+        document.getElementById('bulletin-choice').classList.remove('hidden');
+        return;
+    }
     maxStepReached = Math.max(maxStepReached, 2);
     showStep(2);
 });
+
+// ── Bulletin choice routing ──────────────────────────────────────────
+
+const bulletinChoice = document.getElementById('bulletin-choice');
+const bulletinUpload = document.getElementById('bulletin-upload');
+const bulletinDropzone = document.getElementById('bulletin-dropzone');
+const bulletinFileInput = document.getElementById('bulletin-file-input');
+const bulletinProgress = document.getElementById('bulletin-progress');
+const bulletinStatus = document.getElementById('bulletin-status');
+
+function resetBulletinUI() {
+    bulletinChoice.classList.add('hidden');
+    bulletinUpload.classList.add('hidden');
+    bulletinProgress.classList.add('hidden');
+    bulletinDropzone.classList.remove('hidden');
+    bulletinStatus.textContent = '';
+    bulletinStatus.className = 'bulletin-status';
+    keyTypeGrid.classList.remove('hidden');
+    toSubscriptionBtn.classList.remove('hidden');
+}
+
+// "Fill Out Manually" — go straight to subscribe
+document.getElementById('btn-manual-entry').addEventListener('click', () => {
+    bulletinChoice.classList.add('hidden');
+    maxStepReached = Math.max(maxStepReached, 2);
+    showStep(2);
+});
+
+// "Upload Bulletin" — show drop zone
+document.getElementById('btn-upload-bulletin').addEventListener('click', () => {
+    bulletinChoice.classList.add('hidden');
+    bulletinUpload.classList.remove('hidden');
+});
+
+// Back button — return to choice screen
+document.getElementById('btn-bulletin-back').addEventListener('click', () => {
+    bulletinUpload.classList.add('hidden');
+    bulletinChoice.classList.remove('hidden');
+});
+
+// Drag & drop events
+bulletinDropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    bulletinDropzone.classList.add('dragover');
+});
+bulletinDropzone.addEventListener('dragleave', () => {
+    bulletinDropzone.classList.remove('dragover');
+});
+bulletinDropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    bulletinDropzone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) processBulletinFile(file);
+});
+
+// File input change
+bulletinFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) processBulletinFile(file);
+});
+
+async function processBulletinFile(file) {
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+        bulletinStatus.textContent = 'Please upload a PDF, JPG, or PNG file.';
+        bulletinStatus.className = 'bulletin-status error';
+        return;
+    }
+
+    // Show progress spinner
+    bulletinDropzone.classList.add('hidden');
+    bulletinProgress.classList.remove('hidden');
+    bulletinStatus.textContent = '';
+    bulletinStatus.className = 'bulletin-status';
+
+    try {
+        if (!currentUser) throw new Error('Please sign in first.');
+        const idToken = await currentUser.getIdToken();
+
+        const formData = new FormData();
+        formData.append('bulletin', file);
+
+        const resp = await fetch('/api/process-bulletin', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${idToken}` },
+            body: formData,
+        });
+
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Upload failed');
+
+        // Store bulletin URL
+        if (data.bulletinUrl) {
+            bulletinUrl = data.bulletinUrl;
+        }
+
+        // Pre-fill form fields
+        if (data.extractedData) {
+            const fieldMap = {
+                pastorName: 'field-pastor-name',
+                email: 'field-church-email',
+                phone: 'field-church-phone',
+                address: 'field-church-address',
+                city: 'field-church-city',
+                state: 'field-church-state',
+                zipCode: 'field-church-zip',
+                website: 'field-church-website',
+                description: 'field-church-description',
+                massTimes: 'field-mass-times',
+                confessionTimes: 'field-confession-times',
+                adorationTimes: 'field-adoration-times',
+                upcomingEvents: 'field-upcoming-events',
+                pastorPSAs: 'field-pastor-psas',
+            };
+
+            for (const [key, fieldId] of Object.entries(fieldMap)) {
+                const value = data.extractedData[key];
+                if (value) {
+                    const el = document.getElementById(fieldId);
+                    if (el) el.value = value;
+                }
+            }
+
+            // Trigger geocoding on pre-filled address
+            const parts = ['field-church-address', 'field-church-city', 'field-church-state', 'field-church-zip']
+                .map(id => val(id)).filter(Boolean);
+            if (parts.length >= 2) {
+                previewGeocode(parts.join(', '), 'geocode-church');
+            }
+
+            bulletinStatus.textContent = 'Bulletin analyzed — review the details below.';
+            bulletinStatus.className = 'bulletin-status success';
+        } else {
+            bulletinStatus.textContent = "Couldn't extract details — please fill in manually.";
+            bulletinStatus.className = 'bulletin-status error';
+        }
+
+        // Advance to subscribe → form
+        setTimeout(() => {
+            resetBulletinUI();
+            maxStepReached = Math.max(maxStepReached, 2);
+            showStep(2);
+        }, 1500);
+    } catch (err) {
+        bulletinProgress.classList.add('hidden');
+        bulletinDropzone.classList.remove('hidden');
+        bulletinStatus.textContent = err.message || 'Upload failed. Please try again.';
+        bulletinStatus.className = 'bulletin-status error';
+    }
+}
 toFormBtn.addEventListener('click', async () => {
     const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'trial';
     const subStatus = document.getElementById('subscription-status');
@@ -400,6 +567,12 @@ joinForm.addEventListener('submit', async (e) => {
             if (psas) objectData.pastorPSAs = psas;
             const prepUrl = val('field-prep-class-url');
             if (prepUrl) objectData.prepClassSignupUrl = prepUrl;
+
+            // Include bulletin data if uploaded
+            if (bulletinUrl) {
+                objectData.latestBulletinURLs = [bulletinUrl];
+                objectData.bulletinSubmittedAt = serverTimestamp();
+            }
         }
 
         // ── Business ────────────────────────────────────────────

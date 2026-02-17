@@ -3,6 +3,9 @@
   "functions": {
     "api/stripe-webhook.js": {
       "maxDuration": 30
+    },
+    "api/process-bulletin.js": {
+      "maxDuration": 60
     }
   }
 }
