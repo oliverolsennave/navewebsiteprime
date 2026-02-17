@@ -73,8 +73,9 @@ async function handler(req, res) {
           metadata: { uploadedBy: decodedToken.uid },
         },
       });
-      await storageFile.makePublic();
-      bulletinUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
+      // Build Firebase Storage download URL (no makePublic needed)
+      const encodedPath = encodeURIComponent(storagePath);
+      bulletinUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
     } catch (err) {
       console.error('Firebase Storage upload failed:', err);
       // Continue — we can still attempt extraction
@@ -86,6 +87,23 @@ async function handler(req, res) {
       const openaiKey = process.env.OPENAI_API_KEY;
       if (!openaiKey) throw new Error('OpenAI API key not configured');
 
+      // PDFs use "file" content type; images use "image_url"
+      const isPdf = mimeType === 'application/pdf';
+      const fileContent = isPdf
+        ? {
+            type: 'file',
+            file: {
+              filename: file.originalFilename || 'bulletin.pdf',
+              file_data: `data:${mimeType};base64,${base64Data}`,
+            },
+          }
+        : {
+            type: 'image_url',
+            image_url: {
+              url: `data:${mimeType};base64,${base64Data}`,
+            },
+          };
+
       const messages = [
         {
           role: 'user',
@@ -94,12 +112,7 @@ async function handler(req, res) {
               type: 'text',
               text: `Extract parish information from this church bulletin. Return ONLY valid JSON with no markdown formatting:\n{\n  "pastorName": "",\n  "email": "",\n  "phone": "",\n  "address": "",\n  "city": "",\n  "state": "",\n  "zipCode": "",\n  "website": "",\n  "description": "",\n  "massTimes": "",\n  "confessionTimes": "",\n  "adorationTimes": "",\n  "upcomingEvents": "",\n  "pastorPSAs": ""\n}\nUse empty string for fields not found. For schedules, use concise format like "Sun 8am, 10am, 12pm; Daily 7am".`,
             },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:${mimeType};base64,${base64Data}`,
-              },
-            },
+            fileContent,
           ],
         },
       ];
