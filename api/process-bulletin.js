@@ -110,7 +110,7 @@ async function handler(req, res) {
           content: [
             {
               type: 'text',
-              text: `Extract parish information from this church bulletin. Return ONLY valid JSON with no markdown formatting:\n{\n  "pastorName": "",\n  "email": "",\n  "phone": "",\n  "address": "",\n  "city": "",\n  "state": "",\n  "zipCode": "",\n  "website": "",\n  "description": "",\n  "massTimes": "",\n  "confessionTimes": "",\n  "adorationTimes": "",\n  "upcomingEvents": [\n    { "title": "", "date": "", "time": "", "description": "" }\n  ],\n  "pastorPSAs": ""\n}\nUse empty string for string fields not found. For schedules, use concise format like "Sun 8am, 10am, 12pm; Daily 7am". For upcomingEvents, return an array of event objects. Return an empty array [] if no events are found.`,
+              text: `Extract parish information from this church bulletin. Return ONLY valid JSON with no markdown formatting:\n{\n  "pastorName": "",\n  "email": "",\n  "phone": "",\n  "address": "",\n  "city": "",\n  "state": "",\n  "zipCode": "",\n  "website": "",\n  "description": "",\n  "massSchedule": {\n    "Sunday": [{ "time": "8:00 AM", "language": "English" }],\n    "Monday-Friday": [{ "time": "7:00 AM", "language": "English" }]\n  },\n  "confessionSchedule": {\n    "Saturday": [{ "time": "3:00 PM", "endTime": "4:30 PM", "language": "" }]\n  },\n  "adorationSchedule": {\n    "Monday-Friday": [{ "time": "6:00 PM", "endTime": "9:00 PM" }]\n  },\n  "upcomingEvents": [\n    { "title": "", "date": "", "time": "", "description": "" }\n  ],\n  "pastorPSAs": ""\n}\nValid day keys: "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Monday-Friday". Use 12-hour time format like "8:00 AM", "12:30 PM". For confession/adoration ranges use separate "time" (start) and "endTime" (end) fields. Use empty string for string fields not found. Return empty objects {} for schedules with no data. Return empty array [] for no events.`,
             },
             fileContent,
           ],
@@ -126,7 +126,7 @@ async function handler(req, res) {
         body: JSON.stringify({
           model: 'gpt-4o',
           messages,
-          max_tokens: 1000,
+          max_tokens: 2000,
           temperature: 0.1,
         }),
       });

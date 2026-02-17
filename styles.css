@@ -2127,6 +2127,106 @@ textarea.bulletin-receipt-input {
     line-height: 1.4;
 }
 
+/* Bulletin schedule sections */
+.bulletin-schedules {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.bulletin-schedule-section {
+    background: #0f0f0f;
+    border-radius: 10px;
+    padding: 12px;
+}
+.bulletin-schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.bulletin-schedule-header h4 {
+    font-size: 0.85rem;
+    color: #888;
+    margin: 0;
+    font-weight: 500;
+}
+.bulletin-schedule-add {
+    background: none;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #888;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+.bulletin-schedule-add:hover {
+    border-color: #d4af37;
+    color: #d4af37;
+}
+.bulletin-schedule-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.bulletin-schedule-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.bulletin-schedule-row select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #1a1a1a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E") no-repeat right 8px center;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    color: #f5f5f5;
+    font-size: 0.78rem;
+    font-family: inherit;
+    padding: 6px 24px 6px 8px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.bulletin-schedule-row select:focus {
+    outline: none;
+    border-color: #d4af37;
+}
+.bulletin-schedule-row select option {
+    background: #1a1a1a;
+    color: #f5f5f5;
+}
+.schedule-day { min-width: 110px; }
+.schedule-time, .schedule-end { min-width: 90px; }
+.schedule-lang { min-width: 80px; }
+.schedule-dash {
+    color: #555;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+.schedule-remove {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    line-height: 1;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+    flex-shrink: 0;
+}
+.schedule-remove:hover {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+@media (max-width: 500px) {
+    .bulletin-schedule-row { gap: 4px; }
+    .schedule-day { min-width: 100px; flex: 1 1 100%; }
+    .schedule-time, .schedule-end { min-width: 80px; }
+}
+
 /* Bulletin event cards */
 .bulletin-events {
     margin-top: 16px;

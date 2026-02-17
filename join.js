@@ -34,6 +34,143 @@ let phoneConfirmation = null;
 let currentUser = null;
 let hasActiveSubscription = false;
 let bulletinUrl = null;
+let structuredSchedules = null;
+
+// ── Schedule dropdown helpers ────────────────────────────────────────
+const SCHEDULE_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Monday-Friday'];
+const SCHEDULE_LANGUAGES = ['English', 'Spanish', 'Latin', 'Polish', 'Vietnamese', 'Korean', 'Portuguese', 'French', 'Italian'];
+
+function buildTimeOptions() {
+    const opts = [];
+    for (let h = 5; h <= 23; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            if (h === 23 && m > 0) break;
+            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+            const ampm = h < 12 ? 'AM' : 'PM';
+            opts.push(`${h12}:${m === 0 ? '00' : m} ${ampm}`);
+        }
+    }
+    return opts;
+}
+const TIME_OPTIONS = buildTimeOptions();
+
+function matchTime(raw) {
+    if (!raw) return '';
+    const t = raw.trim();
+    if (TIME_OPTIONS.includes(t)) return t;
+    // Normalize "8am" → "8:00 AM", "12:30pm" → "12:30 PM"
+    const m = t.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM|am|pm)$/);
+    if (m) {
+        const normalized = `${parseInt(m[1])}:${m[2] || '00'} ${m[3].toUpperCase()}`;
+        if (TIME_OPTIONS.includes(normalized)) return normalized;
+    }
+    return '';
+}
+
+function createSelect(options, selected, cls, placeholder) {
+    const sel = document.createElement('select');
+    sel.className = cls;
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = placeholder || '—';
+    sel.appendChild(blank);
+    options.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt;
+        o.textContent = opt;
+        if (opt === selected) o.selected = true;
+        sel.appendChild(o);
+    });
+    return sel;
+}
+
+function createScheduleRow(type, dayVal, timeVal, endTimeVal, langVal) {
+    const row = document.createElement('div');
+    row.className = 'bulletin-schedule-row';
+
+    row.appendChild(createSelect(SCHEDULE_DAYS, dayVal || '', 'schedule-day', 'Day'));
+    row.appendChild(createSelect(TIME_OPTIONS, matchTime(timeVal), 'schedule-time', 'Time'));
+
+    if (type === 'confession' || type === 'adoration') {
+        const dash = document.createElement('span');
+        dash.className = 'schedule-dash';
+        dash.textContent = '–';
+        row.appendChild(dash);
+        row.appendChild(createSelect(TIME_OPTIONS, matchTime(endTimeVal), 'schedule-end', 'End'));
+    }
+
+    if (type === 'mass' || type === 'confession') {
+        row.appendChild(createSelect(SCHEDULE_LANGUAGES, langVal || '', 'schedule-lang', 'Lang'));
+    }
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'schedule-remove';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => row.remove());
+    row.appendChild(removeBtn);
+
+    return row;
+}
+
+function populateScheduleSection(type, containerId, scheduleData) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    if (!scheduleData || typeof scheduleData !== 'object') return;
+    for (const [day, entries] of Object.entries(scheduleData)) {
+        if (!Array.isArray(entries)) continue;
+        entries.forEach(entry => {
+            container.appendChild(createScheduleRow(
+                type, day, entry.time, entry.endTime, entry.language
+            ));
+        });
+    }
+}
+
+function collectSchedule(type, containerId) {
+    const container = document.getElementById(containerId);
+    const dict = {};
+    container.querySelectorAll('.bulletin-schedule-row').forEach(row => {
+        const day = row.querySelector('.schedule-day')?.value;
+        const time = row.querySelector('.schedule-time')?.value;
+        if (!day || !time) return;
+        const entry = { time };
+        if (type === 'confession' || type === 'adoration') {
+            const end = row.querySelector('.schedule-end')?.value;
+            if (end) entry.endTime = end;
+        }
+        if (type === 'mass' || type === 'confession') {
+            entry.language = row.querySelector('.schedule-lang')?.value || '';
+        }
+        if (!dict[day]) dict[day] = [];
+        dict[day].push(entry);
+    });
+    return dict;
+}
+
+function flattenSchedule(dict) {
+    if (!dict || Object.keys(dict).length === 0) return '';
+    return Object.entries(dict).map(([day, entries]) => {
+        const times = entries.map(e => {
+            let t = e.time;
+            if (e.endTime) t += '-' + e.endTime;
+            if (e.language) t += ' (' + e.language + ')';
+            return t;
+        }).join(', ');
+        const label = day === 'Monday-Friday' ? 'Weekday' : day;
+        return `${label} ${times}`;
+    }).join('; ');
+}
+
+// "+" Add buttons for schedule sections
+document.getElementById('bulletin-schedules').addEventListener('click', (e) => {
+    const btn = e.target.closest('.bulletin-schedule-add');
+    if (!btn) return;
+    const type = btn.dataset.schedule;
+    const containerId = `${type}-schedule-entries`;
+    const container = document.getElementById(containerId);
+    if (container) container.appendChild(createScheduleRow(type, '', '', '', ''));
+});
 
 const typeConfig = {
     church: { collection: 'Churches', objectType: 'parish' },
@@ -233,6 +370,7 @@ function resetBulletinUI() {
     bulletinProgress.classList.add('hidden');
     bulletinDropzone.classList.remove('hidden');
     document.getElementById('bulletin-receipt').classList.add('hidden');
+    document.getElementById('bulletin-schedules').classList.add('hidden');
     document.getElementById('bulletin-events').classList.add('hidden');
     bulletinStatus.textContent = '';
     bulletinStatus.className = 'bulletin-status';
@@ -252,9 +390,6 @@ document.getElementById('btn-bulletin-continue').addEventListener('click', () =>
         zipCode: 'field-church-zip',
         website: 'field-church-website',
         description: 'field-church-description',
-        massTimes: 'field-mass-times',
-        confessionTimes: 'field-confession-times',
-        adorationTimes: 'field-adoration-times',
         pastorPSAs: 'field-pastor-psas',
     };
 
@@ -268,6 +403,22 @@ document.getElementById('btn-bulletin-continue').addEventListener('click', () =>
             if (el) el.value = input.value;
         }
     });
+
+    // Collect structured schedules from dropdowns and flatten to form textareas
+    const massDict = collectSchedule('mass', 'mass-schedule-entries');
+    const confessionDict = collectSchedule('confession', 'confession-schedule-entries');
+    const adorationDict = collectSchedule('adoration', 'adoration-schedule-entries');
+    structuredSchedules = {
+        massSchedule: massDict,
+        confessionSchedule: confessionDict,
+        adorationSchedule: adorationDict,
+    };
+    const massFld = document.getElementById('field-mass-times');
+    if (massFld) massFld.value = flattenSchedule(massDict);
+    const confFld = document.getElementById('field-confession-times');
+    if (confFld) confFld.value = flattenSchedule(confessionDict);
+    const adorFld = document.getElementById('field-adoration-times');
+    if (adorFld) adorFld.value = flattenSchedule(adorationDict);
 
     // Serialize event cards into the upcoming events textarea
     const eventsScroll = document.getElementById('bulletin-events-scroll');
@@ -383,10 +534,6 @@ async function processBulletinFile(file) {
             zipCode: 'field-church-zip',
             website: 'field-church-website',
             description: 'field-church-description',
-            massTimes: 'field-mass-times',
-            confessionTimes: 'field-confession-times',
-            adorationTimes: 'field-adoration-times',
-            upcomingEvents: 'field-upcoming-events',
             pastorPSAs: 'field-pastor-psas',
         };
 
@@ -400,10 +547,6 @@ async function processBulletinFile(file) {
             zipCode: 'ZIP Code',
             website: 'Website',
             description: 'Description',
-            massTimes: 'Mass Times',
-            confessionTimes: 'Confession',
-            adorationTimes: 'Adoration',
-            upcomingEvents: 'Events',
             pastorPSAs: 'Pastor PSAs',
         };
 
@@ -424,16 +567,12 @@ async function processBulletinFile(file) {
             }
 
             // Fields that should use textarea (longer content)
-            const textareaKeys = new Set([
-                'address', 'description', 'massTimes', 'confessionTimes',
-                'adorationTimes', 'pastorPSAs'
-            ]);
+            const textareaKeys = new Set(['address', 'description', 'pastorPSAs']);
 
-            // Build editable receipt (skip upcomingEvents — rendered as cards)
+            // Build editable receipt
             const receiptList = document.getElementById('bulletin-receipt-list');
             receiptList.innerHTML = '';
             for (const [key, label] of Object.entries(labelMap)) {
-                if (key === 'upcomingEvents') continue;
                 const value = data.extractedData[key] || '';
                 const row = document.createElement('div');
                 row.className = 'bulletin-receipt-row';
@@ -456,6 +595,23 @@ async function processBulletinFile(file) {
                 row.appendChild(dt);
                 row.appendChild(dd);
                 receiptList.appendChild(row);
+            }
+
+            // Populate schedule sections with dropdowns
+            const ed = data.extractedData;
+            const hasMass = ed.massSchedule && typeof ed.massSchedule === 'object' && Object.keys(ed.massSchedule).length > 0;
+            const hasConf = ed.confessionSchedule && typeof ed.confessionSchedule === 'object' && Object.keys(ed.confessionSchedule).length > 0;
+            const hasAdor = ed.adorationSchedule && typeof ed.adorationSchedule === 'object' && Object.keys(ed.adorationSchedule).length > 0;
+
+            populateScheduleSection('mass', 'mass-schedule-entries', ed.massSchedule);
+            populateScheduleSection('confession', 'confession-schedule-entries', ed.confessionSchedule);
+            populateScheduleSection('adoration', 'adoration-schedule-entries', ed.adorationSchedule);
+
+            const schedulesContainer = document.getElementById('bulletin-schedules');
+            if (hasMass || hasConf || hasAdor) {
+                schedulesContainer.classList.remove('hidden');
+            } else {
+                schedulesContainer.classList.add('hidden');
             }
 
             // Build event cards
@@ -727,6 +883,19 @@ joinForm.addEventListener('submit', async (e) => {
             if (psas) objectData.pastorPSAs = psas;
             const prepUrl = val('field-prep-class-url');
             if (prepUrl) objectData.prepClassSignupUrl = prepUrl;
+
+            // Write structured schedules if available
+            if (structuredSchedules) {
+                if (Object.keys(structuredSchedules.massSchedule).length > 0) {
+                    objectData.massSchedule = structuredSchedules.massSchedule;
+                }
+                if (Object.keys(structuredSchedules.confessionSchedule).length > 0) {
+                    objectData.confessionSchedule = structuredSchedules.confessionSchedule;
+                }
+                if (Object.keys(structuredSchedules.adorationSchedule).length > 0) {
+                    objectData.adorationSchedule = structuredSchedules.adorationSchedule;
+                }
+            }
 
             // Include bulletin data if uploaded
             if (bulletinUrl) {
