@@ -706,7 +706,7 @@ async function processBulletinFile(file) {
                     descInput.dataset.event = 'description';
                     descInput.value = evt.description || '';
                     descInput.placeholder = 'Description';
-                    descInput.rows = 2;
+                    descInput.rows = 3;
                     card.appendChild(descInput);
 
                     eventsScroll.appendChild(card);

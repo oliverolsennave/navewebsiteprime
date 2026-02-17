@@ -2254,8 +2254,8 @@ textarea.bulletin-receipt-input {
     border-radius: 2px;
 }
 .bulletin-event-card {
-    flex: 0 0 200px;
-    padding: 12px;
+    flex: 0 0 260px;
+    padding: 14px;
     border-radius: 12px;
     background: #1a1a1a;
     display: flex;
