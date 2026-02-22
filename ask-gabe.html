@@ -402,6 +402,7 @@
             const entity = window._entitySuggestions[index];
             if (!entity) return;
             detailOverlay.classList.add('active');
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff');
             detailContent.innerHTML = `<div class="entity-detail-loading"><div class="entity-detail-spinner"></div><div class="entity-detail-loading-text">Loading details...</div></div>`;
             try {
                 const raw = await fetchEntityFullDetails(entity);
@@ -426,7 +427,7 @@
             }
         };
 
-        window.closeEntityDetail = function() { detailOverlay.classList.remove('active'); detailCurrentData = null; };
+        window.closeEntityDetail = function() { detailOverlay.classList.remove('active'); document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0D0D10'); detailCurrentData = null; };
         detailOverlay.addEventListener('click', (e) => { if (e.target === detailOverlay) window.closeEntityDetail(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && detailOverlay.classList.contains('active')) window.closeEntityDetail(); });
 

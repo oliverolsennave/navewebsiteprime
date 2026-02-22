@@ -1826,6 +1826,7 @@
             detailCurrentData = data;
             window._currentDetailData = data;
             detailOverlay.classList.add('active');
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff');
             await updateTopNavButtons();
             renderMapEntityDetail(data);
             trackDetailView(data);
@@ -1844,6 +1845,7 @@
 
         window.closeEntityDetail = function() {
             detailOverlay.classList.remove('active');
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0D0D10');
             detailEditMode = false;
             detailCurrentData = null;
         };
