@@ -305,6 +305,15 @@
     <!-- Entity Detail Modal -->
     <div class="entity-detail-overlay" id="entity-detail-overlay">
         <div class="entity-detail-panel" id="entity-detail-panel">
+            <div class="entity-detail-handle"><span></span></div>
+            <div class="entity-detail-topnav">
+                <div class="entity-detail-topnav-left">
+                    <button class="entity-detail-nav-btn" onclick="closeEntityDetail()" title="Back">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                </div>
+                <div class="entity-detail-topnav-right" id="entity-detail-topnav-right"></div>
+            </div>
             <div id="entity-detail-content"></div>
         </div>
     </div>
@@ -313,8 +322,9 @@
         // ── Imports ──
         import { sendMessage as gabeSend, clearConversation, fetchEntityFullDetails } from './gabe-service.js';
         import { renderEntityDetailHTML, normalizeEntityData, loadSubcollectionData as loadSubcols } from './entity-detail.js';
-        import { db } from './firebase-config.js';
-        import { collection, getDocs, getDoc, doc, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { db, auth } from './firebase-config.js';
+        import { collection, getDocs, getDoc, doc, query, where, setDoc, deleteDoc, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         // ── DOM ──
         const input = document.getElementById('ask-input');
@@ -331,18 +341,60 @@
         window.handleSend = handleSend;
         window.startNewChat = startNewChat;
 
+        // ── Auth state ──
+        let currentUser = null;
+        onAuthStateChanged(auth, (u) => { currentUser = u; });
+
         // ── Entity Detail Modal ──
         const detailOverlay = document.getElementById('entity-detail-overlay');
         const detailContent = document.getElementById('entity-detail-content');
         const detailPanel = document.getElementById('entity-detail-panel');
         window._entitySuggestions = [];
+        let detailCurrentData = null;
+        let _detailIsFavorited = false;
 
-        // Handle bar + close button (prepended before shared HTML)
-        const DETAIL_CHROME = `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px;"><div style="flex:1;"></div><div class="entity-detail-handle" style="padding:0;"><span></span></div><div style="flex:1;display:flex;justify-content:flex-end;"><button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button></div></div>`;
+        const NAV_ICONS = {
+            message: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+            heartOutline: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+            heartFilled: `<svg viewBox="0 0 24 24" fill="#EF4444" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+            bell: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+            share: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`
+        };
+
+        // ── Update top nav buttons (matches map.html pattern) ──
+        async function updateTopNavButtons() {
+            const container = document.getElementById('entity-detail-topnav-right');
+            if (!container || !detailCurrentData) return;
+            const d = detailCurrentData;
+            const type = d._type;
+            let html = '';
+
+            // Button 1: Message
+            html += `<button class="entity-detail-nav-btn" onclick="messageEntityOwner()" title="Message">${NAV_ICONS.message}</button>`;
+
+            // Button 2: Bell (parish) or Heart (non-parish)
+            if (type === 'church') {
+                html += `<button class="entity-detail-nav-btn" onclick="notifyEntity()" title="Notify">${NAV_ICONS.bell}</button>`;
+            } else {
+                _detailIsFavorited = false;
+                if (currentUser && d._docId) {
+                    try {
+                        const favSnap = await getDoc(doc(db, 'users', currentUser.uid, 'favorites', d._docId));
+                        _detailIsFavorited = favSnap.exists();
+                    } catch(e) {}
+                }
+                html += `<button class="entity-detail-nav-btn${_detailIsFavorited ? ' favorited' : ''}" id="detail-nav-heart-btn" onclick="toggleFavorite()" title="Save">${_detailIsFavorited ? NAV_ICONS.heartFilled : NAV_ICONS.heartOutline}</button>`;
+            }
+
+            // Button 3: Share (always)
+            html += `<button class="entity-detail-nav-btn" onclick="shareEntity()" title="Share">${NAV_ICONS.share}</button>`;
+            container.innerHTML = html;
+        }
 
         function renderDetail(d) {
-            detailContent.innerHTML = DETAIL_CHROME + renderEntityDetailHTML(d, {
-                onShare: "shareAskEntity()",
+            detailContent.innerHTML = renderEntityDetailHTML(d, {
+                isFavorited: _detailIsFavorited,
+                onShare: "shareEntity()",
             });
         }
 
@@ -360,6 +412,8 @@
                     _coords: entity.coordinates || null,
                     name: entity.name || '',
                 });
+                detailCurrentData = d;
+                await updateTopNavButtons();
                 renderDetail(d);
                 // Async load subcollections and re-render
                 if (d._docId && d._type) {
@@ -372,7 +426,7 @@
             }
         };
 
-        window.closeEntityDetail = function() { detailOverlay.classList.remove('active'); };
+        window.closeEntityDetail = function() { detailOverlay.classList.remove('active'); detailCurrentData = null; };
         detailOverlay.addEventListener('click', (e) => { if (e.target === detailOverlay) window.closeEntityDetail(); });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && detailOverlay.classList.contains('active')) window.closeEntityDetail(); });
 
@@ -404,19 +458,62 @@
         };
         window.openGalleryLightbox = function() {};
         window.showExampleUnlockedParish = function() {};
-        window.messageEntityOwner = function() {};
         window.toggleFollowKey = function() {};
-        window.notifyEntity = function() {};
-        window.toggleFavorite = function() {};
         window.openPilgrimageReserve = function() {};
         window.openPilgrimageOfferingDetail = function() {};
         window.openRetreatOfferingDetail = function() {};
         window.openAddSectionModal = function() {};
 
+        // ── Message entity owner ──
+        window.messageEntityOwner = function() {
+            if (!currentUser) { alert('Please sign in to message this key.'); return; }
+            // Placeholder — DM thread creation not yet wired for Ask tab
+            alert('Messaging coming soon!');
+        };
+
+        // ── Notify (bell — parish only) ──
+        window.notifyEntity = function() {
+            if (!currentUser) { alert('Please sign in to get notifications.'); return; }
+            alert('Notifications coming soon!');
+        };
+
+        // ── Toggle favorite (Save / Heart) ──
+        window.toggleFavorite = async function() {
+            if (!currentUser) { alert('Please sign in to save keys.'); return; }
+            const d = detailCurrentData;
+            if (!d || !d._docId) return;
+            const favRef = doc(db, 'users', currentUser.uid, 'favorites', d._docId);
+            try {
+                if (_detailIsFavorited) {
+                    await deleteDoc(favRef);
+                    _detailIsFavorited = false;
+                } else {
+                    await setDoc(favRef, { entityId: d._docId, entityType: d._type, entityName: d.name || d.title || '', savedAt: serverTimestamp() });
+                    _detailIsFavorited = true;
+                    await addDoc(collection(db, 'listingAnalytics'), { entityId: d._docId, entityType: d._type, event: 'favorite', userId: currentUser.uid, timestamp: serverTimestamp() });
+                }
+                // Update heart button appearance
+                const btn = document.getElementById('detail-nav-heart-btn');
+                if (btn) {
+                    btn.className = 'entity-detail-nav-btn' + (_detailIsFavorited ? ' favorited' : '');
+                    btn.innerHTML = _detailIsFavorited ? NAV_ICONS.heartFilled : NAV_ICONS.heartOutline;
+                }
+                // Update quick action save button text
+                const qaBtn = document.getElementById('detail-qa-save-btn');
+                if (qaBtn) {
+                    const span = qaBtn.querySelector('span');
+                    if (span) span.textContent = _detailIsFavorited ? 'Saved' : 'Save';
+                }
+            } catch (err) {
+                console.error('Favorite error:', err);
+            }
+        };
+
         // ── Share entity ──
-        window.shareAskEntity = function() {
-            const name = 'Nave Key';
-            const text = `Check out this key on Nave`;
+        window.shareEntity = function() {
+            const d = detailCurrentData;
+            const name = d ? (d.name || d.title || 'Nave Key') : 'Nave Key';
+            const text = `Check out ${name} on Nave`;
             const url = window.location.href;
             if (navigator.share) {
                 navigator.share({ title: name, text, url }).catch(() => {});
