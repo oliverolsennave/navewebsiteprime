@@ -1633,6 +1633,11 @@ export async function fetchEntityFullDetails(entity) {
         'Retreat': 'retreats', 'School': 'schools', 'Vocation': 'vocations',
         'Business': 'businesses', 'Campus Ministry': 'bibleStudies', 'Organization': 'organizations'
     };
+    const typeMap = {
+        'Church': 'church', 'Missionary': 'missionary', 'Pilgrimage': 'pilgrimage',
+        'Retreat': 'retreat', 'School': 'school', 'Vocation': 'vocation',
+        'Business': 'business', 'Campus Ministry': 'campus', 'Organization': 'organization'
+    };
 
     const colName = collectionMap[entity.type];
     if (!colName) return null;
@@ -1648,62 +1653,28 @@ export async function fetchEntityFullDetails(entity) {
                 name.toLowerCase().includes(entity.name.toLowerCase()) ||
                 entity.name.toLowerCase().includes(name.toLowerCase())) {
 
-                const result = {
+                const coords = extractCoords(d);
+
+                // Spread all raw Firestore fields so type-specific renderers have full data
+                bestMatch = {
+                    ...d,
+                    _docId: doc.id,
+                    _type: typeMap[entity.type] || entity.type.toLowerCase(),
+                    _coords: coords || null,
+                    // Keep legacy fields for backward compat
                     id: doc.id,
-                    name: d.name || d.title || entity.name,
                     type: entity.type,
                     subtitle: entity.subtitle || '',
-                    address: d.address || '',
-                    city: d.city || d.addressCity || '',
-                    state: d.state || d.addressState || '',
-                    diocese: d.diocese || '',
-                    phone: d.phone || '',
-                    email: d.email || '',
-                    website: d.website || d.websiteURL || d.link || '',
-                    description: d.description || d.bio || '',
-                    category: d.category || d.schoolType || d.retreatType || d.type || '',
-                    subcategory: d.subcategory || '',
-                    coordinates: null,
-                    massSchedule: null,
-                    confessionSchedule: null,
-                    adorationSchedule: null,
-                    events: [],
-                    hasOCIA: d.hasOCIA === true || !!d.prepClassSignupURL,
-                    hasConfirmation: d.hasConfirmation !== false,
-                    hasFirstEucharist: d.hasFirstEucharist !== false,
-                    hasMarriagePrep: d.hasMarriagePrep !== false,
-                    isUnlocked: d.isUnlocked === true,
-                    memberCount: d.memberCount || 0,
-                    features: d.features || [],
-                    organization: d.organization || '',
                 };
 
-                const coords = extractCoords(d);
-                if (coords) result.coordinates = coords;
-
-                if (d.massSchedule) result.massSchedule = parseSchedule(d.massSchedule);
-                if (d.confessionSchedule) result.confessionSchedule = parseSchedule(d.confessionSchedule);
-                if (d.adorationSchedule) result.adorationSchedule = parseSchedule(d.adorationSchedule);
-
-                if (Array.isArray(d.events)) {
-                    const now = new Date();
-                    for (const evt of d.events) {
-                        const parsed = parseEventData(evt);
-                        if (parsed && parsed.date >= now) result.events.push(parsed);
-                    }
-                    result.events.sort((a, b) => a.date - b.date);
-                    result.events = result.events.slice(0, 5);
-                }
-
+                // Ensure city/state fallback from locationPrimary
                 if (d.locationPrimary) {
-                    result.city = d.locationPrimary.city || result.city;
-                    result.state = d.locationPrimary.state || result.state;
-                    if (d.locationPrimary.latitude) {
-                        result.coordinates = { lat: d.locationPrimary.latitude, lng: d.locationPrimary.longitude };
+                    if (!bestMatch.city) bestMatch.city = d.locationPrimary.city || '';
+                    if (!bestMatch.state) bestMatch.state = d.locationPrimary.state || '';
+                    if (d.locationPrimary.latitude && !bestMatch._coords) {
+                        bestMatch._coords = { lat: d.locationPrimary.latitude, lng: d.locationPrimary.longitude };
                     }
                 }
-
-                bestMatch = result;
             }
         });
 
