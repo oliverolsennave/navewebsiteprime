@@ -3068,6 +3068,7 @@ textarea.bulletin-receipt-input {
     display: flex;
     flex-direction: column;
     max-height: 90vh;
+    max-height: 90dvh;
 }
 
 .eg-modal-large {
@@ -3079,6 +3080,7 @@ textarea.bulletin-receipt-input {
     width: 100%;
     max-width: 560px;
     height: 80vh;
+    height: 80dvh;
     max-height: 700px;
 }
 
@@ -3350,6 +3352,7 @@ textarea.bulletin-receipt-input {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--color-border);
     flex-shrink: 0;
 }
@@ -3670,13 +3673,17 @@ textarea.bulletin-receipt-input {
     .eg-modal {
         border-radius: 0;
         max-height: 100vh;
+        max-height: 100dvh;
         height: 100vh;
+        height: 100dvh;
         max-width: 100%;
     }
 
     .eg-modal-chat {
         height: 100vh;
+        height: 100dvh;
         max-height: 100vh;
+        max-height: 100dvh;
     }
 }
 
@@ -3686,7 +3693,7 @@ textarea.bulletin-receipt-input {
 
 .entity-detail-overlay { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-end; transition: opacity 0.3s; }
 .entity-detail-overlay.active { display: flex; }
-.entity-detail-panel { background: #ffffff; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; overflow-y: auto; animation: slideUpDetail 0.35s ease-out; overscroll-behavior: contain; }
+.entity-detail-panel { background: #ffffff; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; max-height: 85dvh; overflow-y: auto; animation: slideUpDetail 0.35s ease-out; overscroll-behavior: contain; }
 @keyframes slideUpDetail { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .entity-detail-handle { display: none; }
 /* Top navigation bar — circular buttons matching iOS */
@@ -3941,7 +3948,7 @@ textarea.bulletin-receipt-input {
 /* Add section modal */
 .entity-detail-add-modal { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
 .entity-detail-add-modal.active { display: flex; }
-.entity-detail-add-modal-content { background: #fff; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 70vh; overflow-y: auto; }
+.entity-detail-add-modal-content { background: #fff; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 70vh; max-height: 70dvh; overflow-y: auto; }
 .entity-detail-add-modal-title { font-size: 1.1rem; font-weight: 700; color: #111; margin-bottom: 16px; }
 .entity-detail-add-modal-item { padding: 12px 14px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s; }
 .entity-detail-add-modal-item:hover { background: #f0f4ff; }
@@ -3992,5 +3999,5 @@ textarea.bulletin-receipt-input {
 .entity-detail-step-desc { font-size: 0.78rem; color: #666; margin-top: 2px; line-height: 1.4; }
 /* Member count badge */
 .entity-detail-member-count { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #777; margin-top: 4px; }
-@media (min-width: 769px) { .entity-detail-overlay { align-items: center; } .entity-detail-panel { border-radius: 20px; max-height: 80vh; } }
-@media (max-width: 768px) { .entity-detail-panel { max-height: 90vh; } .entity-detail-header { padding: 6px 16px 12px; } .entity-detail-name { font-size: 1.15rem; } .entity-detail-card { margin: 0 12px 12px; } .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } .entity-detail-hero, .entity-detail-hero-carousel { height: 160px; } }
+@media (min-width: 769px) { .entity-detail-overlay { align-items: center; } .entity-detail-panel { border-radius: 20px; max-height: 80vh; max-height: 80dvh; } }
+@media (max-width: 768px) { .entity-detail-panel { max-height: 90vh; max-height: 90dvh; } .entity-detail-header { padding: 6px 16px 12px; } .entity-detail-name { font-size: 1.15rem; } .entity-detail-card { margin: 0 12px 12px; } .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } .entity-detail-hero, .entity-detail-hero-carousel { height: 160px; } }
