@@ -296,6 +296,11 @@ function navigateTo(section) {
         item.classList.toggle('active', item.dataset.section === section);
     });
 
+    // Update mobile tab active state
+    document.querySelectorAll('.eg-mobile-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.section === section);
+    });
+
     // Highlight user-info button when profile is active
     $('eg-user-info').classList.toggle('eg-user-info-active', section === 'profile');
 
@@ -318,6 +323,13 @@ sidebarToggle.addEventListener('click', () => {
 sidebarBackdrop.addEventListener('click', () => {
     sidebar.classList.remove('open');
     sidebarBackdrop.classList.remove('visible');
+});
+
+// Mobile tab bar navigation
+document.querySelectorAll('.eg-mobile-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        navigateTo(tab.dataset.section);
+    });
 });
 
 // Profile section navigation

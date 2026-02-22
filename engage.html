@@ -89,10 +89,18 @@
          MAIN APP — hidden until authenticated
          ============================================================ -->
     <div class="eg-app hidden" id="eg-app">
-        <!-- Mobile sidebar toggle -->
-        <button class="eg-sidebar-toggle" id="eg-sidebar-toggle" aria-label="Toggle sidebar">
+        <!-- Mobile sidebar toggle (hidden — replaced by tab bar) -->
+        <button class="eg-sidebar-toggle" id="eg-sidebar-toggle" aria-label="Toggle sidebar" style="display:none!important">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
+
+        <!-- Mobile tab bar -->
+        <div class="eg-mobile-tabs" id="eg-mobile-tabs">
+            <button class="eg-mobile-tab active" data-section="home">Home</button>
+            <button class="eg-mobile-tab" data-section="inbox">Inbox</button>
+            <button class="eg-mobile-tab" data-section="network">Network</button>
+            <button class="eg-mobile-tab" data-section="discovery">Discovery</button>
+        </div>
 
         <!-- Sidebar -->
         <aside class="eg-sidebar" id="eg-sidebar">

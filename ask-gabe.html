@@ -182,61 +182,132 @@
             .ask-suggestion-card { min-width: 145px; }
         }
 
-        /* ═══ Entity Detail Modal ═══ */
-        .entity-detail-overlay { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-end; transition: opacity 0.3s; }
+        /* ═══ Entity Detail Modal — White Prime Theme (matches Map tab) ═══ */
+        .entity-detail-overlay { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; justify-content: center; align-items: flex-end; transition: opacity 0.3s; }
         .entity-detail-overlay.active { display: flex; }
-        .entity-detail-panel { background: #141416; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; overflow-y: auto; animation: slideUpDetail 0.35s ease-out; overscroll-behavior: contain; }
+        .entity-detail-panel { background: #ffffff; border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; overflow-y: auto; animation: slideUpDetail 0.35s ease-out; overscroll-behavior: contain; }
         @keyframes slideUpDetail { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .entity-detail-handle { display: flex; justify-content: center; padding: 10px 0 4px; cursor: grab; }
-        .entity-detail-handle span { width: 36px; height: 4px; border-radius: 2px; background: #444; }
+        .entity-detail-handle span { width: 36px; height: 4px; border-radius: 2px; background: #ccc; }
         .entity-detail-header { display: flex; align-items: flex-start; gap: 14px; padding: 8px 20px 16px; }
-        .entity-detail-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; background: #1e1e1e; }
+        .entity-detail-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; background: #f0f0f0; }
         .entity-detail-header-info { flex: 1; min-width: 0; }
-        .entity-detail-name { font-size: 1.25rem; font-weight: 700; color: #f5f5f5; line-height: 1.3; margin: 0 0 2px; }
-        .entity-detail-type-badge { display: inline-block; font-size: 0.72rem; font-weight: 600; color: #999; background: #1e1e1e; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .entity-detail-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: #2a2a2a; color: #999; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: background 0.2s; }
-        .entity-detail-close:hover { background: #3a3a3a; }
-        .entity-detail-card { margin: 0 16px 16px; padding: 16px; border-radius: 16px; background: #1a1a1a; position: relative; }
-        .entity-detail-card.rainbow { border: 2px solid transparent; background-clip: padding-box; }
-        .entity-detail-card.rainbow::before { content: ''; position: absolute; inset: -2px; border-radius: 18px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
-        .entity-detail-location { display: flex; align-items: center; gap: 6px; color: #999; font-size: 0.88rem; margin-bottom: 12px; }
+        .entity-detail-name { font-size: 1.25rem; font-weight: 700; color: #111; line-height: 1.3; margin: 0 0 2px; }
+        .entity-detail-type-badge { display: inline-block; font-size: 0.72rem; font-weight: 600; color: #666; background: #f0f0f0; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .entity-detail-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: #f0f0f0; color: #666; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; transition: background 0.2s; }
+        .entity-detail-close:hover { background: #e0e0e0; }
+        /* Rainbow card */
+        .entity-detail-card { margin: 0 20px 16px; padding: 20px; border-radius: 18px; background: #fff; position: relative; box-shadow: 0 6px 12px rgba(0,0,0,0.06); }
+        .entity-detail-card.rainbow { border: 3px solid transparent; background: linear-gradient(#fff, #fff) padding-box, conic-gradient(from 0deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #EC4899, #EF4444) border-box; box-shadow: 0 6px 12px rgba(0,0,0,0.08), 0 0 16px 2px rgba(239,68,68,0.12), 0 0 16px 2px rgba(59,130,246,0.12); }
+        .entity-detail-location { display: flex; align-items: center; gap: 6px; color: #777; font-size: 0.88rem; margin-bottom: 8px; }
         .entity-detail-location svg { width: 14px; height: 14px; flex-shrink: 0; }
-        .entity-detail-description { font-size: 0.9rem; line-height: 1.6; color: #ccc; margin-bottom: 12px; }
-        .entity-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-        .entity-detail-action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid #333; background: #1e1e1e; color: #6699ff; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s, transform 0.1s; }
-        .entity-detail-action-btn:hover { background: #252525; transform: translateY(-1px); }
-        .entity-detail-action-btn svg { width: 14px; height: 14px; }
-        .entity-detail-section-title { font-size: 0.75rem; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 20px 6px; }
-        .entity-detail-schedule { margin: 0 16px 8px; padding: 12px 14px; background: #1a1a1a; border-radius: 12px; }
-        .entity-detail-schedule-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: #aaa; padding: 3px 0; }
-        .entity-detail-schedule-row .day { color: #ccc; font-weight: 500; }
-        .entity-detail-schedule-row .times { text-align: right; color: #999; }
-        .entity-detail-events { margin: 0 16px 12px; }
-        .entity-detail-event-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #1a1a1a; border-radius: 12px; margin-bottom: 6px; position: relative; border: 1.5px solid transparent; }
-        .entity-detail-event-item::before { content: ''; position: absolute; inset: -1.5px; border-radius: 14px; background: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #06B6D4, #3B82F6, #8B5CF6); z-index: -1; }
-        .entity-detail-event-date { width: 44px; text-align: center; flex-shrink: 0; }
-        .entity-detail-event-date .month { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #EF4444; }
-        .entity-detail-event-date .day-num { font-size: 1.1rem; font-weight: 700; color: #f5f5f5; }
-        .entity-detail-event-info { flex: 1; }
-        .entity-detail-event-title { font-size: 0.85rem; font-weight: 600; color: #f5f5f5; }
-        .entity-detail-event-time { font-size: 0.78rem; color: #888; margin-top: 2px; }
+        .entity-detail-description { font-size: 0.9rem; line-height: 1.6; color: #444; margin-bottom: 8px; }
+        .entity-detail-website-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+        .entity-detail-website-link { display: inline-flex; align-items: center; gap: 6px; color: #3366CC; font-size: 0.88rem; font-weight: 500; text-decoration: none; }
+        .entity-detail-website-link svg { width: 14px; height: 14px; }
+        .entity-detail-website-link.disabled { color: #bbb; pointer-events: none; }
+        /* Follow Key button */
+        .entity-detail-follow-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: calc(100% - 40px); padding: 14px; margin: 0 20px 16px; border-radius: 14px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; color: #fff; background: #111; }
+        .entity-detail-follow-btn:hover { transform: translateY(-1px); }
+        .entity-detail-follow-btn svg { width: 18px; height: 18px; }
+        /* Quick actions (3 buttons) */
+        .entity-detail-quick-actions { display: flex; gap: 12px; margin: 0 20px 20px; }
+        .entity-detail-quick-action { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0; border-radius: 18px; border: none; background: #f2f2f7; cursor: pointer; transition: background 0.15s, transform 0.1s; text-decoration: none; }
+        .entity-detail-quick-action:hover { background: #e5e5ea; transform: translateY(-1px); }
+        .entity-detail-quick-action svg { width: 18px; height: 18px; color: #011893; }
+        .entity-detail-quick-action span { font-size: 0.72rem; font-weight: 500; color: #011893; }
+        /* Section title */
+        .entity-detail-section-title { font-size: 0.75rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 20px 6px; }
+        /* Schedule */
+        .entity-detail-schedule { margin: 0 16px 8px; padding: 12px 14px; background: #f8f8fa; border-radius: 12px; }
+        .entity-detail-schedule-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: #777; padding: 3px 0; }
+        .entity-detail-schedule-row .day { color: #333; font-weight: 500; }
+        .entity-detail-schedule-row .times { text-align: right; color: #666; }
+        /* Schedule segmented control (Mass/Confession/Adoration tabs) */
+        .entity-detail-schedule-tabs { display: flex; margin: 0 20px 0; background: #1a2744; border-radius: 12px; overflow: hidden; }
+        .entity-detail-schedule-tab { flex: 1; padding: 10px 0; text-align: center; font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.5); cursor: pointer; transition: background 0.2s, color 0.2s; border: none; background: transparent; }
+        .entity-detail-schedule-tab.active { background: #3366CC; color: #fff; border-radius: 10px; margin: 3px; }
+        .entity-detail-schedule-tab-content { display: none; }
+        .entity-detail-schedule-tab-content.active { display: block; }
+        /* Upcoming Events — horizontal scroll cards */
+        .entity-detail-events-heading { font-size: 1.15rem; font-weight: 700; color: #111; padding: 16px 24px 10px; }
+        .entity-detail-events { overflow-x: auto; padding-bottom: 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .entity-detail-events::-webkit-scrollbar { display: none; }
+        .entity-detail-events-inner { display: flex; gap: 12px; padding: 0 24px; }
+        .entity-detail-event-item { flex: 0 0 auto; width: 48%; min-width: 180px; max-width: 240px; padding: 16px; background: #f2f2f7; border-radius: 14px; scroll-snap-align: start; }
+        .entity-detail-event-title { font-size: 0.92rem; font-weight: 700; color: #111; margin-bottom: 8px; line-height: 1.3; }
+        .entity-detail-event-meta { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #888; margin-bottom: 4px; }
+        .entity-detail-event-meta svg { width: 14px; height: 14px; flex-shrink: 0; color: #888; }
+        /* Programs & sacraments pills */
         .entity-detail-programs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 16px 16px; }
-        .entity-detail-program-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 8px; color: #22C55E; font-size: 0.75rem; font-weight: 600; }
-        .entity-detail-contact { margin: 0 16px 16px; padding: 12px 14px; background: #1a1a1a; border-radius: 12px; }
+        .entity-detail-program-pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; color: #16a34a; font-size: 0.75rem; font-weight: 600; }
+        /* Get Involved 2x2 grid */
+        .entity-detail-get-involved { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 20px 16px; }
+        .entity-detail-program-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 8px; background: #f2f2f7; border-radius: 12px; cursor: pointer; transition: background 0.15s; text-decoration: none; }
+        .entity-detail-program-card:hover { background: #e5e5ea; }
+        .entity-detail-program-card svg { width: 24px; height: 24px; color: #3366CC; }
+        .entity-detail-program-card .program-title { font-size: 0.82rem; font-weight: 600; color: #111; }
+        .entity-detail-program-card .program-sub { font-size: 0.68rem; color: #888; }
+        /* Sign-Up Sheets button */
+        .entity-detail-signup-btn { display: flex; align-items: center; gap: 16px; margin: 8px 20px 16px; padding: 16px; background: #f2f2f7; border-radius: 16px; cursor: pointer; transition: background 0.15s; text-decoration: none; border: none; width: calc(100% - 40px); }
+        .entity-detail-signup-btn:hover { background: #e5e5ea; }
+        .entity-detail-signup-icon { width: 50px; height: 50px; border-radius: 50%; background: rgba(51,102,204,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .entity-detail-signup-icon svg { width: 20px; height: 20px; color: #3366CC; }
+        .entity-detail-signup-text { flex: 1; text-align: left; }
+        .entity-detail-signup-text .title { font-size: 0.95rem; font-weight: 600; color: #111; }
+        .entity-detail-signup-text .sub { font-size: 0.82rem; color: #888; margin-top: 2px; }
+        .entity-detail-signup-chevron { color: #888; flex-shrink: 0; }
+        .entity-detail-signup-chevron svg { width: 14px; height: 14px; }
+        /* Pastor Announcements */
+        .entity-detail-psa { margin: 0 16px 8px; padding: 14px; background: #f8f8fa; border-radius: 12px; border-left: 3px solid #d4af37; }
+        .entity-detail-psa-title { font-size: 0.88rem; font-weight: 600; color: #111; margin-bottom: 4px; }
+        .entity-detail-psa-text { font-size: 0.82rem; color: #444; line-height: 1.5; }
+        .entity-detail-psa-meta { font-size: 0.72rem; color: #999; margin-top: 6px; }
+        /* Location map embed */
+        .entity-detail-map-section { margin: 8px 20px 16px; }
+        .entity-detail-map-section .section-label { font-size: 1.05rem; font-weight: 700; color: #111; margin-bottom: 12px; }
+        .entity-detail-map-embed { width: 100%; height: 220px; border-radius: 24px; overflow: hidden; position: relative; }
+        .entity-detail-map-embed iframe { width: 100%; height: 100%; border: 0; }
+        /* Bulletin upload CTA */
+        .entity-detail-bulletin { margin: 8px 20px 16px; padding: 24px 20px; background: rgba(51,102,204,0.08); border: 1px dashed rgba(51,102,204,0.35); border-radius: 16px; text-align: center; cursor: pointer; transition: background 0.15s; }
+        .entity-detail-bulletin:hover { background: rgba(51,102,204,0.12); }
+        .entity-detail-bulletin svg { width: 32px; height: 32px; color: #3366CC; margin-bottom: 12px; }
+        .entity-detail-bulletin .bulletin-title { font-size: 0.95rem; font-weight: 600; color: #111; margin-bottom: 4px; }
+        .entity-detail-bulletin .bulletin-sub { font-size: 0.78rem; color: #888; }
+        /* Message Parish button */
+        .entity-detail-message-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 20px 20px; padding: 16px; background: #3366CC; color: #fff; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; width: calc(100% - 40px); transition: background 0.15s; text-decoration: none; }
+        .entity-detail-message-btn:hover { background: #2a57b0; }
+        .entity-detail-message-btn svg { width: 16px; height: 16px; }
+        /* Locked parish upsell */
+        .entity-detail-upsell-hero { text-align: center; padding: 20px 20px 8px; font-size: 1.15rem; font-weight: 700; color: #111; line-height: 1.4; }
+        .entity-detail-benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 20px 20px; }
+        .entity-detail-benefit { padding: 16px 8px; background: #f2f2f7; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .entity-detail-benefit-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; color: #22C55E; }
+        .entity-detail-benefit-icon svg { width: 28px; height: 28px; }
+        .entity-detail-benefit-title { font-size: 0.82rem; font-weight: 600; color: #111; margin-bottom: 4px; }
+        .entity-detail-benefit-desc { font-size: 0.7rem; color: #888; line-height: 1.4; }
+        .entity-detail-unlock-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: calc(100% - 40px); margin: 0 20px 16px; padding: 16px; border-radius: 12px; border: 3px solid transparent; background: linear-gradient(#111, #111) padding-box, conic-gradient(from 0deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #8B5CF6, #EF4444) border-box; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.1s; text-decoration: none; box-sizing: border-box; }
+        .entity-detail-unlock-btn:hover { transform: translateY(-1px); }
+        /* Contact */
+        .entity-detail-contact { margin: 0 16px 16px; padding: 12px 14px; background: #f8f8fa; border-radius: 12px; }
         .entity-detail-contact-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 0.85rem; }
-        .entity-detail-contact-row svg { width: 14px; height: 14px; color: #666; flex-shrink: 0; }
-        .entity-detail-contact-row a { color: #6699ff; text-decoration: none; }
-        .entity-detail-contact-row span { color: #ccc; }
+        .entity-detail-contact-row svg { width: 14px; height: 14px; color: #999; flex-shrink: 0; }
+        .entity-detail-contact-row a { color: #3366CC; text-decoration: none; }
+        .entity-detail-contact-row span { color: #333; }
+        /* Footer */
         .entity-detail-footer { padding: 12px 16px 24px; display: flex; gap: 8px; }
         .entity-detail-footer-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s, transform 0.1s; }
         .entity-detail-footer-btn:hover { transform: translateY(-1px); }
         .entity-detail-footer-btn.primary { background: #3366CC; color: #fff; }
-        .entity-detail-footer-btn.secondary { background: #1e1e1e; border: 1px solid #333; color: #ccc; }
+        .entity-detail-footer-btn.secondary { background: #f0f0f5; border: 1px solid #ddd; color: #333; }
         .entity-detail-footer-btn svg { width: 16px; height: 16px; }
+        /* Loading */
         .entity-detail-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 12px; }
-        .entity-detail-spinner { width: 32px; height: 32px; border: 3px solid #333; border-top-color: #3366CC; border-radius: 50%; animation: detailSpin 0.8s linear infinite; }
+        .entity-detail-spinner { width: 32px; height: 32px; border: 3px solid #ddd; border-top-color: #3366CC; border-radius: 50%; animation: detailSpin 0.8s linear infinite; }
         @keyframes detailSpin { to { transform: rotate(360deg); } }
-        .entity-detail-loading-text { font-size: 0.85rem; color: #888; }
+        .entity-detail-loading-text { font-size: 0.85rem; color: #999; }
+        /* Hero image */
+        .entity-detail-hero { width: 100%; height: 200px; object-fit: cover; border-radius: 16px 16px 0 0; display: block; }
         @media (min-width: 769px) { .entity-detail-overlay { align-items: center; } .entity-detail-panel { border-radius: 20px; max-height: 80vh; } }
         @media (max-width: 768px) { .entity-detail-panel { max-height: 90vh; } .entity-detail-header { padding: 6px 16px 12px; } .entity-detail-name { font-size: 1.15rem; } .entity-detail-card { margin: 0 12px 12px; } .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } }
     </style>
@@ -362,7 +433,6 @@
     <!-- Entity Detail Modal -->
     <div class="entity-detail-overlay" id="entity-detail-overlay">
         <div class="entity-detail-panel" id="entity-detail-panel">
-            <div class="entity-detail-handle"><span></span></div>
             <div id="entity-detail-content"></div>
         </div>
     </div>
@@ -420,82 +490,350 @@
         detailPanel.addEventListener('touchstart', (e) => { if (detailPanel.scrollTop <= 0) detailTouchStartY = e.touches[0].clientY; }, { passive: true });
         detailPanel.addEventListener('touchmove', (e) => { if (detailPanel.scrollTop <= 0 && e.touches[0].clientY - detailTouchStartY > 80) window.closeEntityDetail(); }, { passive: true });
 
-        // ── Render entity detail (same as ask.html) ──
+        // ── Helper: Parse schedule dict ──
+        function parseSchedule(scheduleData) {
+            if (!scheduleData || typeof scheduleData !== 'object' || Array.isArray(scheduleData)) return {};
+            const result = {};
+            for (const [day, value] of Object.entries(scheduleData)) {
+                if (Array.isArray(value)) {
+                    const times = [];
+                    for (const v of value) {
+                        if (typeof v === 'string') times.push(v);
+                        else if (typeof v === 'object' && v.time) {
+                            let t = v.time;
+                            if (v.language && v.language !== 'English') t += ` (${v.language})`;
+                            if (v.endTime) t += ` – ${v.endTime}`;
+                            times.push(t);
+                        }
+                    }
+                    if (times.length > 0) result[day] = times;
+                } else if (typeof value === 'string') {
+                    result[day] = [value];
+                }
+            }
+            return result;
+        }
+
+        // ── Helper: Parse event data ──
+        function parseEvent(data) {
+            const title = data.title || data.name || '';
+            if (!title) return null;
+            let eventDate = null;
+            if (data.date && data.date.toDate) eventDate = data.date.toDate();
+            else if (data.date && data.date.seconds) eventDate = new Date(data.date.seconds * 1000);
+            else if (typeof data.date === 'string' && data.date.trim()) {
+                let dateStr = data.date.trim();
+                let parsed = new Date(dateStr);
+                if (isNaN(parsed.getTime())) parsed = new Date(dateStr + ', ' + new Date().getFullYear());
+                if (!isNaN(parsed.getTime())) eventDate = parsed;
+            }
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            if (eventDate && !isNaN(eventDate.getTime())) {
+                return { title, date: eventDate, time: data.time || null, location: data.location || null,
+                    month: months[eventDate.getMonth()] || '', dayNum: eventDate.getDate() || '',
+                    rawDate: data.date, description: data.description || null };
+            }
+            return { title, date: new Date(9999, 0, 1), time: data.time || null, location: data.location || null,
+                month: (typeof data.date === 'string' ? data.date.split(' ')[0].substring(0, 3) : ''), dayNum: (typeof data.date === 'string' ? data.date.split(' ')[1] || '' : ''),
+                rawDate: data.date, description: data.description || null };
+        }
+
+        // ── Helper: Switch schedule tab ──
+        window.switchScheduleTab = function(schedId, tab) {
+            const tabBar = document.getElementById(schedId + '-tabs');
+            if (tabBar) tabBar.querySelectorAll('.entity-detail-schedule-tab').forEach(t => t.classList.remove('active'));
+            ['mass', 'confession', 'adoration'].forEach(t => {
+                const el = document.getElementById(schedId + '-' + t);
+                if (el) el.classList.remove('active');
+            });
+            const content = document.getElementById(schedId + '-' + tab);
+            if (content) content.classList.add('active');
+            if (tabBar) {
+                tabBar.querySelectorAll('.entity-detail-schedule-tab').forEach(t => {
+                    if (t.textContent.toLowerCase().replace(/\s/g,'') === tab) t.classList.add('active');
+                });
+            }
+        };
+
+        // ── Render schedule rows ──
+        function renderScheduleRows(schedule) {
+            const dayOrder = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Monday-Friday'];
+            let html = '';
+            for (const day of dayOrder) {
+                if (schedule[day] && schedule[day].length > 0) {
+                    html += `<div class="entity-detail-schedule-row"><span class="day">${day}</span><span class="times">${schedule[day].map(t => escapeHTML(t)).join(', ')}</span></div>`;
+                }
+            }
+            return html;
+        }
+
+        // ── Render entity detail — Prime View (matches Map tab) ──
         function renderEntityDetail(d) {
-            const icon = getEntityIcon(d.type);
             const isChurch = d.type === 'Church';
             const isOrganization = d.type === 'Organization';
-            const locationParts = [];
-            if (d.address) locationParts.push(d.address);
-            if (d.city && d.state) locationParts.push(`${d.city}, ${d.state}`);
-            else if (d.city) locationParts.push(d.city);
-            else if (d.state) locationParts.push(d.state);
-            const locationDisplay = locationParts.join(' · ');
-            let categoryDisplay = d.subtitle || d.category || d.type || '';
-            if (d.diocese && isChurch) categoryDisplay = d.diocese;
+
+            // Build maps URLs
             let mapsUrl = '';
             if (d.coordinates && d.coordinates.lat && d.coordinates.lng) mapsUrl = `https://maps.google.com/maps?q=${d.coordinates.lat},${d.coordinates.lng}`;
-            else if (d.address && d.city) mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(d.address + ', ' + d.city + ' ' + d.state)}`;
+            else if (d.address && d.city) mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(d.address + ', ' + d.city + ' ' + (d.state || ''))}`;
             let naveMapUrl = '';
-            if (d.coordinates && d.coordinates.lat && d.coordinates.lng) naveMapUrl = `map?lat=${d.coordinates.lat}&lng=${d.coordinates.lng}&z=15`;
+            if (d.coordinates && d.coordinates.lat && d.coordinates.lng) naveMapUrl = `map.html?lat=${d.coordinates.lat}&lng=${d.coordinates.lng}&z=15`;
 
-            let html = `<div class="entity-detail-header"><div class="entity-detail-icon">${icon}</div><div class="entity-detail-header-info"><div class="entity-detail-name">${escapeHTML(d.name)}</div><span class="entity-detail-type-badge">${escapeHTML(categoryDisplay)}</span></div><button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button></div>`;
+            // Hero image
+            let html = '';
+            const heroImg = d.imageURL || d.siteImageURL || '';
+            if (heroImg) {
+                const src = heroImg.startsWith('http') ? heroImg : `https://firebasestorage.googleapis.com/v0/b/navefirebase.firebasestorage.app/o/${encodeURIComponent(heroImg)}?alt=media`;
+                html += `<img class="entity-detail-hero" src="${src}" alt="" loading="lazy" onerror="this.remove()">`;
+            }
 
-            const cardClass = isChurch && d.isUnlocked ? 'entity-detail-card rainbow' : 'entity-detail-card';
+            // Handle bar + close button
+            html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 4px;"><div style="flex:1;"></div><div class="entity-detail-handle" style="padding:0;"><span></span></div><div style="flex:1;display:flex;justify-content:flex-end;"><button class="entity-detail-close" onclick="closeEntityDetail()">&times;</button></div></div>`;
+
+            // ── Rainbow card ──
+            const cardClass = 'entity-detail-card rainbow';
             let cardHTML = '';
-            if (locationDisplay) cardHTML += `<div class="entity-detail-location"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg><span>${escapeHTML(locationDisplay)}</span></div>`;
-            if (d.description) { const desc = d.description.length > 300 ? d.description.substring(0, 297) + '...' : d.description; cardHTML += `<div class="entity-detail-description">${escapeHTML(desc)}</div>`; }
 
-            let actionsHTML = '';
-            if (mapsUrl) actionsHTML += `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>Open in Maps</a>`;
-            if (d.website) { const url = d.website.startsWith('http') ? d.website : 'https://' + d.website; actionsHTML += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg>Visit Website</a>`; }
-            if (d.phone) actionsHTML += `<a href="tel:${d.phone}" class="entity-detail-action-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>Call</a>`;
-            if (actionsHTML) cardHTML += `<div class="entity-detail-actions">${actionsHTML}</div>`;
-            if (cardHTML) html += `<div class="${cardClass}">${cardHTML}</div>`;
+            // Name inside card
+            cardHTML += `<div style="font-size:1.35rem;font-weight:700;color:#111;margin-bottom:6px;">${escapeHTML(d.name)}</div>`;
 
-            if (isChurch && d.massSchedule && Object.keys(d.massSchedule).length > 0) { html += `<div class="entity-detail-section-title">Mass Schedule</div><div class="entity-detail-schedule">${renderScheduleRows(d.massSchedule)}</div>`; }
-            if (isChurch && d.confessionSchedule && Object.keys(d.confessionSchedule).length > 0) { html += `<div class="entity-detail-section-title">Confession</div><div class="entity-detail-schedule">${renderScheduleRows(d.confessionSchedule)}</div>`; }
-            if (isChurch && d.adorationSchedule && Object.keys(d.adorationSchedule).length > 0) { html += `<div class="entity-detail-section-title">Adoration</div><div class="entity-detail-schedule">${renderScheduleRows(d.adorationSchedule)}</div>`; }
-
-            if (isChurch && d.events && d.events.length > 0) {
-                html += `<div class="entity-detail-section-title">Upcoming Events</div><div class="entity-detail-events">`;
-                for (const evt of d.events) { const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; const evtDate = evt.date instanceof Date ? evt.date : new Date(evt.date); html += `<div class="entity-detail-event-item"><div class="entity-detail-event-date"><div class="month">${months[evtDate.getMonth()] || ''}</div><div class="day-num">${evtDate.getDate() || ''}</div></div><div class="entity-detail-event-info"><div class="entity-detail-event-title">${escapeHTML(evt.title)}</div>${evt.time ? `<div class="entity-detail-event-time">${escapeHTML(evt.time)}${evt.location ? ' · ' + escapeHTML(evt.location) : ''}</div>` : ''}</div></div>`; }
-                html += `</div>`;
+            // Address
+            if (isChurch) {
+                const addr = d.address || '';
+                const street = addr.includes(',') ? addr.split(',')[0].trim() : addr;
+                if (street) cardHTML += `<div style="font-size:0.92rem;color:#888;margin-bottom:8px;">${escapeHTML(street)}</div>`;
+            } else {
+                const locParts = [];
+                if (d.address) locParts.push(d.address);
+                if (d.city && d.state) locParts.push(`${d.city}, ${d.state}`);
+                else if (d.city) locParts.push(d.city);
+                else if (d.state) locParts.push(d.state);
+                const loc = locParts.join(' · ');
+                if (loc) cardHTML += `<div class="entity-detail-location"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg><span>${escapeHTML(loc)}</span></div>`;
             }
 
-            if (isChurch && (d.hasOCIA || d.hasConfirmation || d.hasFirstEucharist || d.hasMarriagePrep)) {
-                html += `<div class="entity-detail-section-title">Programs & Sacraments</div><div class="entity-detail-programs">`;
-                if (d.hasOCIA) html += `<div class="entity-detail-program-pill">OCIA</div>`;
-                if (d.hasConfirmation) html += `<div class="entity-detail-program-pill">Confirmation</div>`;
-                if (d.hasFirstEucharist) html += `<div class="entity-detail-program-pill">First Eucharist</div>`;
-                if (d.hasMarriagePrep) html += `<div class="entity-detail-program-pill">Marriage Prep</div>`;
-                html += `</div>`;
+            // Description
+            if (d.description) {
+                const desc = d.description.length > 300 ? d.description.substring(0, 297) + '...' : d.description;
+                cardHTML += `<div style="border-top:1px solid #eee;margin:8px 0;"></div>`;
+                cardHTML += `<div class="entity-detail-description">${escapeHTML(desc)}</div>`;
             }
 
-            if (d.phone || d.email || d.website) {
-                html += `<div class="entity-detail-section-title">Contact</div><div class="entity-detail-contact">`;
-                if (d.phone) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg><a href="tel:${d.phone}">${escapeHTML(d.phone)}</a></div>`;
-                if (d.email) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg><a href="mailto:${d.email}">${escapeHTML(d.email)}</a></div>`;
-                if (d.website) { const url = d.website.startsWith('http') ? d.website : 'https://' + d.website; const displayUrl = d.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg><a href="${url}" target="_blank" rel="noopener">${escapeHTML(displayUrl)}</a></div>`; }
-                html += `</div>`;
+            // Website link + close button row
+            const website = d.website || '';
+            cardHTML += `<div class="entity-detail-website-row">`;
+            if (website) {
+                const url = website.startsWith('http') ? website : 'https://' + website;
+                cardHTML += `<a href="${url}" target="_blank" rel="noopener" class="entity-detail-website-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Visit Website</a>`;
+            } else {
+                cardHTML += `<span class="entity-detail-website-link disabled"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Visit Website</span>`;
+            }
+            cardHTML += `</div>`;
+            html += `<div class="${cardClass}">${cardHTML}</div>`;
+
+            // ── LOCKED CHURCH: upsell view ──
+            if (isChurch && d.isUnlocked !== true) {
+                html += renderLockedChurch(d);
+                html += buildFooter(d, naveMapUrl);
+                detailContent.innerHTML = html;
+                return;
             }
 
-            if (isOrganization && d.features && d.features.length > 0) { html += `<div class="entity-detail-section-title">Features</div><div class="entity-detail-programs">${d.features.map(f => `<div class="entity-detail-program-pill">${escapeHTML(f)}</div>`).join('')}</div>`; }
+            // ── Follow Key button ──
+            html += `<button class="entity-detail-follow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Follow Key</button>`;
 
-            html += `<div class="entity-detail-footer">`;
-            if (naveMapUrl) html += `<a href="${naveMapUrl}" class="entity-detail-footer-btn primary" style="text-decoration:none;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>View on Map</a>`;
-            html += `<button class="entity-detail-footer-btn secondary" onclick="askGabeAbout('${escapeHTML(d.name).replace(/'/g, "\\'")}')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ask Gabe</button>`;
+            // ── Quick Actions (3 buttons) ──
+            const QA_SHARE = `<button class="entity-detail-quick-action" onclick="shareAskEntity()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg><span>Share</span></button>`;
+            const QA_NOTIFY = `<button class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span>Notify</span></button>`;
+            const QA_MAP = mapsUrl ? `<a href="${mapsUrl}" target="_blank" rel="noopener" class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></a>` : `<button class="entity-detail-quick-action" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Map</span></button>`;
+            const QA_SAVE = `<button class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Save</span></button>`;
+            const QA_MESSAGE = `<button class="entity-detail-quick-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Message</span></button>`;
+
+            html += `<div class="entity-detail-quick-actions">`;
+            if (isChurch) {
+                html += QA_SHARE + QA_NOTIFY + QA_MAP;
+            } else {
+                html += QA_SAVE + QA_MESSAGE + QA_MAP;
+            }
             html += `</div>`;
 
+            // ── Type-specific sections ──
+            if (isChurch) html += renderChurchSections(d);
+
+            // ── Contact ──
+            if (d.phone || d.email || d.website) {
+                html += `<div class="entity-detail-section-title">Contact</div>`;
+                html += buildContact(d);
+            }
+
+            // Organization features
+            if (isOrganization && d.features && d.features.length > 0) {
+                html += `<div class="entity-detail-section-title">Features</div><div class="entity-detail-programs">${d.features.map(f => `<div class="entity-detail-program-pill">${escapeHTML(f)}</div>`).join('')}</div>`;
+            }
+
+            // Footer
+            html += buildFooter(d, naveMapUrl);
             detailContent.innerHTML = html;
         }
 
-        function renderScheduleRows(schedule) {
-            const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Monday-Friday'];
+        // ── Church sections (matching map.html renderChurch) ──
+        function renderChurchSections(d) {
             let html = '';
-            for (const day of dayOrder) { if (schedule[day] && schedule[day].length > 0) { html += `<div class="entity-detail-schedule-row"><span class="day">${day}</span><span class="times">${schedule[day].map(t => escapeHTML(t)).join(', ')}</span></div>`; } }
+            const entityId = d.id || d.name || '';
+
+            // 1. Upcoming Events (horizontal scroll cards)
+            if (Array.isArray(d.events) && d.events.length > 0) {
+                const upcoming = d.events.map(e => parseEvent(e)).filter(e => e !== null).sort((a, b) => a.date - b.date).slice(0, 5);
+                if (upcoming.length) {
+                    html += `<div class="entity-detail-events-heading">Upcoming Events</div><div class="entity-detail-events"><div class="entity-detail-events-inner">`;
+                    for (const evt of upcoming) {
+                        const dateStr = evt.rawDate || (evt.month + ' ' + evt.dayNum);
+                        html += `<div class="entity-detail-event-item">`;
+                        html += `<div class="entity-detail-event-title">${escapeHTML(evt.title)}</div>`;
+                        html += `<div class="entity-detail-event-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${escapeHTML(typeof dateStr === 'string' ? dateStr : '')}</div>`;
+                        if (evt.time) html += `<div class="entity-detail-event-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${escapeHTML(evt.time)}</div>`;
+                        html += `</div>`;
+                    }
+                    html += '</div></div>';
+                }
+            }
+
+            // 2. Schedule — Navy blue segmented control (Mass / Confession / Adoration)
+            const hasMass = d.massSchedule && typeof d.massSchedule === 'object' && Object.keys(parseSchedule(d.massSchedule)).length > 0;
+            const hasConfession = d.confessionSchedule && typeof d.confessionSchedule === 'object' && Object.keys(parseSchedule(d.confessionSchedule)).length > 0;
+            const hasAdoration = d.adorationSchedule && typeof d.adorationSchedule === 'object' && Object.keys(parseSchedule(d.adorationSchedule)).length > 0;
+
+            if (hasMass || hasConfession || hasAdoration) {
+                const schedId = 'ask-sched-' + entityId.replace(/[^a-zA-Z0-9]/g, '');
+                html += `<div class="entity-detail-schedule-tabs" id="${schedId}-tabs">`;
+                if (hasMass) html += `<button class="entity-detail-schedule-tab active" onclick="switchScheduleTab('${schedId}','mass')">Mass</button>`;
+                if (hasConfession) html += `<button class="entity-detail-schedule-tab${!hasMass ? ' active' : ''}" onclick="switchScheduleTab('${schedId}','confession')">Confession</button>`;
+                if (hasAdoration) html += `<button class="entity-detail-schedule-tab${!hasMass && !hasConfession ? ' active' : ''}" onclick="switchScheduleTab('${schedId}','adoration')">Adoration</button>`;
+                html += `</div>`;
+
+                if (hasMass) html += `<div class="entity-detail-schedule-tab-content active" id="${schedId}-mass"><div class="entity-detail-schedule">${renderScheduleRows(parseSchedule(d.massSchedule))}</div></div>`;
+                if (hasConfession) html += `<div class="entity-detail-schedule-tab-content${!hasMass ? ' active' : ''}" id="${schedId}-confession"><div class="entity-detail-schedule">${renderScheduleRows(parseSchedule(d.confessionSchedule))}</div></div>`;
+                if (hasAdoration) html += `<div class="entity-detail-schedule-tab-content${!hasMass && !hasConfession ? ' active' : ''}" id="${schedId}-adoration"><div class="entity-detail-schedule">${renderScheduleRows(parseSchedule(d.adorationSchedule))}</div></div>`;
+            }
+
+            // 3. Pastor Announcements
+            if (Array.isArray(d.pastorPSAs) && d.pastorPSAs.length > 0) {
+                html += `<div class="entity-detail-section-title">Pastor Announcements</div>`;
+                d.pastorPSAs.forEach(psa => {
+                    html += `<div class="entity-detail-psa"><div class="entity-detail-psa-title">${escapeHTML(psa.title || '')}</div><div class="entity-detail-psa-text">${escapeHTML(psa.message || '')}</div>`;
+                    if (psa.pastorName) html += `<div class="entity-detail-psa-meta">— ${escapeHTML(psa.pastorName)}</div>`;
+                    html += `</div>`;
+                });
+            }
+
+            // 4. Get Involved — 2x2 grid
+            html += `<div class="entity-detail-section-title">Get Involved</div>`;
+            html += `<div class="entity-detail-get-involved">`;
+            const programs = [
+                { icon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`, title: 'OCIA', sub: 'Start your journey' },
+                { icon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 0.67s0.74 2.65 0.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l0.03-0.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5 0.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-0.36 3.6-1.21 4.62-2.58 0.39 1.29 0.59 2.65 0.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>`, title: 'Confirmation', sub: 'Youth & adult' },
+                { icon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61z"/></svg>`, title: 'First Eucharist', sub: 'Sacrament prep' },
+                { icon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`, title: 'Marriage Prep', sub: 'Pre-Cana' }
+            ];
+            programs.forEach(p => {
+                html += `<a href="#" class="entity-detail-program-card">${p.icon}<span class="program-title">${p.title}</span><span class="program-sub">${p.sub}</span></a>`;
+            });
+            html += `</div>`;
+
+            // 5. Sign-Up Sheets
+            html += `<button class="entity-detail-signup-btn">
+                <div class="entity-detail-signup-icon"><svg viewBox="0 0 24 24" fill="currentColor" color="#3366CC"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+                <div class="entity-detail-signup-text"><div class="title">Sign-Up Sheets</div><div class="sub">Groups, Liturgy, Service & More</div></div>
+                <div class="entity-detail-signup-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </button>`;
+
+            // 6. Location Map
+            if (d.coordinates && d.coordinates.lat && d.coordinates.lng) {
+                const lat = d.coordinates.lat;
+                const lng = d.coordinates.lng;
+                html += `<div class="entity-detail-map-section">
+                    <div class="section-label">Location</div>
+                    <div class="entity-detail-map-embed">
+                        <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.005}%2C${lat-0.003}%2C${lng+0.005}%2C${lat+0.003}&layer=mapnik&marker=${lat}%2C${lng}" loading="lazy"></iframe>
+                    </div>
+                </div>`;
+            }
+
+            // 7. Bulletin Upload CTA
+            html += `<div class="entity-detail-bulletin" onclick="window.location.href='join.html'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3366CC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <div class="bulletin-title">Upload Bulletin</div>
+                <div class="bulletin-sub">Scan your weekly bulletin to update events and schedules</div>
+            </div>`;
+
+            // 8. Message Parish
+            html += `<button class="entity-detail-message-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                Message Parish
+            </button>`;
+
             return html;
         }
+
+        // ── Locked church upsell ──
+        function renderLockedChurch(d) {
+            let html = '';
+            html += `<div class="entity-detail-upsell-hero">Scan your bulletin, we do the rest.</div>`;
+            html += `<div class="entity-detail-benefits-grid">`;
+            const benefits = [
+                { icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>`, title: 'Share Events', desc: 'Parish events on the Nave map' },
+                { icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="15" y1="11" x2="21" y2="11"/></svg>`, title: 'Give Christ', desc: 'OCIA, Confirmation, First Eucharist signups' },
+                { icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg>`, title: 'Mass Rosters', desc: 'Lector, altar server, sacristan signups' },
+                { icon: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><circle cx="18" cy="4" r="3" fill="#22C55E" stroke="none"/></svg>`, title: 'Notify Laity', desc: 'Mass changes, reminders, announcements' }
+            ];
+            benefits.forEach(b => {
+                html += `<div class="entity-detail-benefit"><div class="entity-detail-benefit-icon">${b.icon}</div><div class="entity-detail-benefit-title">${b.title}</div><div class="entity-detail-benefit-desc">${b.desc}</div></div>`;
+            });
+            html += `</div>`;
+            html += `<a href="join.html" class="entity-detail-unlock-btn" style="display:flex;text-decoration:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Unlock Your Parish</a>`;
+
+            // Contact section for locked
+            if (d.phone || d.email || d.website) {
+                html += `<div class="entity-detail-section-title">Contact</div>`;
+                html += buildContact(d);
+            }
+            return html;
+        }
+
+        // ── Build contact section ──
+        function buildContact(d) {
+            const phone = d.phone || '';
+            const email = d.email || '';
+            const website = d.website || '';
+            if (!phone && !email && !website) return '';
+            let html = '<div class="entity-detail-contact">';
+            if (phone) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg><a href="tel:${phone}">${escapeHTML(phone)}</a></div>`;
+            if (email) html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg><a href="mailto:${email}">${escapeHTML(email)}</a></div>`;
+            if (website) { const url = website.startsWith('http') ? website : 'https://' + website; const display = website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); html += `<div class="entity-detail-contact-row"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z"/></svg><a href="${url}" target="_blank" rel="noopener">${escapeHTML(display)}</a></div>`; }
+            html += '</div>';
+            return html;
+        }
+
+        // ── Build footer ──
+        function buildFooter(d, naveMapUrl) {
+            let html = `<div class="entity-detail-footer">`;
+            if (naveMapUrl) html += `<a href="${naveMapUrl}" class="entity-detail-footer-btn primary" style="text-decoration:none;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>View on Map</a>`;
+            html += `<button class="entity-detail-footer-btn secondary" onclick="askGabeAbout('${escapeHTML(d.name).replace(/'/g, "\\'")}')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ask Gabe</button>`;
+            html += `</div>`;
+            return html;
+        }
+
+        // ── Share entity ──
+        window.shareAskEntity = function() {
+            const name = 'Nave Key';
+            const text = `Check out this key on Nave`;
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: name, text, url }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(`${text} — ${url}`).then(() => alert('Link copied!')).catch(() => {});
+            }
+        };
 
         window.askGabeAbout = function(name) { window.closeEntityDetail(); input.value = `Tell me more about ${name}`; handleSend(); };
 
