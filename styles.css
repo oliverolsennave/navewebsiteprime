@@ -2252,6 +2252,7 @@ textarea.bulletin-receipt-input {
 /* Bulletin event cards */
 .bulletin-events {
     margin-top: 16px;
+    margin-bottom: 16px;
 }
 .bulletin-events h4 {
     font-size: 0.9rem;
@@ -2277,6 +2278,7 @@ textarea.bulletin-receipt-input {
 }
 .bulletin-event-card {
     flex: 0 0 260px;
+    min-height: 220px;
     padding: 14px;
     border-radius: 12px;
     background: #1a1a1a;
@@ -2376,13 +2378,9 @@ textarea.bulletin-receipt-input {
 .key-preview-panel {
     background: #fff;
     border-radius: 20px;
-    max-height: 60vh;
-    overflow-y: auto;
     box-shadow: 0 4px 24px rgba(0,0,0,0.25);
     padding: 0;
 }
-.key-preview-panel::-webkit-scrollbar { width: 4px; }
-.key-preview-panel::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
 .key-preview-complete {
     margin-top: 16px;
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
