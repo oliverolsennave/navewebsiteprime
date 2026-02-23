@@ -583,8 +583,13 @@ export function renderLockedChurch(d) {
     html += `</div>`;
 
     // CTA: "Unlock Parish For Everyone" with rainbow border
+    const unlockParams = new URLSearchParams({ type: 'church' });
+    if (d._docId) unlockParams.set('id', d._docId);
+    if (d.name) unlockParams.set('name', d.name);
+    const addrParts = [d.address, d.city, d.state].filter(Boolean).join(', ');
+    if (addrParts) unlockParams.set('address', addrParts);
     html += `<div style="padding: 0 20px 8px;">
-                <a href="join.html" class="entity-detail-unlock-btn">Unlock Parish For Everyone</a>
+                <a href="join.html?${unlockParams.toString()}" class="entity-detail-unlock-btn">Unlock Parish For Everyone</a>
             </div>`;
 
     // "See an example" link — find an unlocked parish

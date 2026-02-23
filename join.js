@@ -17,6 +17,31 @@ import {
     getDoc,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { renderEntityDetailHTML } from './entity-detail.js';
+
+// ── Global stubs for onclick handlers in entity-detail rendered HTML ──
+window.switchScheduleTab = function(schedId, tab) {
+    const tabBar = document.getElementById(schedId + '-tabs');
+    if (tabBar) tabBar.querySelectorAll('.entity-detail-schedule-tab').forEach(t => t.classList.remove('active'));
+    ['mass', 'confession', 'adoration'].forEach(t => {
+        const el = document.getElementById(schedId + '-' + t);
+        if (el) el.classList.remove('active');
+    });
+    const content = document.getElementById(schedId + '-' + tab);
+    if (content) content.classList.add('active');
+    if (tabBar) {
+        tabBar.querySelectorAll('.entity-detail-schedule-tab').forEach(t => {
+            if (t.textContent.toLowerCase().replace(/\s/g,'') === tab) t.classList.add('active');
+        });
+    }
+};
+window.heroCarouselTo = function() {};
+window.openGalleryLightbox = function() {};
+window.toggleFollowKey = function() {};
+window.shareEntity = function() {};
+window.notifyEntity = function() {};
+window.toggleFavorite = function() {};
+window.messageEntityOwner = function() {};
 
 const steps = ['step-auth', 'step-type', 'step-subscription', 'step-form', 'step-success'];
 const indicator = document.getElementById('join-step-indicator');
@@ -36,6 +61,9 @@ let hasActiveSubscription = false;
 let bulletinUrl = null;
 let structuredSchedules = null;
 let structuredEvents = null;
+let unlockChurchId = null;
+let unlockChurchName = null;
+let unlockChurchAddress = null;
 
 // ── Schedule dropdown helpers ────────────────────────────────────────
 const SCHEDULE_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Monday-Friday'];
@@ -197,8 +225,8 @@ function showStep(index) {
         dot.classList.toggle('done', i <= maxStepReached && i !== index);
         dot.disabled = i > maxStepReached;
     });
-    // Reset bulletin sub-views when returning to step 1
-    if (index === 1) {
+    // Reset bulletin sub-views when returning to step 1 (skip for church unlock flow)
+    if (index === 1 && !unlockChurchId) {
         const bc = document.getElementById('bulletin-choice');
         const bu = document.getElementById('bulletin-upload');
         if (bc) bc.classList.add('hidden');
@@ -317,6 +345,12 @@ onAuthStateChanged(auth, user => {
     if (user) {
         setAuthMessage(`Signed in as ${user.phoneNumber || user.email || 'user'}.`);
         requireAuthNext();
+        // Auto-advance to bulletin choice for church unlock flow
+        if (unlockChurchId && currentStep <= 1) {
+            keyTypeGrid.classList.add('hidden');
+            toSubscriptionBtn.classList.add('hidden');
+            document.getElementById('bulletin-choice').classList.remove('hidden');
+        }
     }
 });
 
@@ -452,6 +486,38 @@ document.getElementById('btn-bulletin-continue').addEventListener('click', () =>
         previewGeocode(addrParts.join(', '), 'geocode-church');
     }
 
+    // ── Church unlock flow: show entity detail preview instead of going to subscribe ──
+    if (unlockChurchId) {
+        const previewData = {
+            _type: 'church',
+            _docId: unlockChurchId,
+            name: val('field-name'),
+            address: val('field-church-address'),
+            city: val('field-church-city'),
+            state: val('field-church-state'),
+            description: val('field-church-description'),
+            website: val('field-church-website'),
+            isUnlocked: true,
+            massSchedule: structuredSchedules?.massSchedule || {},
+            confessionSchedule: structuredSchedules?.confessionSchedule || {},
+            adorationSchedule: structuredSchedules?.adorationSchedule || {},
+            events: structuredEvents || [],
+            pastorPSAs: val('field-pastor-psas'),
+        };
+        const previewHTML = renderEntityDetailHTML(previewData, { isOwner: true });
+        document.getElementById('key-preview-content').innerHTML = previewHTML;
+
+        // Hide bulletin upload, show preview
+        bulletinUpload.classList.add('hidden');
+        document.getElementById('key-preview').classList.remove('hidden');
+
+        // Show tip popup after a short delay
+        setTimeout(() => {
+            document.getElementById('key-preview-tip').classList.remove('hidden');
+        }, 300);
+        return;
+    }
+
     resetBulletinUI();
     maxStepReached = Math.max(maxStepReached, 2);
     showStep(2);
@@ -474,6 +540,116 @@ document.getElementById('btn-upload-bulletin').addEventListener('click', () => {
 document.getElementById('btn-bulletin-back').addEventListener('click', () => {
     bulletinUpload.classList.add('hidden');
     bulletinChoice.classList.remove('hidden');
+});
+
+// ── Tip dismiss handler ──────────────────────────────────────────────
+document.getElementById('btn-dismiss-tip').addEventListener('click', () => {
+    document.getElementById('key-preview-tip').classList.add('hidden');
+});
+
+// ── "Complete Key" — write to Firebase matching iOS behavior ─────────
+document.getElementById('btn-complete-key').addEventListener('click', async () => {
+    if (!currentUser) return showStep(0);
+    if (!unlockChurchId) return;
+
+    const btn = document.getElementById('btn-complete-key');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+        // Geocode address
+        const locationStr = ['field-church-address', 'field-church-city', 'field-church-state', 'field-church-zip']
+            .map(id => val(id)).filter(Boolean).join(', ');
+        const { latitude, longitude } = await geocodeAddress(locationStr);
+
+        // Build update data matching iOS DoublePrimeParishSubmissionForm.swift:673
+        const updateData = {
+            isUnlocked: true,
+            bulletinSubmittedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            source: 'web_unlock',
+            createdByUserId: currentUser.uid,
+            latitude,
+            longitude,
+        };
+
+        // Add extracted fields only if non-empty (matching iOS pattern)
+        const name = val('field-name');
+        if (name) updateData.name = name;
+        if (val('field-pastor-name')) updateData.pastorName = val('field-pastor-name');
+        if (val('field-church-email')) updateData.contactEmail = val('field-church-email');
+        if (val('field-church-phone')) updateData.contactPhone = val('field-church-phone');
+        if (val('field-church-address')) updateData.address = val('field-church-address');
+        if (val('field-church-city')) updateData.city = val('field-church-city');
+        if (val('field-church-state')) updateData.state = val('field-church-state');
+        if (val('field-church-zip')) updateData.zipCode = val('field-church-zip');
+        if (val('field-church-website')) updateData.website = val('field-church-website');
+        if (val('field-church-description')) updateData.description = val('field-church-description');
+        if (val('field-pastor-psas')) updateData.pastorPSAs = val('field-pastor-psas');
+
+        // Add structured schedules if available
+        if (structuredSchedules) {
+            if (structuredSchedules.massSchedule && Object.keys(structuredSchedules.massSchedule).length > 0) {
+                updateData.massSchedule = structuredSchedules.massSchedule;
+            }
+            if (structuredSchedules.confessionSchedule && Object.keys(structuredSchedules.confessionSchedule).length > 0) {
+                updateData.confessionSchedule = structuredSchedules.confessionSchedule;
+            }
+            if (structuredSchedules.adorationSchedule && Object.keys(structuredSchedules.adorationSchedule).length > 0) {
+                updateData.adorationSchedule = structuredSchedules.adorationSchedule;
+            }
+        }
+
+        // Add structured events if available
+        if (structuredEvents && structuredEvents.length > 0) {
+            updateData.events = structuredEvents;
+        }
+
+        // Include bulletin URL if uploaded
+        if (bulletinUrl) {
+            updateData.latestBulletinURLs = [bulletinUrl];
+        }
+
+        // Flatten schedules for legacy text fields
+        const massFl = flattenSchedule(structuredSchedules?.massSchedule || {});
+        if (massFl) updateData.massTimes = massFl;
+        const confFl = flattenSchedule(structuredSchedules?.confessionSchedule || {});
+        if (confFl) updateData.confessionTimes = confFl;
+        const adorFl = flattenSchedule(structuredSchedules?.adorationSchedule || {});
+        if (adorFl) updateData.adorationTimes = adorFl;
+
+        // Write to Churches/{unlockChurchId} — merge, NO createdAt (preserve original)
+        await setDoc(doc(db, 'Churches', unlockChurchId), updateData, { merge: true });
+
+        // Write submission record for web tracking
+        const submissionId = crypto.randomUUID();
+        await setDoc(doc(db, 'users', currentUser.uid, 'submissions', submissionId), {
+            id: submissionId,
+            objectId: unlockChurchId,
+            objectName: name || unlockChurchName || '',
+            objectType: 'parish',
+            submissionStatus: 'approved',
+            submittedAt: serverTimestamp(),
+            approvedAt: serverTimestamp(),
+            description: val('field-church-description') || null,
+            contactEmail: val('field-church-email') || currentUser.email || null,
+            contactPhone: val('field-church-phone') || currentUser.phoneNumber || null,
+            website: val('field-church-website') || null,
+            address: val('field-church-address') || null,
+            country: 'USA',
+            latitude,
+            longitude,
+        });
+
+        // Success — show step 4 (success), then offer subscription upsell
+        maxStepReached = Math.max(maxStepReached, 4);
+        document.getElementById('key-preview').classList.add('hidden');
+        showStep(4);
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Complete Key';
+        alert('Failed to complete key: ' + (err.message || 'Unknown error'));
+    }
 });
 
 // Drag & drop events
@@ -884,7 +1060,7 @@ joinForm.addEventListener('submit', async (e) => {
     submitStatus.classList.remove('error');
 
     try {
-        const objectId = doc(collection(db, config.collection)).id;
+        const objectId = unlockChurchId || doc(collection(db, config.collection)).id;
         const submissionId = crypto.randomUUID();
         const name = val('field-name');
 
@@ -1032,8 +1208,8 @@ joinForm.addEventListener('submit', async (e) => {
         objectData.latitude = latitude;
         objectData.longitude = longitude;
 
-        // Write to Firestore
-        await setDoc(doc(db, config.collection, objectId), objectData);
+        // Write to Firestore (merge if updating an existing locked church)
+        await setDoc(doc(db, config.collection, objectId), objectData, unlockChurchId ? { merge: true } : {});
 
         const submissionData = {
             id: submissionId,
@@ -1064,8 +1240,59 @@ joinForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Handle return from Stripe Checkout
+// ── Handle church unlock flow from locked parish ─────────────────────
 const urlParams = new URLSearchParams(window.location.search);
+
+if (urlParams.get('type') === 'church') {
+    unlockChurchId = urlParams.get('id') || null;
+    unlockChurchName = urlParams.get('name') || null;
+    unlockChurchAddress = urlParams.get('address') || null;
+
+    // Pre-select church type
+    selectedType = 'church';
+    document.querySelectorAll('.join-type-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.type === 'church');
+    });
+    document.getElementById('field-type-readonly').value = 'Church';
+    document.querySelectorAll('.join-form-group').forEach(group => {
+        group.classList.toggle('hidden', group.dataset.keytype !== 'church');
+    });
+    const disclaimer = document.getElementById('join-disclaimer');
+    disclaimer.classList.toggle('visible', true);
+    document.querySelectorAll('#disclaimer-list li').forEach(li => {
+        li.classList.toggle('visible', li.dataset.keytype === 'church');
+    });
+    toSubscriptionBtn.disabled = false;
+
+    // Pre-fill name and address fields
+    if (unlockChurchName) {
+        document.getElementById('field-name').value = unlockChurchName;
+    }
+
+    // Populate context banners
+    function populateChurchContext() {
+        const ids = [
+            ['bulletin-church-name', 'bulletin-church-address', 'bulletin-church-context'],
+            ['bulletin-upload-church-name', 'bulletin-upload-church-address', 'bulletin-upload-church-context']
+        ];
+        ids.forEach(([nameId, addrId, containerId]) => {
+            const nameEl = document.getElementById(nameId);
+            const addrEl = document.getElementById(addrId);
+            const container = document.getElementById(containerId);
+            if (unlockChurchName && nameEl) nameEl.textContent = unlockChurchName;
+            if (unlockChurchAddress && addrEl) addrEl.textContent = unlockChurchAddress;
+            if ((unlockChurchName || unlockChurchAddress) && container) container.classList.remove('hidden');
+        });
+        // Update heading
+        const heading = document.getElementById('bulletin-choice-heading');
+        if (heading && unlockChurchName) {
+            heading.innerHTML = `Unlock <strong>${unlockChurchName}</strong>`;
+        }
+    }
+    populateChurchContext();
+}
+
+// Handle return from Stripe Checkout
 const stripeSessionId = urlParams.get('session_id');
 const returnStep = urlParams.get('step');
 

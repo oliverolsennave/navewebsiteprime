@@ -110,7 +110,11 @@
 
                 <!-- Bulletin choice (church only, shown after Continue) -->
                 <div class="bulletin-choice hidden" id="bulletin-choice">
-                    <h2>How would you like to add your parish?</h2>
+                    <h2 id="bulletin-choice-heading">How would you like to add your parish?</h2>
+                    <div class="bulletin-church-context hidden" id="bulletin-church-context">
+                        <span class="bulletin-church-name" id="bulletin-church-name"></span>
+                        <span class="bulletin-church-address" id="bulletin-church-address"></span>
+                    </div>
                     <div class="bulletin-choice-grid">
                         <button type="button" class="bulletin-choice-card" id="btn-upload-bulletin">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
@@ -128,6 +132,10 @@
                 <!-- Bulletin upload zone (shown after choosing upload) -->
                 <div class="bulletin-upload hidden" id="bulletin-upload">
                     <button type="button" class="bulletin-back" id="btn-bulletin-back">&larr; Back</button>
+                    <div class="bulletin-church-context hidden" id="bulletin-upload-church-context">
+                        <span class="bulletin-church-name" id="bulletin-upload-church-name"></span>
+                        <span class="bulletin-church-address" id="bulletin-upload-church-address"></span>
+                    </div>
                     <div class="bulletin-dropzone" id="bulletin-dropzone">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         <p class="bulletin-dropzone-text">Drag & drop your bulletin here</p>
@@ -165,6 +173,23 @@
                         </div>
                         <button type="button" class="join-next" id="btn-bulletin-continue">Looks Good — Continue</button>
                     </div>
+                </div>
+
+                <!-- Entity detail preview (church unlock only) -->
+                <div class="key-preview hidden" id="key-preview">
+                    <h2>Here's what your key will look like</h2>
+                    <div class="key-preview-panel" id="key-preview-content">
+                        <!-- renderEntityDetailHTML output injected here -->
+                    </div>
+                    <div class="key-preview-tip hidden" id="key-preview-tip">
+                        <div class="key-preview-tip-icons">
+                            <span class="key-preview-tip-icon">&#9998;</span>
+                            <span class="key-preview-tip-icon">&#65291;</span>
+                        </div>
+                        <p>After your key is live, use the <strong>pencil</strong> icon to edit details and the <strong>+</strong> icon to add photos, staff, groups, and more.</p>
+                        <button type="button" class="key-preview-tip-dismiss" id="btn-dismiss-tip">Got it</button>
+                    </div>
+                    <button type="button" class="join-next key-preview-complete" id="btn-complete-key">Complete Key</button>
                 </div>
             </section>
 
