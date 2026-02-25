@@ -1,5 +1,13 @@
 {
   "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)\\.pkpass",
+      "headers": [
+        { "key": "Content-Type", "value": "application/vnd.apple.pkpass" }
+      ]
+    }
+  ],
   "functions": {
     "api/stripe-webhook.js": {
       "maxDuration": 30
