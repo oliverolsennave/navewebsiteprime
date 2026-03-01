@@ -50,19 +50,35 @@ module.exports = async function handler(req, res) {
       await userRef.set({ stripeCustomerId }, { merge: true });
     }
 
-    // The price ID must be set in Stripe Dashboard and stored here.
-    // This should match the "Nave Key Owner Pro" $9.99/3mo price.
+    // Nave Key Owner Pro — $49.99/month recurring price
     const priceId = process.env.STRIPE_SUBSCRIPTION_PRICE_ID;
     if (!priceId) {
       return res.status(500).json({ error: 'Stripe subscription price not configured' });
     }
 
+    const lineItems = [{ price: priceId, quantity: 1 }];
+
+    // "three_months" plan: charge $9.99 upfront + 90-day trial before $49.99/mo kicks in
+    // "trial" plan: free 30-day trial, then $49.99/mo
+    if (plan === 'three_months') {
+      lineItems.push({
+        price_data: {
+          currency: 'usd',
+          unit_amount: 999,
+          product_data: { name: 'Nave Pro Trial — 3 Months' },
+        },
+        quantity: 1,
+      });
+    }
+
+    const trialDays = plan === 'three_months' ? 90 : 30;
+
     const sessionParams = {
       mode: 'subscription',
       customer: stripeCustomerId,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: lineItems,
       subscription_data: {
-        trial_period_days: 30,
+        trial_period_days: trialDays,
         metadata: { firebaseUserId: userId, plan },
       },
       metadata: { firebaseUserId: userId, plan },

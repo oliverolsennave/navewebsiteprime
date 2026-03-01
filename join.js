@@ -917,44 +917,24 @@ toFormBtn.addEventListener('click', async () => {
     const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'trial';
     const subStatus = document.getElementById('subscription-status');
 
-    if (selectedPlan === 'three_months') {
-        // Paid plan — redirect to Stripe Checkout
-        if (!currentUser) return showStep(0);
-        subStatus.textContent = 'Redirecting to checkout...';
-        subStatus.classList.remove('error');
-        try {
-            const idToken = await currentUser.getIdToken();
-            const resp = await fetch('/api/create-subscription-checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ firebaseIdToken: idToken, plan: selectedPlan }),
-            });
-            const data = await resp.json();
-            if (!resp.ok) throw new Error(data.error || 'Checkout failed');
-            window.location.href = data.sessionUrl;
-        } catch (err) {
-            subStatus.textContent = err.message;
-            subStatus.classList.add('error');
-        }
-    } else {
-        // Free / trial plan — write trial status to Firestore and proceed to form
-        if (currentUser) {
-            try {
-                await setDoc(doc(db, 'users', currentUser.uid), {
-                    subscription: {
-                        status: 'trialing',
-                        plan: 'trial',
-                        trialEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                        updatedAt: new Date(),
-                    }
-                }, { merge: true });
-                hasActiveSubscription = true;
-            } catch (err) {
-                console.error('Failed to write trial status:', err);
-            }
-        }
-        maxStepReached = Math.max(maxStepReached, 3);
-        showStep(3);
+    // Both plans now go through Stripe Checkout so we collect a payment method
+    // for the $49.99/mo charge after the trial ends.
+    if (!currentUser) return showStep(0);
+    subStatus.textContent = 'Redirecting to checkout...';
+    subStatus.classList.remove('error');
+    try {
+        const idToken = await currentUser.getIdToken();
+        const resp = await fetch('/api/create-subscription-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firebaseIdToken: idToken, plan: selectedPlan }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Checkout failed');
+        window.location.href = data.sessionUrl;
+    } catch (err) {
+        subStatus.textContent = err.message;
+        subStatus.classList.add('error');
     }
 });
 
