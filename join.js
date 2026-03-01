@@ -913,14 +913,16 @@ async function processBulletinFile(file) {
         bulletinStatus.className = 'bulletin-status error';
     }
 }
+// Stripe embedded checkout
+const stripePublishableKey = 'pk_test_51T07IpF1Teag8MOAGIlAthiS4KHBqvAwi8UkKCiOKy3c7AN6jQhUcQhRSgpvlgGStQtHKLTE0mF8Mdz8IDhETaJ100ZeDiF4wl';
+let stripeCheckoutInstance = null;
+
 toFormBtn.addEventListener('click', async () => {
     const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'trial';
     const subStatus = document.getElementById('subscription-status');
 
-    // Both plans now go through Stripe Checkout so we collect a payment method
-    // for the $49.99/mo charge after the trial ends.
     if (!currentUser) return showStep(0);
-    subStatus.textContent = 'Redirecting to checkout...';
+    subStatus.textContent = 'Loading checkout...';
     subStatus.classList.remove('error');
     try {
         const idToken = await currentUser.getIdToken();
@@ -931,11 +933,38 @@ toFormBtn.addEventListener('click', async () => {
         });
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || 'Checkout failed');
-        window.location.href = data.sessionUrl;
+
+        // Destroy previous instance if any
+        if (stripeCheckoutInstance) {
+            stripeCheckoutInstance.destroy();
+            stripeCheckoutInstance = null;
+        }
+
+        // Show embedded checkout container, hide plan chooser
+        document.getElementById('subscription-chooser').classList.add('hidden');
+        document.getElementById('stripe-checkout-container').classList.remove('hidden');
+        subStatus.textContent = '';
+
+        const stripe = Stripe(stripePublishableKey);
+        stripeCheckoutInstance = await stripe.initEmbeddedCheckout({
+            clientSecret: data.clientSecret,
+        });
+        stripeCheckoutInstance.mount('#stripe-checkout-mount');
     } catch (err) {
         subStatus.textContent = err.message;
         subStatus.classList.add('error');
     }
+});
+
+// Back button to return to plan selection
+document.getElementById('btn-back-to-plans')?.addEventListener('click', () => {
+    if (stripeCheckoutInstance) {
+        stripeCheckoutInstance.destroy();
+        stripeCheckoutInstance = null;
+    }
+    document.getElementById('stripe-checkout-mount').innerHTML = '';
+    document.getElementById('stripe-checkout-container').classList.add('hidden');
+    document.getElementById('subscription-chooser').classList.remove('hidden');
 });
 
 // Step indicator navigation (back or reached steps only)

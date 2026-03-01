@@ -74,6 +74,7 @@ module.exports = async function handler(req, res) {
     const trialDays = plan === 'three_months' ? 90 : 30;
 
     const sessionParams = {
+      ui_mode: 'embedded',
       mode: 'subscription',
       customer: stripeCustomerId,
       line_items: lineItems,
@@ -82,13 +83,12 @@ module.exports = async function handler(req, res) {
         metadata: { firebaseUserId: userId, plan },
       },
       metadata: { firebaseUserId: userId, plan },
-      success_url: `${getOrigin(req)}/join?session_id={CHECKOUT_SESSION_ID}&step=form`,
-      cancel_url: `${getOrigin(req)}/join?canceled=true`,
+      return_url: `${getOrigin(req)}/join?session_id={CHECKOUT_SESSION_ID}&step=form`,
     };
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
-    return res.status(200).json({ sessionUrl: session.url });
+    return res.status(200).json({ clientSecret: session.client_secret });
   } catch (err) {
     console.error('Error creating subscription checkout:', err);
     return res.status(500).json({ error: err.message || 'Failed to create checkout session' });
