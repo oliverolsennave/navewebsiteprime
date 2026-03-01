@@ -78,6 +78,7 @@ module.exports = async function handler(req, res) {
       mode: 'subscription',
       customer: stripeCustomerId,
       line_items: lineItems,
+      payment_method_collection: 'always',
       subscription_data: {
         trial_period_days: trialDays,
         metadata: { firebaseUserId: userId, plan },

@@ -974,9 +974,17 @@ toFormBtn.addEventListener('click', async () => {
             },
         });
 
+        console.log('Checkout session:', stripeCheckoutInstance.session());
+
         paymentElement = stripeCheckoutInstance.createPaymentElement();
         paymentElement.mount('#payment-element');
+
+        paymentElement.on('ready', () => {
+            console.log('Payment element ready');
+        });
+
         paymentElement.on('change', (event) => {
+            console.log('Payment element change:', event);
             document.getElementById('btn-stripe-pay').disabled = !event.complete;
             const errEl = document.getElementById('checkout-error');
             if (event.error) {
