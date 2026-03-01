@@ -913,9 +913,10 @@ async function processBulletinFile(file) {
         bulletinStatus.className = 'bulletin-status error';
     }
 }
-// Stripe embedded checkout
+// Stripe Custom Checkout with dark theme
 const stripePublishableKey = 'pk_test_51T07IpF1Teag8MOAGIlAthiS4KHBqvAwi8UkKCiOKy3c7AN6jQhUcQhRSgpvlgGStQtHKLTE0mF8Mdz8IDhETaJ100ZeDiF4wl';
 let stripeCheckoutInstance = null;
+let paymentElement = null;
 
 toFormBtn.addEventListener('click', async () => {
     const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'trial';
@@ -934,35 +935,87 @@ toFormBtn.addEventListener('click', async () => {
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || 'Checkout failed');
 
-        // Destroy previous instance if any
-        if (stripeCheckoutInstance) {
-            stripeCheckoutInstance.destroy();
-            stripeCheckoutInstance = null;
-        }
+        // Clean up previous instance
+        if (paymentElement) { paymentElement.destroy(); paymentElement = null; }
+        if (stripeCheckoutInstance) { stripeCheckoutInstance = null; }
+        document.getElementById('payment-element').innerHTML = '';
 
-        // Show embedded checkout container, hide plan chooser
+        // Show checkout container, hide plan chooser
         document.getElementById('subscription-chooser').classList.add('hidden');
         document.getElementById('stripe-checkout-container').classList.remove('hidden');
+        document.getElementById('checkout-error').classList.add('hidden');
+        document.getElementById('btn-stripe-pay').disabled = true;
         subStatus.textContent = '';
 
+        // Show plan summary
+        const summaryEl = document.getElementById('stripe-checkout-summary');
+        if (selectedPlan === 'three_months') {
+            summaryEl.innerHTML = '<strong>$9.99 today</strong> for 3 months, then <strong>$49.99/month</strong>';
+        } else {
+            summaryEl.innerHTML = '<strong>30 days free</strong>, then <strong>$49.99/month</strong>';
+        }
+
+        // Init Custom Checkout with night theme
         const stripe = Stripe(stripePublishableKey);
-        stripeCheckoutInstance = await stripe.initEmbeddedCheckout({
+        stripeCheckoutInstance = await stripe.initCheckout({
             clientSecret: data.clientSecret,
+            elementsOptions: {
+                appearance: {
+                    theme: 'night',
+                    variables: {
+                        colorPrimary: '#d4af37',
+                        colorBackground: '#111111',
+                        colorText: '#f5f5f5',
+                        colorDanger: '#ff4444',
+                        fontFamily: 'Instrument Sans, system-ui, sans-serif',
+                        borderRadius: '10px',
+                    },
+                },
+            },
         });
-        stripeCheckoutInstance.mount('#stripe-checkout-mount');
+
+        paymentElement = stripeCheckoutInstance.createPaymentElement();
+        paymentElement.mount('#payment-element');
+        paymentElement.on('change', (event) => {
+            document.getElementById('btn-stripe-pay').disabled = !event.complete;
+            const errEl = document.getElementById('checkout-error');
+            if (event.error) {
+                errEl.textContent = event.error.message;
+                errEl.classList.remove('hidden');
+            } else {
+                errEl.classList.add('hidden');
+            }
+        });
     } catch (err) {
         subStatus.textContent = err.message;
         subStatus.classList.add('error');
     }
 });
 
+// Submit payment
+document.getElementById('btn-stripe-pay')?.addEventListener('click', async () => {
+    if (!stripeCheckoutInstance) return;
+    const payBtn = document.getElementById('btn-stripe-pay');
+    const errEl = document.getElementById('checkout-error');
+    payBtn.disabled = true;
+    payBtn.textContent = 'Processing...';
+    errEl.classList.add('hidden');
+
+    const { error } = await stripeCheckoutInstance.confirm();
+    if (error) {
+        errEl.textContent = error.message;
+        errEl.classList.remove('hidden');
+        payBtn.disabled = false;
+        payBtn.textContent = 'Subscribe';
+    }
+    // On success, Stripe redirects to the return_url automatically
+});
+
 // Back button to return to plan selection
 document.getElementById('btn-back-to-plans')?.addEventListener('click', () => {
-    if (stripeCheckoutInstance) {
-        stripeCheckoutInstance.destroy();
-        stripeCheckoutInstance = null;
-    }
-    document.getElementById('stripe-checkout-mount').innerHTML = '';
+    if (paymentElement) { paymentElement.destroy(); paymentElement = null; }
+    stripeCheckoutInstance = null;
+    document.getElementById('payment-element').innerHTML = '';
     document.getElementById('stripe-checkout-container').classList.add('hidden');
     document.getElementById('subscription-chooser').classList.remove('hidden');
 });

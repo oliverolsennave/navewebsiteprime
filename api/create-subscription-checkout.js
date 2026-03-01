@@ -74,7 +74,7 @@ module.exports = async function handler(req, res) {
     const trialDays = plan === 'three_months' ? 90 : 30;
 
     const sessionParams = {
-      ui_mode: 'embedded',
+      ui_mode: 'custom',
       mode: 'subscription',
       customer: stripeCustomerId,
       line_items: lineItems,
