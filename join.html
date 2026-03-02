@@ -195,36 +195,27 @@
 
             <!-- Step 3: Subscription -->
             <section class="join-step hidden" id="step-subscription">
-                <div id="subscription-chooser">
-                    <h2>Choose your trial</h2>
-                    <div class="join-subscription-options">
-                        <label class="join-sub-option">
-                            <input type="radio" name="plan" value="trial" checked>
-                            <span>Free — 1 month trial</span>
-                        </label>
-                        <label class="join-sub-option">
-                            <input type="radio" name="plan" value="three_months">
-                            <span>$9.99 — 3 month trial</span>
-                        </label>
-                    </div>
-                    <div class="join-toggle">
-                        <span>Remind me before my trial ends</span>
-                        <label class="switch">
-                            <input type="checkbox" id="trial-reminder" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <p class="join-sub-note">After your trial, $49.99/month. Cancel anytime.</p>
-                    <div id="subscription-status" class="join-form-note"></div>
-                    <button class="join-next" id="to-form">Continue</button>
+                <h2>Choose your trial</h2>
+                <div class="join-subscription-options">
+                    <label class="join-sub-option">
+                        <input type="radio" name="plan" value="trial" checked>
+                        <span>Free — 1 month trial</span>
+                    </label>
+                    <label class="join-sub-option">
+                        <input type="radio" name="plan" value="three_months">
+                        <span>$9.99 — 3 month trial</span>
+                    </label>
                 </div>
-                <div id="stripe-checkout-container" class="hidden">
-                    <button class="join-back-link" id="btn-back-to-plans">&larr; Change plan</button>
-                    <div class="stripe-checkout-summary" id="stripe-checkout-summary"></div>
-                    <div id="payment-element"></div>
-                    <div id="checkout-error" class="join-form-note error hidden"></div>
-                    <button class="join-next stripe-pay-btn" id="btn-stripe-pay" disabled>Subscribe</button>
+                <div class="join-toggle">
+                    <span>Remind me before my trial ends</span>
+                    <label class="switch">
+                        <input type="checkbox" id="trial-reminder" checked>
+                        <span class="slider"></span>
+                    </label>
                 </div>
+                <p class="join-sub-note">After your trial, $49.99/month. Cancel anytime.</p>
+                <div id="subscription-status" class="join-form-note"></div>
+                <button class="join-next" id="to-form">Continue</button>
             </section>
 
             <!-- Step 4: Submission Form -->
@@ -516,7 +507,6 @@
         </div>
     </main>
 
-    <script src="https://js.stripe.com/v3/"></script>
     <script type="module" src="join.js"></script>
 </body>
 </html>
