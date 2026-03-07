@@ -14,6 +14,12 @@
     },
     "api/process-bulletin.js": {
       "maxDuration": 60
+    },
+    "api/parse-resume.js": {
+      "maxDuration": 30
+    },
+    "api/match-mentors.js": {
+      "maxDuration": 30
     }
   }
 }

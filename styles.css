@@ -4130,3 +4130,578 @@ textarea.bulletin-receipt-input {
     .entity-detail-footer { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
     .entity-detail-hero, .entity-detail-hero-carousel { height: 200px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   MENTORSHIP TAB
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Onboarding ──────────────────────────────────────────────────── */
+.eg-mentor-onboarding {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.eg-mentor-onboarding h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.eg-mentor-onboarding p {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.eg-mentor-steps {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.eg-mentor-step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-border);
+    transition: background 0.2s;
+}
+
+.eg-mentor-step-dot.active {
+    background: #4C8BF5;
+}
+
+/* Role cards */
+.eg-mentor-role-cards {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.eg-mentor-role-card {
+    background: var(--color-bg-alt);
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    width: 140px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+}
+
+.eg-mentor-role-card:hover {
+    border-color: #4C8BF5;
+}
+
+.eg-mentor-role-card.selected {
+    border-color: #4C8BF5;
+    background: rgba(76, 139, 245, 0.1);
+}
+
+.eg-mentor-role-card .eg-mentor-role-icon {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.eg-mentor-role-card .eg-mentor-role-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.eg-mentor-role-card .eg-mentor-role-desc {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+/* Resume upload area */
+.eg-mentor-resume-area {
+    margin: 0 auto;
+    max-width: 400px;
+}
+
+.eg-mentor-dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: 12px;
+    padding: 2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 1rem;
+}
+
+.eg-mentor-dropzone:hover,
+.eg-mentor-dropzone.dragover {
+    border-color: #4C8BF5;
+    background: rgba(76, 139, 245, 0.05);
+}
+
+.eg-mentor-dropzone-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.eg-mentor-dropzone-text {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.eg-mentor-dropzone-text strong {
+    color: #4C8BF5;
+}
+
+.eg-mentor-resume-status {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+    min-height: 1.25rem;
+}
+
+.eg-mentor-skip-btn {
+    background: none;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.eg-mentor-skip-btn:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+}
+
+/* Profile form */
+.eg-mentor-form {
+    text-align: left;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.eg-mentor-form-group {
+    margin-bottom: 1rem;
+}
+
+.eg-mentor-form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.eg-mentor-form-group input,
+.eg-mentor-form-group select,
+.eg-mentor-form-group textarea {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.eg-mentor-form-group input:focus,
+.eg-mentor-form-group select:focus,
+.eg-mentor-form-group textarea:focus {
+    border-color: #4C8BF5;
+}
+
+.eg-mentor-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+/* Multi-select pills */
+.eg-mentor-multi-select {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.eg-mentor-pill {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.eg-mentor-pill:hover {
+    border-color: #4C8BF5;
+    color: var(--color-text);
+}
+
+.eg-mentor-pill.selected {
+    background: rgba(76, 139, 245, 0.15);
+    border-color: #4C8BF5;
+    color: #4C8BF5;
+}
+
+.eg-mentor-submit-btn {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: none;
+    background: #4C8BF5;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.15s;
+}
+
+.eg-mentor-submit-btn:hover {
+    background: #3a7ae0;
+}
+
+.eg-mentor-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Match Dashboard ─────────────────────────────────────────────── */
+.eg-mentor-dashboard {
+    padding: 0.5rem 0;
+}
+
+.eg-mentor-section-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin: 1.25rem 0 0.75rem;
+}
+
+.eg-mentor-section-title:first-child {
+    margin-top: 0;
+}
+
+/* Match cards */
+.eg-mentor-match-card {
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.15s;
+}
+
+.eg-mentor-match-card:hover {
+    border-color: rgba(76, 139, 245, 0.3);
+}
+
+.eg-mentor-match-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.eg-mentor-match-photo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(76, 139, 245, 0.15);
+    color: #4C8BF5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.eg-mentor-match-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.eg-mentor-match-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.eg-mentor-match-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.eg-mentor-match-company {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.eg-mentor-match-score {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #4C8BF5;
+    white-space: nowrap;
+}
+
+.eg-mentor-match-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.65rem;
+}
+
+.eg-mentor-match-tag {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+}
+
+.eg-mentor-match-reasons {
+    margin-bottom: 0.75rem;
+}
+
+.eg-mentor-match-reason {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    padding: 0.15rem 0;
+}
+
+.eg-mentor-match-reason::before {
+    content: '+ ';
+    color: #4C8BF5;
+    font-weight: 600;
+}
+
+.eg-mentor-connect-action {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background: #4C8BF5;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.eg-mentor-connect-action:hover {
+    background: #3a7ae0;
+}
+
+.eg-mentor-connect-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.eg-mentor-connect-action.sent {
+    background: rgba(76, 139, 245, 0.15);
+    color: #4C8BF5;
+    cursor: default;
+}
+
+/* Request rows */
+.eg-mentor-request-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.eg-mentor-request-row:last-child {
+    border-bottom: none;
+}
+
+.eg-mentor-request-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.eg-mentor-request-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.eg-mentor-request-sub {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.eg-mentor-request-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.eg-mentor-accept-btn {
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: none;
+    background: #4C8BF5;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.eg-mentor-decline-btn {
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.eg-mentor-message-btn {
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #4C8BF5;
+    background: none;
+    color: #4C8BF5;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.eg-mentor-message-btn:hover {
+    background: rgba(76, 139, 245, 0.1);
+}
+
+/* ── Connection Request Modal ────────────────────────────────────── */
+.eg-mentor-connect-content {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.eg-mentor-connect-header {
+    margin-bottom: 1.25rem;
+}
+
+.eg-mentor-connect-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: rgba(76, 139, 245, 0.15);
+    color: #4C8BF5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0 auto 0.75rem;
+    overflow: hidden;
+}
+
+.eg-mentor-connect-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.eg-mentor-connect-content h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.eg-mentor-connect-tagline {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.eg-mentor-connect-details {
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+}
+
+.eg-mentor-connect-label {
+    display: block;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 0.35rem;
+}
+
+.eg-mentor-connect-textarea {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+
+.eg-mentor-connect-textarea:focus {
+    border-color: #4C8BF5;
+}
+
+.eg-mentor-connect-btn {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: none;
+    background: #4C8BF5;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.eg-mentor-connect-btn:hover {
+    background: #3a7ae0;
+}
+
+.eg-mentor-connect-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Mentor Profile Edit Button ──────────────────────────────────── */
+.eg-mentor-edit-profile {
+    background: none;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    float: right;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.eg-mentor-edit-profile:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+}
