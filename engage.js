@@ -1517,46 +1517,55 @@ function getSelectedPills(container, fieldName) {
 
 async function submitMentorProfile(container, config) {
     const btn = container.querySelector('#eg-mentor-create-btn');
+    if (!btn) return;
     btn.disabled = true;
     btn.textContent = 'Creating...';
 
     const orgId = state.activeOrgId;
     const userId = state.currentUser.uid;
 
-    const profile = {
-        userId,
-        displayName: container.querySelector('#eg-mentor-displayName')?.value.trim() || state.currentUser.displayName || 'User',
-        photoURL: state.currentUser.photoURL || null,
-        companyName: container.querySelector('#eg-mentor-companyName')?.value.trim() || '',
-        tagline: container.querySelector('#eg-mentor-tagline')?.value.trim() || '',
-        businessStage: container.querySelector('#eg-mentor-businessStage')?.value || 'Side Project',
-        industries: getSelectedPills(container, 'industries'),
-        yearsOfExperience: container.querySelector('#eg-mentor-yearsOfExperience')?.value || '0-2',
-        chapterCity: container.querySelector('#eg-mentor-chapterCity')?.value || '',
-        mentorshipRole: state.mentorSelectedRole || 'Mentee',
-        skillsOffered: getSelectedPills(container, 'skillsOffered'),
-        skillsNeeded: getSelectedPills(container, 'skillsNeeded'),
-        maxActiveMatches: 2,
-        meetingFormat: container.querySelector('#eg-mentor-meetingFormat')?.value || 'Either',
-        meetingDuration: 30,
-        isActive: true,
-        resumeText: state.mentorParsedProfile?._resumeText || '',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-    };
-
     try {
+        const profile = {
+            userId,
+            displayName: container.querySelector('#eg-mentor-displayName')?.value.trim() || state.currentUser.displayName || 'User',
+            photoURL: state.currentUser.photoURL || '',
+            companyName: container.querySelector('#eg-mentor-companyName')?.value.trim() || '',
+            tagline: container.querySelector('#eg-mentor-tagline')?.value.trim() || '',
+            businessStage: container.querySelector('#eg-mentor-businessStage')?.value || 'Side Project',
+            industries: getSelectedPills(container, 'industries'),
+            yearsOfExperience: container.querySelector('#eg-mentor-yearsOfExperience')?.value || '0-2',
+            chapterCity: container.querySelector('#eg-mentor-chapterCity')?.value || '',
+            mentorshipRole: state.mentorSelectedRole || 'Mentee',
+            skillsOffered: getSelectedPills(container, 'skillsOffered'),
+            skillsNeeded: getSelectedPills(container, 'skillsNeeded'),
+            maxActiveMatches: 2,
+            meetingFormat: container.querySelector('#eg-mentor-meetingFormat')?.value || 'Either',
+            meetingDuration: 30,
+            isActive: true,
+            resumeText: state.mentorParsedProfile?._resumeText || '',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+
+        console.log('[Mentorship] Creating profile for', userId, 'in org', orgId);
         await setDoc(doc(db, 'organizations', orgId, 'mentorProfiles', userId), profile);
+        console.log('[Mentorship] Profile created successfully');
         state.mentorProfile = { userId, ...profile };
 
         // Reload the mentorship tab to show dashboard
         const tabContainer = $('eg-org-tab-content');
-        tabContainer.innerHTML = '<div class="eg-loading">Loading</div>';
-        await loadMentorshipTab(tabContainer);
+        tabContainer.innerHTML = '<div class="eg-loading">Loading dashboard</div>';
+        await renderMentorDashboard(tabContainer, config);
     } catch (err) {
-        console.error('Error creating mentor profile:', err);
+        console.error('[Mentorship] Error creating profile:', err);
         btn.disabled = false;
         btn.textContent = config.ctaText || 'Create Profile';
+        // Show error to user
+        const errEl = container.querySelector('.eg-mentor-resume-status') || btn.parentElement;
+        const errDiv = document.createElement('div');
+        errDiv.style.cssText = 'color:#e74c3c;font-size:0.85rem;margin-top:0.5rem;text-align:center';
+        errDiv.textContent = 'Error creating profile: ' + (err.message || 'Unknown error');
+        errEl.appendChild(errDiv);
     }
 }
 
@@ -1569,21 +1578,29 @@ async function renderMentorDashboard(container, config) {
 
     container.innerHTML = '<div class="eg-loading">Loading matches</div>';
 
-    // Fetch matches from API
+  try {
+
+    // Fetch matches from API (with timeout to avoid hanging)
     let matches = [];
     try {
         const idToken = await state.currentUser.getIdToken();
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
         const response = await fetch('/api/match-mentors', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orgId, firebaseIdToken: idToken })
+            body: JSON.stringify({ orgId, firebaseIdToken: idToken }),
+            signal: controller.signal
         });
+        clearTimeout(timeout);
         if (response.ok) {
             const data = await response.json();
             matches = data.matches || [];
+        } else {
+            console.warn('[Mentorship] Match API returned', response.status);
         }
     } catch (err) {
-        console.error('Error fetching matches:', err);
+        console.warn('[Mentorship] Match API unavailable:', err.message);
     }
 
     // Fetch pending requests (incoming)
@@ -1750,6 +1767,16 @@ async function renderMentorDashboard(container, config) {
             renderMentorOnboarding(container, config);
         });
     }
+
+  } catch (err) {
+    console.error('[Mentorship] Dashboard render error:', err);
+    container.innerHTML = `<div class="eg-mentor-dashboard">
+        <div style="text-align:center;padding:2rem">
+            <div style="font-size:0.95rem;font-weight:600;margin-bottom:0.5rem">Profile Created!</div>
+            <div style="font-size:0.85rem;color:var(--color-text-muted)">Your mentorship profile is active. Matches will appear as more members join.</div>
+        </div>
+    </div>`;
+  }
 }
 
 function getInitial(name) {
