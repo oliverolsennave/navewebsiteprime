@@ -887,21 +887,31 @@ async function openOrgModal(orgId) {
     $('eg-org-modal-name').textContent = org.name || 'Organization';
     $('eg-org-modal-desc').textContent = org.tagline || org.description || '';
 
-    // Build tabs dynamically based on org features
+    // Build tabs dynamically based on org
     const tabsContainer = document.querySelector('.eg-org-tabs');
     const features = org.features || [];
-    // SENT Ventures always has mentorship (org may not have features array in Firestore yet)
-    const hasMentorship = features.includes('mentorship') || orgId === 'sent-ventures';
+    const isSent = orgId === 'sent-ventures';
+    const hasMentorship = features.includes('mentorship') || isSent;
     const hasForums = features.includes('forums');
 
-    let tabsHtml = '<button class="eg-org-tab active" data-tab="channels">Channels</button>';
-    if (hasMentorship) {
+    let tabsHtml = '';
+    let defaultTab = 'channels';
+
+    if (isSent) {
+        // SENT Ventures: Home + Mentorship only
+        tabsHtml = '<button class="eg-org-tab active" data-tab="sent-home">Home</button>';
         tabsHtml += '<button class="eg-org-tab" data-tab="mentorship">Mentorship</button>';
+        defaultTab = 'sent-home';
+    } else {
+        tabsHtml = '<button class="eg-org-tab active" data-tab="channels">Channels</button>';
+        if (hasMentorship) {
+            tabsHtml += '<button class="eg-org-tab" data-tab="mentorship">Mentorship</button>';
+        }
+        if (hasForums) {
+            tabsHtml += '<button class="eg-org-tab" data-tab="forums">Forums</button>';
+        }
+        tabsHtml += '<button class="eg-org-tab" data-tab="resources">Resources</button>';
     }
-    if (hasForums) {
-        tabsHtml += '<button class="eg-org-tab" data-tab="forums">Forums</button>';
-    }
-    tabsHtml += '<button class="eg-org-tab" data-tab="resources">Resources</button>';
     tabsContainer.innerHTML = tabsHtml;
 
     // Re-bind tab click listeners
@@ -913,8 +923,8 @@ async function openOrgModal(orgId) {
         });
     });
 
-    // Load channels tab
-    await loadOrgTabContent('channels');
+    // Load default tab
+    await loadOrgTabContent(defaultTab);
 
     // Show modal
     $('eg-org-modal').classList.remove('hidden');
@@ -927,7 +937,11 @@ async function loadOrgTabContent(tabName) {
     const orgId = state.activeOrgId;
 
     try {
-        if (tabName === 'channels') {
+        if (tabName === 'sent-home') {
+            renderSentHome(container);
+            return;
+
+        } else if (tabName === 'channels') {
             const snap = await getDocs(collection(db, 'organizations', orgId, 'channels'));
             const channels = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -1192,6 +1206,101 @@ function renderChatMessages(container, messages) {
 
     // Scroll to bottom
     container.scrollTop = container.scrollHeight;
+}
+
+// ==========================================================================
+// SENT Ventures — Home Tab
+// ==========================================================================
+
+function renderSentHome(container) {
+    container.innerHTML = `
+    <div class="eg-sent-home">
+        <div class="eg-sent-hero">
+            <div class="eg-sent-tagline">Lead with Conviction.<br>Build Faithfully.<br>Succeed Together.</div>
+            <h2 class="eg-sent-title">SENT Membership</h2>
+            <p class="eg-sent-subtitle">If you want to grow faster, think bigger, and make a lasting impact, you need more than just ambition. You need a network that fuels your growth and keeps you grounded.</p>
+        </div>
+
+        <div class="eg-sent-section-label">What you'll gain as a SENT member</div>
+
+        <div class="eg-sent-benefits">
+            <div class="eg-sent-benefit">
+                <div class="eg-sent-benefit-icon">&#x1F4C8;</div>
+                <div class="eg-sent-benefit-text">
+                    <strong>Proven Growth Strategies</strong>
+                    <span>Learn and apply practices that top Catholic entrepreneurs use to scale effectively.</span>
+                </div>
+            </div>
+            <div class="eg-sent-benefit">
+                <div class="eg-sent-benefit-icon">&#x1F91D;</div>
+                <div class="eg-sent-benefit-text">
+                    <strong>Meaningful Peer Connections</strong>
+                    <span>Build trusted relationships with leaders who understand your journey.</span>
+                </div>
+            </div>
+            <div class="eg-sent-benefit">
+                <div class="eg-sent-benefit-icon">&#x2B50;</div>
+                <div class="eg-sent-benefit-text">
+                    <strong>Exclusive Events &amp; Masterminds</strong>
+                    <span>Get access to high-level gatherings designed to sharpen your thinking and expand your impact.</span>
+                </div>
+            </div>
+            <div class="eg-sent-benefit">
+                <div class="eg-sent-benefit-icon">&#x1F3AF;</div>
+                <div class="eg-sent-benefit-text">
+                    <strong>Conviction in Every Choice</strong>
+                    <span>Make confident decisions that align with your mission and values.</span>
+                </div>
+            </div>
+            <div class="eg-sent-benefit">
+                <div class="eg-sent-benefit-icon">&#x1F9D1;&#x200D;&#x1F3EB;</div>
+                <div class="eg-sent-benefit-text">
+                    <strong>Mentorship from Experienced Leaders</strong>
+                    <span>Receive guidance from those who've built lasting success without compromise.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="eg-sent-section-label">Your Path to Impact Starts Here</div>
+
+        <div class="eg-sent-tiers">
+            <div class="eg-sent-tier">
+                <div class="eg-sent-tier-badge">Essential</div>
+                <h3>SENT Essential</h3>
+                <p class="eg-sent-tier-tagline">Strong foundations for lasting growth.</p>
+                <p class="eg-sent-tier-desc">For Catholic entrepreneurs who want a trusted community, curated resources, and consistent peer interaction to accelerate their growth in business and faith.</p>
+                <ul class="eg-sent-tier-list">
+                    <li>Monthly mentor sessions to drive strategy and growth</li>
+                    <li>Access to the full SENT community platform and member resources</li>
+                    <li>Business and faith formation content to guide decision-making</li>
+                    <li>Local community and events across the country, including annual Summit</li>
+                </ul>
+                <a href="https://sentventures.com" target="_blank" rel="noopener" class="eg-sent-tier-btn">Explore Essential</a>
+            </div>
+
+            <div class="eg-sent-tier eg-sent-tier-featured">
+                <div class="eg-sent-tier-badge">Fellowship</div>
+                <h3>SENT Fellowship</h3>
+                <p class="eg-sent-tier-tagline">Your inner circle for transformational growth.</p>
+                <p class="eg-sent-tier-desc">For Catholic entrepreneurs seeking deep collaboration, tight accountability, and meaningful relationships with a select group of high-caliber peers.</p>
+                <ul class="eg-sent-tier-list">
+                    <li>Small peer advisory groups for intimate, high-trust discussions</li>
+                    <li>Gain top-tier business strategy guidance</li>
+                    <li>1:1 mentoring and executive coaching</li>
+                    <li>Advanced business networking and spiritual formation designed for business owners</li>
+                </ul>
+                <a href="https://sentventures.com" target="_blank" rel="noopener" class="eg-sent-tier-btn eg-sent-tier-btn-primary">Explore Fellowship</a>
+            </div>
+        </div>
+
+        <div class="eg-sent-cta-section">
+            <div class="eg-sent-cta-text">Where your faith is fuel, not friction.</div>
+            <p>We unite Catholic entrepreneurs who demand excellence in business and fidelity in faith. In our vetted community, you'll find proven growth strategies, deep formation, and peers who share your mission&mdash;so trust comes built in.</p>
+            <p style="margin-top:0.75rem"><strong>Join the ranks of Catholic entrepreneurs shaping the future.</strong></p>
+            <a href="https://sentventures.com" target="_blank" rel="noopener" class="eg-sent-apply-btn">APPLY NOW</a>
+        </div>
+    </div>
+    `;
 }
 
 // ==========================================================================

@@ -3807,6 +3807,241 @@ textarea.bulletin-receipt-input {
     }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   SENT VENTURES — HOME TAB
+   ══════════════════════════════════════════════════════════════════ */
+
+.eg-sent-home {
+    padding: 0.5rem 0 2rem;
+}
+
+.eg-sent-hero {
+    text-align: center;
+    padding: 1.5rem 0 1.25rem;
+}
+
+.eg-sent-tagline {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #E45C44;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+}
+
+.eg-sent-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.eg-sent-subtitle {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+.eg-sent-section-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin: 1.5rem 0 0.75rem;
+}
+
+/* Benefits list */
+.eg-sent-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.eg-sent-benefit {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+}
+
+.eg-sent-benefit-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+    padding-top: 0.1rem;
+}
+
+.eg-sent-benefit-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.eg-sent-benefit-text strong {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.eg-sent-benefit-text span {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+/* Tier cards */
+.eg-sent-tiers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 560px) {
+    .eg-sent-tiers {
+        grid-template-columns: 1fr;
+    }
+}
+
+.eg-sent-tier {
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.eg-sent-tier-featured {
+    border-color: #E45C44;
+}
+
+.eg-sent-tier-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #E45C44;
+    margin-bottom: 0.5rem;
+}
+
+.eg-sent-tier h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.eg-sent-tier-tagline {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.eg-sent-tier-desc {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.eg-sent-tier-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+}
+
+.eg-sent-tier-list li {
+    font-size: 0.82rem;
+    color: var(--color-text);
+    padding: 0.3rem 0;
+    padding-left: 1rem;
+    position: relative;
+    line-height: 1.5;
+}
+
+.eg-sent-tier-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: #E45C44;
+}
+
+.eg-sent-tier-btn {
+    display: block;
+    text-align: center;
+    padding: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.eg-sent-tier-btn:hover {
+    border-color: #E45C44;
+    background: rgba(228, 92, 68, 0.05);
+}
+
+.eg-sent-tier-btn-primary {
+    background: #E45C44;
+    border-color: #E45C44;
+    color: #fff;
+}
+
+.eg-sent-tier-btn-primary:hover {
+    background: #d04e38;
+    border-color: #d04e38;
+}
+
+/* CTA section */
+.eg-sent-cta-section {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+}
+
+.eg-sent-cta-text {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #E45C44;
+}
+
+.eg-sent-cta-section p {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.eg-sent-apply-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.7rem 2rem;
+    border-radius: 8px;
+    background: #E45C44;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.eg-sent-apply-btn:hover {
+    background: #d04e38;
+}
+
 /* ==========================================================================
    Entity Detail Panel — Shared (map + ask-gabe)
    ========================================================================== */
