@@ -58,6 +58,9 @@ module.exports = async function handler(req, res) {
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object);
         break;
+      case 'payment_intent.succeeded':
+        await handlePaymentIntentSucceeded(event.data.object);
+        break;
       case 'invoice.payment_failed':
         await handlePaymentFailed(event.data.object);
         break;
@@ -120,10 +123,40 @@ async function handleCheckoutCompleted(session) {
       status: 'confirmed',
       createdAt: new Date(),
       confirmedAt: new Date(),
+      // Marketplace fields
+      providerStripeAccountId: metadata.providerStripeAccountId || null,
+      platformFeeAmount: session.application_fee_amount || null,
+      paymentType: metadata.providerStripeAccountId ? 'marketplace' : 'direct',
     };
 
     await adminDb.collection('bookings').add(bookingData);
   }
+}
+
+async function handlePaymentIntentSucceeded(paymentIntent) {
+  const metadata = paymentIntent.metadata || {};
+
+  // Only create booking if this came from our app (has firebaseUserId)
+  if (!metadata.firebaseUserId) return;
+
+  const bookingData = {
+    userId: metadata.firebaseUserId,
+    entityType: metadata.entityType || null,
+    entityId: metadata.entityId || null,
+    offeringId: metadata.offeringId || null,
+    offeringTitle: metadata.offeringTitle || null,
+    amount: paymentIntent.amount,
+    currency: paymentIntent.currency,
+    stripePaymentIntentId: paymentIntent.id,
+    status: 'confirmed',
+    createdAt: new Date(),
+    confirmedAt: new Date(),
+    providerStripeAccountId: metadata.providerStripeAccountId || null,
+    platformFeeAmount: paymentIntent.application_fee_amount || null,
+    paymentType: metadata.providerStripeAccountId ? 'marketplace' : 'direct',
+  };
+
+  await adminDb.collection('bookings').add(bookingData);
 }
 
 async function handleSubscriptionUpdated(subscription) {
