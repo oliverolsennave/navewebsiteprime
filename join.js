@@ -1,4 +1,4 @@
-import { auth, db, googleProvider, appleProvider } from './firebase-config.js';
+import { auth, db, googleProvider, appleProvider, storage } from './firebase-config.js';
 import {
     GoogleAuthProvider,
     OAuthProvider,
@@ -17,6 +17,11 @@ import {
     getDoc,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import {
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 import { renderEntityDetailHTML } from './entity-detail.js';
 
 // ── Global stubs for onclick handlers in entity-detail rendered HTML ──
@@ -1400,7 +1405,7 @@ function validateBizStep(index) {
         case 1: return !!s.category;              // category
         case 2: return true;                      // subcategory (optional; has Skip)
         case 3: return s.name.trim().length > 0;  // name
-        case 4: return s.location.trim().length > 0; // location
+        case 4: return s.location.trim().length > 0 && s.latitude != null && s.longitude != null;
         case 5: {
             const y = parseInt(s.foundingYear, 10);
             return !Number.isNaN(y) && y >= 1000 && y <= 2100;
@@ -1411,6 +1416,49 @@ function validateBizStep(index) {
         case 9: return true;
         default: return true;
     }
+}
+
+// --- Location geocoding (biz-flow step 4) ---
+let bizGeocodeTimer = null;
+document.addEventListener('input', (e) => {
+    if (e.target.id !== 'biz-field-location') return;
+    clearTimeout(bizGeocodeTimer);
+    // Clear previously-resolved coords while the user is still typing
+    window.bizFormState.latitude = null;
+    window.bizFormState.longitude = null;
+    refreshBizStepState();
+    const locEl = document.getElementById('biz-geocode-result');
+    if (locEl) {
+        locEl.textContent = '';
+        locEl.className = 'biz-geocode';
+    }
+    bizGeocodeTimer = setTimeout(() => resolveBizLocation(e.target.value.trim()), 600);
+});
+
+async function resolveBizLocation(locationStr) {
+    const el = document.getElementById('biz-geocode-result');
+    if (!locationStr) {
+        if (el) { el.textContent = ''; el.className = 'biz-geocode'; }
+        return;
+    }
+    if (el) { el.textContent = 'Locating…'; el.className = 'biz-geocode'; }
+    try {
+        const { latitude, longitude } = await geocodeAddress(locationStr);
+        window.bizFormState.latitude = latitude;
+        window.bizFormState.longitude = longitude;
+        if (el) {
+            el.textContent = `Pin at ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+            el.className = 'biz-geocode';
+        }
+    } catch {
+        window.bizFormState.latitude = null;
+        window.bizFormState.longitude = null;
+        if (el) {
+            el.textContent = "Couldn't resolve that address — try including city & state.";
+            el.className = 'biz-geocode error';
+        }
+    }
+    refreshBizStepState();
 }
 
 // --- Navigation buttons -----------------------------------------------------
@@ -1541,14 +1589,111 @@ function escapeHTMLBiz(s) {
         .replace(/'/g, '&#39;');
 }
 
-// --- Publish stub -----------------------------------------------------------
+// --- Publish: upload photos → write businesses/{id} + users/{uid}/submissions ---
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
     if (e.target.id !== 'biz-publish') return;
+    if (!currentUser) { showStep(0); return; }
+    const btn = e.target;
     const status = document.getElementById('biz-publish-status');
-    if (status) {
-        status.classList.remove('error');
-        status.textContent = 'Publish clicked (wiring to Firestore comes next). State snapshot logged to console.';
+    const s = window.bizFormState;
+
+    // Defensive validation — Review step shouldn't let you get here with missing fields,
+    // but verify explicitly since this writes live Firestore docs.
+    const missing = [];
+    if (!s.category) missing.push('category');
+    if (!s.name.trim()) missing.push('name');
+    if (!s.location.trim() || s.latitude == null) missing.push('location');
+    if (!s.foundingYear) missing.push('founding year');
+    if (s.description.trim().length < 20) missing.push('description');
+    if (missing.length) {
+        status.classList.add('error');
+        status.textContent = 'Missing: ' + missing.join(', ');
+        return;
     }
-    console.log('[biz-flow] publish snapshot:', window.bizFormState);
+
+    btn.disabled = true;
+    status.classList.remove('error');
+    status.textContent = 'Uploading photos…';
+
+    try {
+        const objectId = doc(collection(db, 'businesses')).id;
+        const submissionId = crypto.randomUUID();
+
+        // 1. Upload photos → Storage (sequentially for stable progress messages)
+        const imageUrls = [];
+        for (let i = 0; i < s.photos.length; i++) {
+            status.textContent = `Uploading photo ${i + 1} of ${s.photos.length}…`;
+            const p = s.photos[i];
+            const path = `business-photos/${currentUser.uid}/${objectId}/${Date.now()}-${i}-${sanitizeFileName(p.name)}`;
+            const ref = storageRef(storage, path);
+            await uploadBytes(ref, p.file, { contentType: p.file.type || 'image/jpeg' });
+            imageUrls.push(await getDownloadURL(ref));
+        }
+
+        status.textContent = 'Saving your listing…';
+
+        // 2. Write the business doc
+        const objectData = {
+            id: objectId,
+            name: s.name.trim(),
+            description: s.description.trim(),
+            address: s.location.trim(),
+            latitude: s.latitude,
+            longitude: s.longitude,
+            foundingYear: parseInt(s.foundingYear, 10),
+            category: s.category,
+            subcategory: s.subcategory.trim() || null,
+            contactPhone: s.phone.trim() || null,
+            contactEmail: s.email.trim() || null,
+            website: s.website.trim() || null,
+            imageUrls,
+            coverImageUrl: imageUrls[0] || null,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            source: hasActiveSubscription ? 'paid_submission' : 'free_submission',
+            createdFromSubmissionId: submissionId,
+            createdByUserId: currentUser.uid,
+            isActive: true,
+            isVerified: false,
+            isPremium: hasActiveSubscription,
+            country: 'USA'
+        };
+        await setDoc(doc(db, 'businesses', objectId), objectData);
+
+        // 3. User submission record
+        await setDoc(doc(db, 'users', currentUser.uid, 'submissions', submissionId), {
+            id: submissionId,
+            objectId,
+            objectName: objectData.name,
+            objectType: 'business',
+            submissionStatus: 'approved',
+            submittedAt: serverTimestamp(),
+            approvedAt: serverTimestamp(),
+            description: objectData.description,
+            contactEmail: objectData.contactEmail || currentUser.email || null,
+            contactPhone: objectData.contactPhone || currentUser.phoneNumber || null,
+            website: objectData.website,
+            address: objectData.address,
+            country: 'USA',
+            latitude: objectData.latitude,
+            longitude: objectData.longitude
+        });
+
+        status.textContent = 'Published!';
+        maxStepReached = Math.max(maxStepReached, 4);
+        setTimeout(() => showStep(4), 400);
+    } catch (err) {
+        console.error('[biz-flow] publish failed:', err);
+        status.classList.add('error');
+        status.textContent = err?.message || 'Publish failed. Try again.';
+        btn.disabled = false;
+    }
 });
+
+function sanitizeFileName(name) {
+    return String(name || 'photo')
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]+/g, '-')
+        .slice(0, 80) || 'photo';
+}

@@ -15,6 +15,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, GoogleAuthProvider, OAuthProvider } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -37,5 +38,8 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const appleProvider = new OAuthProvider('apple.com');
 
-export { app, db, auth, googleProvider, appleProvider };
+// Initialize Storage (for business photo uploads, etc.)
+const storage = getStorage(app);
+
+export { app, db, auth, googleProvider, appleProvider, storage };
 
