@@ -914,7 +914,7 @@ async function processBulletinFile(file) {
     }
 }
 toFormBtn.addEventListener('click', async () => {
-    const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'trial';
+    const selectedPlan = document.querySelector('input[name="plan"]:checked')?.value || 'monthly';
     const subStatus = document.getElementById('subscription-status');
 
     // Both plans go through Stripe Checkout to collect payment method
