@@ -234,6 +234,22 @@ function showStep(index) {
         keyTypeGrid.classList.remove('hidden');
         toSubscriptionBtn.classList.remove('hidden');
     }
+    // On Submit step: swap to Airbnb-style biz-flow for business, default form otherwise.
+    if (index === 3) applyFormVariant();
+}
+
+function applyFormVariant() {
+    const bizFlow = document.getElementById('biz-flow');
+    const defaultWrap = document.getElementById('join-default-form-wrap');
+    if (!bizFlow || !defaultWrap) return;
+    if (selectedType === 'business') {
+        bizFlow.classList.remove('hidden');
+        defaultWrap.classList.add('hidden');
+        gotoBiz(0);
+    } else {
+        bizFlow.classList.add('hidden');
+        defaultWrap.classList.remove('hidden');
+    }
 }
 
 function requireAuthNext() {
@@ -1317,3 +1333,222 @@ if (stripeSessionId && returnStep === 'form') {
 if (!stripeSessionId && urlParams.get('canceled') !== 'true') {
     showStep(0);
 }
+
+// ============================================================================
+// Airbnb-style Business submission flow
+// UX only for now — state is tracked in window.bizFormState.
+// Firebase writes will be wired next pass (Publish button is a stub).
+// ============================================================================
+
+const BIZ_STEP_COUNT = 10;            // 0..9 inclusive (0=intro, 9=review)
+const BIZ_PROGRESS_DENOM = 9;         // intro doesn't count toward progress
+let currentBizStep = 0;
+
+window.bizFormState = {
+    category: null,
+    subcategory: '',
+    name: '',
+    location: '',
+    latitude: null,
+    longitude: null,
+    foundingYear: '',
+    description: '',
+    phone: '',
+    email: '',
+    website: '',
+    photos: []  // { file, url, name }
+};
+
+function bizCards() {
+    return document.querySelectorAll('#biz-flow .biz-card');
+}
+
+function gotoBiz(index) {
+    currentBizStep = Math.max(0, Math.min(BIZ_STEP_COUNT - 1, index));
+    bizCards().forEach(card => {
+        const step = Number(card.dataset.bizStep);
+        card.classList.toggle('active', step === currentBizStep);
+    });
+    const bar = document.getElementById('biz-progress-bar');
+    if (bar) {
+        const pct = currentBizStep === 0 ? 4 : Math.round((currentBizStep / BIZ_PROGRESS_DENOM) * 100);
+        bar.style.width = pct + '%';
+    }
+    if (currentBizStep === 9) renderBizReview();
+    refreshBizStepState();
+    // Focus first input for quick keyboard entry
+    const card = document.querySelector(`#biz-flow .biz-card[data-biz-step="${currentBizStep}"]`);
+    if (card) {
+        const input = card.querySelector('.biz-input');
+        if (input) setTimeout(() => input.focus(), 120);
+    }
+}
+
+function refreshBizStepState() {
+    const card = document.querySelector(`#biz-flow .biz-card[data-biz-step="${currentBizStep}"]`);
+    if (!card) return;
+    const primaryNext = card.querySelector('.biz-next:not(.biz-back-ghost)');
+    if (!primaryNext) return;
+    const valid = validateBizStep(currentBizStep);
+    primaryNext.disabled = !valid;
+}
+
+function validateBizStep(index) {
+    const s = window.bizFormState;
+    switch (index) {
+        case 0: return true;                     // intro
+        case 1: return !!s.category;              // category
+        case 2: return true;                      // subcategory (optional; has Skip)
+        case 3: return s.name.trim().length > 0;  // name
+        case 4: return s.location.trim().length > 0; // location
+        case 5: {
+            const y = parseInt(s.foundingYear, 10);
+            return !Number.isNaN(y) && y >= 1000 && y <= 2100;
+        }
+        case 6: return s.description.trim().length >= 20; // description min
+        case 7: return true;                      // contact (all optional)
+        case 8: return true;                      // photos (optional for now)
+        case 9: return true;
+        default: return true;
+    }
+}
+
+// --- Navigation buttons -----------------------------------------------------
+
+document.addEventListener('click', (e) => {
+    const nextBtn = e.target.closest('[data-biz-next]');
+    if (nextBtn) {
+        if (nextBtn.disabled) return;
+        gotoBiz(currentBizStep + 1);
+        return;
+    }
+    const backBtn = e.target.closest('[data-biz-back]');
+    if (backBtn) {
+        gotoBiz(currentBizStep - 1);
+        return;
+    }
+});
+
+// --- Category selection -----------------------------------------------------
+
+document.addEventListener('click', (e) => {
+    const cat = e.target.closest('.biz-cat');
+    if (!cat) return;
+    document.querySelectorAll('.biz-cat').forEach(c => c.classList.remove('selected'));
+    cat.classList.add('selected');
+    window.bizFormState.category = cat.dataset.cat;
+    refreshBizStepState();
+});
+
+// --- Input binding ----------------------------------------------------------
+
+document.addEventListener('input', (e) => {
+    const target = e.target;
+    if (!target.matches('[data-biz-field]')) return;
+    const field = target.dataset.bizField;
+    window.bizFormState[field] = target.value;
+    if (field === 'description') {
+        const count = document.getElementById('biz-desc-count');
+        if (count) count.textContent = target.value.length + ' / 500';
+    }
+    refreshBizStepState();
+});
+
+// --- Photo upload (local preview only for UX pass) --------------------------
+
+document.addEventListener('change', (e) => {
+    if (e.target.id !== 'biz-photo-input') return;
+    const files = Array.from(e.target.files || []);
+    const remaining = 5 - window.bizFormState.photos.length;
+    files.slice(0, remaining).forEach(file => {
+        const url = URL.createObjectURL(file);
+        window.bizFormState.photos.push({ file, url, name: file.name });
+    });
+    renderBizPhotos();
+    e.target.value = '';
+});
+
+function renderBizPhotos() {
+    const grid = document.getElementById('biz-photo-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    window.bizFormState.photos.forEach((p, i) => {
+        const tile = document.createElement('div');
+        tile.className = 'biz-photo-tile' + (i === 0 ? ' cover' : '');
+        tile.innerHTML = `<img src="${p.url}" alt=""><button type="button" class="biz-photo-remove" data-biz-photo-remove="${i}" aria-label="Remove">&times;</button>`;
+        grid.appendChild(tile);
+    });
+}
+
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-biz-photo-remove]');
+    if (!btn) return;
+    const idx = Number(btn.dataset.bizPhotoRemove);
+    const removed = window.bizFormState.photos.splice(idx, 1)[0];
+    if (removed && removed.url) URL.revokeObjectURL(removed.url);
+    renderBizPhotos();
+});
+
+// --- Review render ----------------------------------------------------------
+
+const BIZ_CATEGORY_LABELS = {
+    restaurants: 'Restaurants',
+    retail: 'Retail',
+    services: 'Professional services',
+    wellness: 'Wellness',
+    beauty: 'Beauty & grooming',
+    home: 'Home services',
+    automotive: 'Automotive',
+    entertainment: 'Entertainment',
+    media: 'Media',
+    other: 'Other'
+};
+
+function renderBizReview() {
+    const host = document.getElementById('biz-review');
+    if (!host) return;
+    const s = window.bizFormState;
+    const rows = [
+        ['Category', BIZ_CATEGORY_LABELS[s.category] || ''],
+        ['Subcategory', s.subcategory],
+        ['Name', s.name],
+        ['Location', s.location],
+        ['Founded', s.foundingYear],
+        ['Description', s.description],
+        ['Phone', s.phone],
+        ['Email', s.email],
+        ['Website', s.website]
+    ];
+    const html = rows.map(([label, value]) => {
+        const display = value && String(value).length
+            ? escapeHTMLBiz(value)
+            : '<span class="empty">Not provided</span>';
+        return `<div class="biz-review-row"><div class="biz-review-label">${label}</div><div class="biz-review-value">${display}</div></div>`;
+    }).join('');
+    let photosHtml = '';
+    if (s.photos.length) {
+        photosHtml = `<div class="biz-review-row"><div class="biz-review-label">Photos</div><div class="biz-review-photos">${s.photos.map(p => `<img src="${p.url}" alt="">`).join('')}</div></div>`;
+    }
+    host.innerHTML = html + photosHtml;
+}
+
+function escapeHTMLBiz(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// --- Publish stub -----------------------------------------------------------
+
+document.addEventListener('click', (e) => {
+    if (e.target.id !== 'biz-publish') return;
+    const status = document.getElementById('biz-publish-status');
+    if (status) {
+        status.classList.remove('error');
+        status.textContent = 'Publish clicked (wiring to Firestore comes next). State snapshot logged to console.';
+    }
+    console.log('[biz-flow] publish snapshot:', window.bizFormState);
+});

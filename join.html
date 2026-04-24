@@ -216,6 +216,203 @@
 
             <!-- Step 4: Submission Form -->
             <section class="join-step hidden" id="step-form">
+                <!-- Airbnb-style multi-step Business submission.
+                     Rendered INSTEAD of the default form below when selectedType === 'business'.
+                     UX only for now — state is tracked in-memory on window.bizFormState.
+                     Firebase write happens at the Publish step (to be wired next). -->
+                <div id="biz-flow" class="biz-flow hidden">
+                    <div class="biz-progress"><div class="biz-progress-bar" id="biz-progress-bar"></div></div>
+
+                    <!-- 0: Intro -->
+                    <div class="biz-card active" data-biz-step="0">
+                        <div class="biz-card-body biz-card-body-center">
+                            <div class="biz-card-eyebrow">Business</div>
+                            <h2 class="biz-card-title">Let's list your business on Nave.</h2>
+                            <p class="biz-card-lede">Catholics in your area will discover you on the map. Takes about 3 minutes.</p>
+                            <ol class="biz-intro-steps">
+                                <li><span class="biz-intro-num">1</span><div><strong>Tell us about your business</strong><small>Category, name, location, description.</small></div></li>
+                                <li><span class="biz-intro-num">2</span><div><strong>Add a photo and contact info</strong><small>How people find you.</small></div></li>
+                                <li><span class="biz-intro-num">3</span><div><strong>Review &amp; publish</strong><small>See your listing before it goes live.</small></div></li>
+                            </ol>
+                        </div>
+                        <div class="biz-card-footer biz-card-footer-solo">
+                            <button type="button" class="biz-next" data-biz-next>Get Started</button>
+                        </div>
+                    </div>
+
+                    <!-- 1: Category -->
+                    <div class="biz-card" data-biz-step="1">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Step 1 of 8</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">Which of these best describes your business?</h2>
+                            <p class="biz-card-lede">Pick the closest fit. You can refine next.</p>
+                            <div class="biz-cat-grid">
+                                <button type="button" class="biz-cat" data-cat="restaurants"><span class="biz-cat-icon">🍽️</span><span class="biz-cat-label">Restaurants</span></button>
+                                <button type="button" class="biz-cat" data-cat="retail"><span class="biz-cat-icon">🛍️</span><span class="biz-cat-label">Retail</span></button>
+                                <button type="button" class="biz-cat" data-cat="services"><span class="biz-cat-icon">💼</span><span class="biz-cat-label">Professional services</span></button>
+                                <button type="button" class="biz-cat" data-cat="wellness"><span class="biz-cat-icon">🌿</span><span class="biz-cat-label">Wellness</span></button>
+                                <button type="button" class="biz-cat" data-cat="beauty"><span class="biz-cat-icon">💈</span><span class="biz-cat-label">Beauty &amp; grooming</span></button>
+                                <button type="button" class="biz-cat" data-cat="home"><span class="biz-cat-icon">🏠</span><span class="biz-cat-label">Home services</span></button>
+                                <button type="button" class="biz-cat" data-cat="automotive"><span class="biz-cat-icon">🚗</span><span class="biz-cat-label">Automotive</span></button>
+                                <button type="button" class="biz-cat" data-cat="entertainment"><span class="biz-cat-icon">🎭</span><span class="biz-cat-label">Entertainment</span></button>
+                                <button type="button" class="biz-cat" data-cat="media"><span class="biz-cat-icon">🎬</span><span class="biz-cat-label">Media</span></button>
+                                <button type="button" class="biz-cat" data-cat="other"><span class="biz-cat-icon">✨</span><span class="biz-cat-label">Other</span></button>
+                            </div>
+                        </div>
+                        <div class="biz-card-footer">
+                            <button type="button" class="biz-next" data-biz-next disabled>Next</button>
+                        </div>
+                    </div>
+
+                    <!-- 2: Subcategory -->
+                    <div class="biz-card" data-biz-step="2">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Step 2 of 8</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">More specifically?</h2>
+                            <p class="biz-card-lede">Helps Catholics searching for exactly what you offer. Editable later.</p>
+                            <input type="text" class="biz-input" id="biz-field-subcategory" placeholder="e.g. Italian, Coffee shop, Roofer" data-biz-field="subcategory" autocomplete="off">
+                        </div>
+                        <div class="biz-card-footer">
+                            <button type="button" class="biz-back-ghost" data-biz-next>Skip</button>
+                            <button type="button" class="biz-next" data-biz-next>Next</button>
+                        </div>
+                    </div>
+
+                    <!-- 3: Name -->
+                    <div class="biz-card" data-biz-step="3">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Step 3 of 8</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">What's your business called?</h2>
+                            <input type="text" class="biz-input" id="biz-field-name" placeholder="Business name" data-biz-field="name" autocomplete="off">
+                        </div>
+                        <div class="biz-card-footer">
+                            <button type="button" class="biz-next" data-biz-next disabled>Next</button>
+                        </div>
+                    </div>
+
+                    <!-- 4: Location -->
+                    <div class="biz-card" data-biz-step="4">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Step 4 of 8</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">Where is it?</h2>
+                            <p class="biz-card-lede">Street address or city, state. We'll place a pin on the map here.</p>
+                            <input type="text" class="biz-input" id="biz-field-location" placeholder="123 Main St, San Francisco, CA" data-biz-field="location" autocomplete="off">
+                            <div class="biz-geocode" id="biz-geocode-result"></div>
+                        </div>
+                        <div class="biz-card-footer">
+                            <button type="button" class="biz-next" data-biz-next disabled>Next</button>
+                        </div>
+                    </div>
+
+                    <!-- 5: Founding year -->
+                    <div class="biz-card" data-biz-step="5">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Step 5 of 8</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">When was it founded?</h2>
+                            <p class="biz-card-lede">Just the year.</p>
+                            <input type="number" class="biz-input" id="biz-field-founding-year" placeholder="2024" data-biz-field="foundingYear" inputmode="numeric" maxlength="4">
+                        </div>
+                        <div class="biz-card-footer">
+                            <button type="button" class="biz-next" data-biz-next disabled>Next</button>
+                        </div>
+                    </div>
+
+                    <!-- 6: Description -->
+                    <div class="biz-card" data-biz-step="6">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Step 6 of 8</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">Tell visitors about your business.</h2>
+                            <p class="biz-card-lede">A couple of sentences on what makes you you.</p>
+                            <textarea class="biz-input biz-input-textarea" id="biz-field-description" rows="5" maxlength="500" placeholder="Family-owned Italian restaurant serving wood-fired pizza since 1987…" data-biz-field="description"></textarea>
+                            <div class="biz-char-count" id="biz-desc-count">0 / 500</div>
+                        </div>
+                        <div class="biz-card-footer">
+                            <button type="button" class="biz-next" data-biz-next disabled>Next</button>
+                        </div>
+                    </div>
+
+                    <!-- 7: Contact -->
+                    <div class="biz-card" data-biz-step="7">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Step 7 of 8</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">How can people reach you?</h2>
+                            <p class="biz-card-lede">All optional, but at least one helps.</p>
+                            <label class="biz-label">Phone</label>
+                            <input type="tel" class="biz-input" id="biz-field-phone" placeholder="(555) 555-5555" data-biz-field="phone" autocomplete="tel">
+                            <label class="biz-label">Email</label>
+                            <input type="email" class="biz-input" id="biz-field-email" placeholder="you@business.com" data-biz-field="email" autocomplete="email">
+                            <label class="biz-label">Website</label>
+                            <input type="url" class="biz-input" id="biz-field-website" placeholder="https://yourbusiness.com" data-biz-field="website" autocomplete="url">
+                        </div>
+                        <div class="biz-card-footer">
+                            <button type="button" class="biz-back-ghost" data-biz-next>Skip</button>
+                            <button type="button" class="biz-next" data-biz-next>Next</button>
+                        </div>
+                    </div>
+
+                    <!-- 8: Photos -->
+                    <div class="biz-card" data-biz-step="8">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Step 8 of 8</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">Add photos.</h2>
+                            <p class="biz-card-lede">Up to 5. First one is your cover. You can add more after publishing.</p>
+                            <label class="biz-photo-dropzone" id="biz-photo-dropzone" for="biz-photo-input">
+                                <div class="biz-photo-plus">+</div>
+                                <div class="biz-photo-hint">Click to choose from library</div>
+                                <input type="file" id="biz-photo-input" accept="image/*" multiple hidden>
+                            </label>
+                            <div class="biz-photo-grid" id="biz-photo-grid"></div>
+                        </div>
+                        <div class="biz-card-footer">
+                            <button type="button" class="biz-back-ghost" data-biz-next>Skip</button>
+                            <button type="button" class="biz-next" data-biz-next>Review</button>
+                        </div>
+                    </div>
+
+                    <!-- 9: Review & Publish -->
+                    <div class="biz-card" data-biz-step="9">
+                        <div class="biz-card-head">
+                            <button type="button" class="biz-back" data-biz-back aria-label="Back">&larr;</button>
+                            <span class="biz-card-step">Review</span>
+                        </div>
+                        <div class="biz-card-body">
+                            <h2 class="biz-card-title">Review and publish.</h2>
+                            <p class="biz-card-lede">You can edit anything after it goes live.</p>
+                            <div class="biz-review" id="biz-review"></div>
+                        </div>
+                        <div class="biz-card-footer biz-card-footer-solo">
+                            <button type="button" class="biz-next biz-publish" id="biz-publish">Publish</button>
+                        </div>
+                        <div class="biz-publish-status" id="biz-publish-status"></div>
+                    </div>
+                </div>
+
+                <!-- Default per-type form (non-business types) -->
+                <div id="join-default-form-wrap">
                 <h2>Submit your key</h2>
                 <p class="join-form-hint">Fields marked with * are required.</p>
                 <form id="join-form" class="join-form">
@@ -492,6 +689,7 @@
                     </div>
                     <div class="join-form-note" id="submit-status"></div>
                 </form>
+                </div>
             </section>
 
             <!-- Success -->
