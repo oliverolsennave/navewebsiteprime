@@ -398,9 +398,9 @@ document.querySelectorAll('.eg-card-link').forEach(btn => {
     });
 });
 
-// Sections that require sign-in. Discover is fully public; everything
-// else (your inbox, joined orgs, pending invitations, profile) is
-// user-specific.
+// Sections that require sign-in. Discover and Browse Apostolates are
+// fully public; My Missions (joined orgs), Inbox, Discovery (pending
+// invites), and Profile are user-specific.
 const AUTH_REQUIRED_SECTIONS = new Set(['inbox', 'network', 'discovery', 'profile']);
 
 function navigateTo(section) {
@@ -816,22 +816,62 @@ function renderOrganizations(filter = '') {
     });
 }
 
-// Search handler
+// Search handler — filters My Missions section
 $('eg-org-search').addEventListener('input', (e) => {
     renderOrganizations(e.target.value);
 });
 
-// Sidebar search — bounces the user into the Network section and
-// forwards the query into its real search input. App Store does the
-// same thing: focusing search puts you into the searchable view.
+// Browse Apostolates: lists every public-visibility apostolate. Uses
+// `state.suggestions` (already filtered to isPublic) merged with the
+// user's joined public orgs so members see the apostolates they've
+// joined in this list too.
+function renderBrowseApostolates(filter = '') {
+    const container = $('eg-browse-list');
+    if (!container) return;
+    const publicJoined = state.organizations.filter(o => o.isPublic === true);
+    const all = [
+        ...publicJoined,
+        ...state.suggestions.filter(s => !publicJoined.some(o => o.id === s.id)),
+    ];
+    const orgs = filter
+        ? all.filter(o => (o.name || '').toLowerCase().includes(filter.toLowerCase()))
+        : all;
+    if (orgs.length === 0) {
+        container.innerHTML = `<div class="eg-empty-state">${filter ? 'No matches found' : 'No apostolates yet'}</div>`;
+        return;
+    }
+    container.innerHTML = orgs.map(org => `
+        <div class="eg-org-row" data-org-id="${org.id}">
+            ${renderOrgAvatar(org)}
+            <div class="eg-org-info">
+                <div class="eg-org-name">${escapeHtml(org.name || 'Unnamed')}</div>
+                <div class="eg-org-tagline">${escapeHtml(org.tagline || org.description || '')}</div>
+            </div>
+            <span class="eg-org-arrow">&rsaquo;</span>
+        </div>
+    `).join('');
+    container.querySelectorAll('.eg-org-row').forEach(row => {
+        row.addEventListener('click', () => openOrgModal(row.dataset.orgId));
+    });
+}
+
+const browseSearchInput = $('eg-browse-search');
+if (browseSearchInput) {
+    browseSearchInput.addEventListener('input', (e) => {
+        renderBrowseApostolates(e.target.value);
+    });
+}
+
+// Sidebar search routes to Browse Apostolates (public) so it works
+// for both signed-in and anonymous visitors.
 const sidebarSearchInput = $('eg-sidebar-search-input');
 if (sidebarSearchInput) {
     const handleSidebarSearch = (value) => {
-        navigateTo('network');
-        const target = $('eg-org-search');
+        navigateTo('browse');
+        const target = $('eg-browse-search');
         if (target) {
             target.value = value;
-            renderOrganizations(value);
+            renderBrowseApostolates(value);
         }
     };
     sidebarSearchInput.addEventListener('focus', () => {
@@ -1213,6 +1253,10 @@ function renderHomePreview() {
     } else {
         inboxContainer.innerHTML = '<div class="eg-empty-state">No messages yet</div>';
     }
+
+    // Keep the full Browse Apostolates list in sync with the same data
+    // refresh — same source pool, just a different presentation.
+    renderBrowseApostolates();
 }
 
 // ==========================================================================

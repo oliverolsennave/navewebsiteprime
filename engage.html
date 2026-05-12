@@ -97,10 +97,10 @@
 
         <!-- Mobile tab bar -->
         <div class="eg-mobile-tabs" id="eg-mobile-tabs">
-            <button class="eg-mobile-tab active" data-section="home">Home</button>
+            <button class="eg-mobile-tab active" data-section="home">Discover</button>
+            <button class="eg-mobile-tab" data-section="browse">Browse</button>
+            <button class="eg-mobile-tab" data-section="network">Missions</button>
             <button class="eg-mobile-tab" data-section="inbox">Inbox</button>
-            <button class="eg-mobile-tab" data-section="network">Network</button>
-            <button class="eg-mobile-tab" data-section="discovery">Discovery</button>
         </div>
 
         <!-- Sidebar -->
@@ -114,19 +114,18 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     Discover
                 </button>
+                <button class="eg-nav-item" data-section="browse">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    Browse Apostolates
+                </button>
+                <button class="eg-nav-item" data-section="network">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    My Missions
+                </button>
                 <button class="eg-nav-item" data-section="inbox">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     Inbox
                     <span class="eg-badge hidden" id="eg-inbox-badge">0</span>
-                </button>
-                <button class="eg-nav-item" data-section="network">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    Network
-                </button>
-                <button class="eg-nav-item" data-section="discovery">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    Discovery
-                    <span class="eg-badge hidden" id="eg-discovery-badge">0</span>
                 </button>
             </nav>
             <div class="eg-sidebar-footer">
@@ -204,15 +203,27 @@
                 </div>
             </section>
 
-            <!-- ==================== NETWORK SECTION ==================== -->
-            <section class="eg-section" id="eg-section-network">
-                <h1 class="eg-section-title">My Network</h1>
+            <!-- ==================== BROWSE APOSTOLATES SECTION ==================== -->
+            <section class="eg-section" id="eg-section-browse">
+                <h1 class="eg-section-title">Browse Apostolates</h1>
                 <div class="eg-search-bar">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" id="eg-org-search" placeholder="Search organizations...">
+                    <input type="text" id="eg-browse-search" placeholder="Search apostolates...">
+                </div>
+                <div class="eg-org-list" id="eg-browse-list">
+                    <div class="eg-empty-state">Loading apostolates…</div>
+                </div>
+            </section>
+
+            <!-- ==================== MY MISSIONS SECTION ==================== -->
+            <section class="eg-section" id="eg-section-network">
+                <h1 class="eg-section-title">My Missions</h1>
+                <div class="eg-search-bar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="eg-org-search" placeholder="Search your missions...">
                 </div>
                 <div class="eg-org-list" id="eg-org-list">
-                    <div class="eg-empty-state">Loading organizations...</div>
+                    <div class="eg-empty-state">You haven't joined any apostolates yet.</div>
                 </div>
             </section>
 
