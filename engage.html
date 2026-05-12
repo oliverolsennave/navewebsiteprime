@@ -325,23 +325,49 @@
          MODAL: Organization Detail
          ============================================================ -->
     <div class="eg-modal-overlay hidden" id="eg-org-modal">
-        <div class="eg-modal eg-modal-large">
+        <div class="eg-modal eg-modal-large eg-org-profile">
             <button class="eg-modal-close" id="eg-org-modal-close">&times;</button>
-            <div class="eg-org-modal-header" id="eg-org-modal-header">
+
+            <!-- Brand-color banner -->
+            <div class="eg-org-banner" id="eg-org-banner"></div>
+
+            <!-- Identity header: logo overlaps banner -->
+            <div class="eg-org-identity">
                 <div class="eg-org-avatar-lg" id="eg-org-avatar-lg">N</div>
-                <div class="eg-org-modal-info">
-                    <h2 id="eg-org-modal-name">Organization</h2>
-                    <p id="eg-org-modal-desc">Description</p>
+                <h2 id="eg-org-modal-name">Organization</h2>
+                <p class="eg-org-tagline-text" id="eg-org-modal-desc">Description</p>
+
+                <!-- Followers preview -->
+                <div class="eg-org-followers" id="eg-org-followers"></div>
+
+                <!-- Secondary action buttons (Follow / Message) -->
+                <div class="eg-org-actions">
+                    <button class="eg-org-action" id="eg-org-follow-btn" type="button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span id="eg-org-follow-label">Follow</span>
+                    </button>
+                    <button class="eg-org-action" id="eg-org-message-btn" type="button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        Message
+                    </button>
                 </div>
+
+                <!-- Primary CTA: Visit website -->
+                <a class="eg-org-visit-cta" id="eg-org-visit-cta" href="#" target="_blank" rel="noopener">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                    Visit website
+                </a>
             </div>
+
+            <!-- Tabs -->
             <div class="eg-org-tabs">
-                <button class="eg-org-tab active" data-tab="channels">Channels</button>
-                <button class="eg-org-tab" data-tab="forums">Forums</button>
-                <button class="eg-org-tab" data-tab="resources">Resources</button>
+                <button class="eg-org-tab active" data-tab="about">About</button>
+                <button class="eg-org-tab" data-tab="events">Events</button>
+                <button class="eg-org-tab" data-tab="map">Map</button>
+                <button class="eg-org-tab" data-tab="feedback">Feedback</button>
             </div>
             <div class="eg-org-tab-content" id="eg-org-tab-content">
-                <!-- Tab content rendered dynamically -->
-                <div class="eg-empty-state">Select a tab</div>
+                <div class="eg-empty-state">Loading…</div>
             </div>
         </div>
     </div>

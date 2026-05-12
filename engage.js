@@ -1219,18 +1219,36 @@ function renderHomePreview() {
 // Organization Detail Modal
 // ==========================================================================
 async function openOrgModal(orgId) {
-    // The org detail modal exposes channels, forum posts, DMs — all
-    // require sign-in. Gate the whole modal rather than opening it
-    // half-empty.
-    if (!requireAuth()) return;
-    const org = state.organizations.find(o => o.id === orgId)
+    // The apostolate page is public — anyone can browse it. Following,
+    // messaging, and the channels feed require sign-in (gated on click).
+    let org = state.organizations.find(o => o.id === orgId)
         || state.suggestions.find(o => o.id === orgId);
-    if (!org) return;
+    if (!org) {
+        // Anonymous visitors land here when clicking a hero card whose
+        // org isn't in either list yet (state.organizations is empty
+        // when signed out). Fetch it directly.
+        try {
+            const snap = await getDoc(doc(db, 'organizations', orgId));
+            if (!snap.exists()) return;
+            org = { id: snap.id, ...snap.data() };
+        } catch (err) {
+            console.error('Failed to load org', orgId, err);
+            return;
+        }
+    }
 
     state.activeOrgId = orgId;
     state.activeOrg = org;
 
-    // Set header
+    const accent = org.accentColorHex || org.backgroundColorHex || getOrgColor(org);
+    const modal = $('eg-org-modal');
+    modal.style.setProperty('--org-accent', accent);
+
+    // Banner (uses --org-accent via CSS)
+    $('eg-org-banner').style.background =
+        `linear-gradient(180deg, ${accent} 0%, color-mix(in srgb, ${accent} 25%, var(--color-bg-alt)) 100%)`;
+
+    // Logo
     const avatarEl = $('eg-org-avatar-lg');
     const logoSrc = getOrgLogoSrc(org);
     avatarEl.classList.remove('eg-org-avatar-lg-fullbleed');
@@ -1245,37 +1263,68 @@ async function openOrgModal(orgId) {
         avatarEl.style.background = org.backgroundColorHex || getOrgColor(org);
         avatarEl.textContent = getOrgInitials(org);
     }
+
     $('eg-org-modal-name').textContent = org.name || 'Organization';
-    $('eg-org-modal-desc').textContent = org.tagline || org.description || '';
+    $('eg-org-modal-desc').textContent = org.tagline || '';
 
-    // Build tabs dynamically based on org
-    const tabsContainer = document.querySelector('.eg-org-tabs');
-    const features = org.features || [];
-    const isSent = orgId === 'sent-ventures';
-    const hasMentorship = features.includes('mentorship') || isSent;
-    const hasForums = features.includes('forums');
-
-    let tabsHtml = '';
-    let defaultTab = 'channels';
-
-    if (isSent) {
-        // SENT Ventures: Home + Mentorship only
-        tabsHtml = '<button class="eg-org-tab active" data-tab="sent-home">Home</button>';
-        tabsHtml += '<button class="eg-org-tab" data-tab="mentorship">Mentorship</button>';
-        defaultTab = 'sent-home';
+    // Followers preview ("Oliver and 32 others follow this apostolate").
+    // Uses denormalized memberCount from the org doc; if zero/missing,
+    // hide the row.
+    const followersEl = $('eg-org-followers');
+    const memberCount = typeof org.memberCount === 'number' ? org.memberCount : 0;
+    if (memberCount > 0) {
+        followersEl.classList.remove('hidden');
+        const youFollowing = state.organizations.some(o => o.id === org.id);
+        const photoUrl = state.userPhotoURL;
+        const initial = (state.currentUser?.displayName || 'M').charAt(0).toUpperCase();
+        const avatarInner = photoUrl
+            ? `<img src="${escapeHtml(cleanURL(photoUrl))}" alt="">`
+            : escapeHtml(initial);
+        const youText = youFollowing
+            ? `You and ${memberCount - 1} others follow this apostolate`
+            : `${memberCount} ${memberCount === 1 ? 'person follows' : 'people follow'} this apostolate`;
+        followersEl.innerHTML = `
+            <div class="eg-org-followers-avatar">${avatarInner}</div>
+            <span>${escapeHtml(youText)}</span>
+        `;
     } else {
-        tabsHtml = '<button class="eg-org-tab active" data-tab="channels">Channels</button>';
-        if (hasMentorship) {
-            tabsHtml += '<button class="eg-org-tab" data-tab="mentorship">Mentorship</button>';
-        }
-        if (hasForums) {
-            tabsHtml += '<button class="eg-org-tab" data-tab="forums">Forums</button>';
-        }
-        tabsHtml += '<button class="eg-org-tab" data-tab="resources">Resources</button>';
+        followersEl.classList.add('hidden');
     }
-    tabsContainer.innerHTML = tabsHtml;
 
-    // Re-bind tab click listeners
+    // Follow button — shows "Following" with checkmark when joined.
+    const followBtn = $('eg-org-follow-btn');
+    const followLabel = $('eg-org-follow-label');
+    const isFollowing = state.organizations.some(o => o.id === org.id);
+    followBtn.classList.toggle('following', isFollowing);
+    followLabel.textContent = isFollowing ? 'Following' : 'Follow';
+    followBtn.onclick = () => {
+        if (!requireAuth()) return;
+        // TODO: wire to organizationMembers write; for now just gate.
+    };
+
+    // Message button — requires auth, opens DM.
+    $('eg-org-message-btn').onclick = () => {
+        if (!requireAuth()) return;
+        // TODO: open DM with org owner or general channel.
+    };
+
+    // Visit website CTA
+    const visitCta = $('eg-org-visit-cta');
+    if (org.websiteURL) {
+        visitCta.classList.remove('hidden');
+        visitCta.href = org.websiteURL;
+    } else {
+        visitCta.classList.add('hidden');
+    }
+
+    // Tabs: About / Events / Map / Feedback (LinkedIn-style public face)
+    const tabsContainer = document.querySelector('.eg-org-tabs');
+    tabsContainer.innerHTML = `
+        <button class="eg-org-tab active" data-tab="about">About</button>
+        <button class="eg-org-tab" data-tab="events">Events</button>
+        <button class="eg-org-tab" data-tab="map">Map</button>
+        <button class="eg-org-tab" data-tab="feedback">Feedback</button>
+    `;
     tabsContainer.querySelectorAll('.eg-org-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             tabsContainer.querySelectorAll('.eg-org-tab').forEach(t => t.classList.remove('active'));
@@ -1284,11 +1333,9 @@ async function openOrgModal(orgId) {
         });
     });
 
-    // Load default tab
-    await loadOrgTabContent(defaultTab);
+    await loadOrgTabContent('about');
 
-    // Show modal
-    $('eg-org-modal').classList.remove('hidden');
+    modal.classList.remove('hidden');
 }
 
 async function loadOrgTabContent(tabName) {
@@ -1296,8 +1343,30 @@ async function loadOrgTabContent(tabName) {
     container.innerHTML = '<div class="eg-loading">Loading</div>';
 
     const orgId = state.activeOrgId;
+    const org = state.activeOrg || {};
 
     try {
+        if (tabName === 'about') {
+            const description = org.description || org.tagline || 'No description yet.';
+            container.innerHTML = `
+                <h3>About</h3>
+                <p>${escapeHtml(description)}</p>
+            `;
+            return;
+        }
+        if (tabName === 'events') {
+            container.innerHTML = '<div class="eg-empty-state">No upcoming events yet.</div>';
+            return;
+        }
+        if (tabName === 'map') {
+            container.innerHTML = '<div class="eg-empty-state">Map view coming soon.</div>';
+            return;
+        }
+        if (tabName === 'feedback') {
+            container.innerHTML = '<div class="eg-empty-state">Feedback coming soon.</div>';
+            return;
+        }
+
         if (tabName === 'sent-home') {
             renderSentHome(container);
             return;
