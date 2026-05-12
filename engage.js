@@ -515,27 +515,24 @@ const logoAssetMap = {
 };
 
 function getOrgLogoSrc(org) {
-    // Check logoAssetName first, then logoURL
-    const key = org.logoAssetName || org.logoURL;
-    if (key && logoAssetMap[key]) return logoAssetMap[key];
-    // If logoURL looks like an actual URL, use it directly
+    // Prefer the uploaded URL — that's what iOS does and it's what the
+    // overwhelming majority of orgs have (uploaded full app-icon JPG/PNG
+    // images that fill their tile). Bundled assets are kept only as a
+    // fallback for orgs that haven't migrated yet (currently just Nave).
     if (org.logoURL && (org.logoURL.startsWith('http://') || org.logoURL.startsWith('https://'))) {
         return org.logoURL;
     }
+    const key = org.logoAssetName;
+    if (key && logoAssetMap[key]) return logoAssetMap[key];
     return null;
 }
 
-// Returns true when the logo is a user-uploaded image (URL pointing at
-// Firebase Storage or similar) versus a bundled transparent asset. User
-// uploads are typically self-contained app-icon images — they already
-// include their own background, so we should NOT add another brand
-// backplate behind them (which would show as a colored ring) and the
-// image should fill the tile rather than be inset.
+// True when the logo is a self-contained upload (iOS calls this the
+// `fillTileSize` path — `scaledToFill` + clip to rounded rect). User
+// uploads bake their own background into the image, so no brand
+// backplate and the image fills the tile edge-to-edge.
 function isFullBleedLogo(org) {
-    if (org.logoAssetName && logoAssetMap[org.logoAssetName]) return false;
-    if (!org.logoURL) return false;
-    if (logoAssetMap[org.logoURL]) return false;
-    return org.logoURL.startsWith('http://') || org.logoURL.startsWith('https://');
+    return !!(org.logoURL && (org.logoURL.startsWith('http://') || org.logoURL.startsWith('https://')));
 }
 
 function renderOrgAvatar(org, sizeClass = '') {
