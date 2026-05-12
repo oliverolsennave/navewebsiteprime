@@ -126,20 +126,71 @@ if (isSignInWithEmailLink(auth, window.location.href)) {
 
 onAuthStateChanged(auth, async (user) => {
     state.currentUser = user;
+
+    // The app shell is always visible now — the Discover view shows
+    // public apostolates to anonymous visitors. The auth gate switches
+    // to a modal overlay that's only shown when a visitor tries to
+    // access something that requires sign-in (their inbox, joining an
+    // apostolate, opening an org's channels, etc.).
+    authGate.classList.add('hidden');
+    authGate.classList.remove('eg-auth-modal');
+    app.classList.remove('hidden');
+
     if (user) {
-        // Load profile + preload photo BEFORE showing the app (no flash)
         await loadUserProfile();
         const name = user.displayName || state.userProfile?.displayName || user.email || 'User';
         $('eg-user-name').textContent = name;
         setAvatarPhoto($('eg-user-avatar'), state.userPhotoURL, name);
-
-        authGate.classList.add('hidden');
-        app.classList.remove('hidden');
         loadAllData();
     } else {
-        authGate.classList.remove('hidden');
-        app.classList.add('hidden');
+        // Signed-out shell: empty user-specific state, browse Discover
+        // anonymously. The user pill becomes a "Sign In" CTA.
+        $('eg-user-name').textContent = 'Sign In';
+        $('eg-user-avatar').innerHTML = '';
+        $('eg-user-avatar').textContent = '→';
+        state.organizations = [];
+        state.threads = [];
+        state.invitations = [];
+        state.userProfile = null;
+        state.userPhotoURL = null;
         cleanupListeners();
+        await loadSuggestions();
+        renderHomePreview();
+    }
+});
+
+// Show / hide the auth gate as a modal overlay. Used when a visitor
+// tries to access a sign-in-required area (inbox, org channels, etc.)
+// while browsing anonymously.
+function showAuthModal() {
+    authGate.classList.add('eg-auth-modal');
+    authGate.classList.remove('hidden');
+}
+function hideAuthModal() {
+    authGate.classList.add('hidden');
+    authGate.classList.remove('eg-auth-modal');
+}
+
+// Returns true if the visitor is signed in, otherwise pops the auth
+// modal and returns false. Wrap any user-specific action with this.
+function requireAuth() {
+    if (state.currentUser) return true;
+    showAuthModal();
+    return false;
+}
+
+// Close the auth modal: X button, backdrop click, or Escape key.
+$('eg-auth-modal-close').addEventListener('click', hideAuthModal);
+authGate.addEventListener('click', (e) => {
+    // Only close when clicking the backdrop (the gate itself), not
+    // the container inside it.
+    if (e.target === authGate && authGate.classList.contains('eg-auth-modal')) {
+        hideAuthModal();
+    }
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && authGate.classList.contains('eg-auth-modal') && !authGate.classList.contains('hidden')) {
+        hideAuthModal();
     }
 });
 
@@ -347,7 +398,13 @@ document.querySelectorAll('.eg-card-link').forEach(btn => {
     });
 });
 
+// Sections that require sign-in. Discover is fully public; everything
+// else (your inbox, joined orgs, pending invitations, profile) is
+// user-specific.
+const AUTH_REQUIRED_SECTIONS = new Set(['inbox', 'network', 'discovery', 'profile']);
+
 function navigateTo(section) {
+    if (AUTH_REQUIRED_SECTIONS.has(section) && !requireAuth()) return;
     state.currentSection = section;
 
     // Update sidebar active state
@@ -391,8 +448,11 @@ document.querySelectorAll('.eg-mobile-tab').forEach(tab => {
     });
 });
 
-// Profile section navigation
+// Profile / sign-in. When signed in, this opens the profile section;
+// when signed out, the user pill is a "Sign In" CTA that pops the
+// auth modal.
 $('eg-user-info').addEventListener('click', () => {
+    if (!state.currentUser) { showAuthModal(); return; }
     navigateTo('profile');
     renderProfileSection();
 });
@@ -1159,6 +1219,10 @@ function renderHomePreview() {
 // Organization Detail Modal
 // ==========================================================================
 async function openOrgModal(orgId) {
+    // The org detail modal exposes channels, forum posts, DMs — all
+    // require sign-in. Gate the whole modal rather than opening it
+    // half-empty.
+    if (!requireAuth()) return;
     const org = state.organizations.find(o => o.id === orgId)
         || state.suggestions.find(o => o.id === orgId);
     if (!org) return;

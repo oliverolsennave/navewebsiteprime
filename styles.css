@@ -2510,6 +2510,43 @@ textarea.bulletin-receipt-input {
     margin-top: 57px;
 }
 
+/* Modal-overlay variant: shown when an anonymous visitor tries to
+   access a sign-in-required feature (inbox, joining an apostolate,
+   org channels, etc.). Floats over the app without unmounting it. */
+.eg-auth-gate.eg-auth-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    margin: 0;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+}
+.eg-auth-gate.eg-auth-modal .eg-auth-container {
+    background: var(--color-bg-alt);
+    padding: 2.5rem 2rem 2rem;
+    border-radius: 18px;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+.eg-auth-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: var(--color-text);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.eg-auth-modal-close:hover { background: rgba(255, 255, 255, 0.15); }
+.eg-auth-gate:not(.eg-auth-modal) .eg-auth-modal-close { display: none; }
+
 .eg-auth-container {
     max-width: 420px;
     width: 100%;
