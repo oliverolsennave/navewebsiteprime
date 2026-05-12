@@ -584,6 +584,27 @@ $('eg-org-search').addEventListener('input', (e) => {
     renderOrganizations(e.target.value);
 });
 
+// Sidebar search — bounces the user into the Network section and
+// forwards the query into its real search input. App Store does the
+// same thing: focusing search puts you into the searchable view.
+const sidebarSearchInput = $('eg-sidebar-search-input');
+if (sidebarSearchInput) {
+    const handleSidebarSearch = (value) => {
+        navigateTo('network');
+        const target = $('eg-org-search');
+        if (target) {
+            target.value = value;
+            renderOrganizations(value);
+        }
+    };
+    sidebarSearchInput.addEventListener('focus', () => {
+        if (sidebarSearchInput.value) handleSidebarSearch(sidebarSearchInput.value);
+    });
+    sidebarSearchInput.addEventListener('input', (e) => {
+        handleSidebarSearch(e.target.value);
+    });
+}
+
 // ── Threads ────────────────────────────────────────────────────────────
 function getThreadOtherPhotoURL(thread) {
     // Use denormalized participantPhotoURLs when available (no extra reads)
@@ -780,11 +801,136 @@ function updateDiscoveryBadge() {
 }
 
 // ── Home Preview ───────────────────────────────────────────────────────
+
+// Renders an org's logo or initials for a hero/feature card slot.
+// Mirrors `renderOrgAvatar` but uses the larger hero-style classes.
+function renderHeroLogoVisual(org) {
+    const logoSrc = getOrgLogoSrc(org);
+    const bgColor = org.backgroundColorHex || getOrgColor(org);
+    const inner = logoSrc
+        ? `<img src="${escapeHtml(logoSrc)}" alt="">`
+        : escapeHtml(getOrgInitials(org));
+    return `<div class="eg-hero-card-logo" style="background:${bgColor}">${inner}</div>`;
+}
+
+function renderFeatureCardIcon(org) {
+    const logoSrc = getOrgLogoSrc(org);
+    const bgColor = org.backgroundColorHex || getOrgColor(org);
+    const inner = logoSrc
+        ? `<img src="${escapeHtml(logoSrc)}" alt="">`
+        : escapeHtml(getOrgInitials(org));
+    return `<div class="eg-feature-card-icon" style="background:${bgColor}">${inner}</div>`;
+}
+
 function renderHomePreview() {
-    // Inbox preview (first 2 threads)
+    // Picks for hero + secondary feature slots.
+    // Prefer the user's joined orgs (puts familiar imagery up top); fall
+    // back to suggestions so the page doesn't feel empty for new users.
+    const featurePool = [
+        ...state.organizations,
+        ...state.suggestions.filter(s => !state.organizations.some(o => o.id === s.id)),
+    ];
+    const heroOrg = featurePool[0];
+    const feature1 = featurePool[1];
+    const feature2 = featurePool[2];
+
+    // Hero card
+    const hero = $('eg-home-hero');
+    if (heroOrg) {
+        const isJoined = state.organizations.some(o => o.id === heroOrg.id);
+        const eyebrow = isJoined ? 'You\'re a Member' : 'Featured Apostolate';
+        const desc = heroOrg.description || heroOrg.tagline
+            || 'Catholic community making the faith visible — tap to explore.';
+        hero.innerHTML = `
+            <div class="eg-hero-card-text">
+                <div>
+                    <div class="eg-hero-eyebrow">${escapeHtml(eyebrow)}</div>
+                    <h2 class="eg-hero-headline">${escapeHtml(heroOrg.name || 'Apostolate')}</h2>
+                </div>
+                <p class="eg-hero-desc">${escapeHtml(desc).slice(0, 200)}</p>
+            </div>
+            <div class="eg-hero-card-visual">
+                ${renderHeroLogoVisual(heroOrg)}
+            </div>
+        `;
+        hero.onclick = () => openOrgModal(heroOrg.id);
+    } else {
+        hero.innerHTML = '<div class="eg-hero-empty">No apostolates yet — check back soon.</div>';
+        hero.onclick = null;
+    }
+
+    // Two secondary feature cards
+    const renderFeatureCard = (slotId, org, eyebrow) => {
+        const slot = $(slotId);
+        if (!slot) return;
+        if (!org) {
+            slot.style.display = 'none';
+            return;
+        }
+        slot.style.display = '';
+        const desc = org.tagline || org.description
+            || 'Discover this Catholic community on Nave.';
+        slot.innerHTML = `
+            <div class="eg-feature-card-text">
+                <div class="eg-feature-eyebrow">${escapeHtml(eyebrow)}</div>
+                <h3 class="eg-feature-headline">${escapeHtml(org.name || 'Apostolate')}</h3>
+                <p class="eg-feature-desc">${escapeHtml(desc)}</p>
+            </div>
+            ${renderFeatureCardIcon(org)}
+        `;
+        slot.onclick = () => openOrgModal(org.id);
+    };
+    renderFeatureCard('eg-home-feature-1', feature1, 'Apostolates We Love');
+    renderFeatureCard('eg-home-feature-2', feature2, 'Also Worth Joining');
+
+    // Best New Apostolates (suggestions list, 3-col grid)
+    const discoveryContainer = $('eg-home-discovery');
+    const newApostolates = state.suggestions.length > 0
+        ? state.suggestions.slice(0, 6)
+        : featurePool.slice(3, 9);
+    if (newApostolates.length > 0) {
+        discoveryContainer.innerHTML = newApostolates.map(org => `
+            <div class="eg-org-row" data-org-id="${org.id}">
+                ${renderOrgAvatar(org)}
+                <div class="eg-org-info">
+                    <div class="eg-org-name">${escapeHtml(org.name || 'Organization')}</div>
+                    <div class="eg-org-tagline">${escapeHtml(org.tagline || org.description || '')}</div>
+                </div>
+                <span class="eg-org-arrow">&rsaquo;</span>
+            </div>
+        `).join('');
+        discoveryContainer.querySelectorAll('.eg-org-row').forEach(row => {
+            row.addEventListener('click', () => openOrgModal(row.dataset.orgId));
+        });
+    } else {
+        discoveryContainer.innerHTML = '<div class="eg-empty-state">No suggestions yet</div>';
+    }
+
+    // Your Missions (joined orgs, 3-col grid)
+    const networkContainer = $('eg-home-network');
+    if (state.organizations.length > 0) {
+        const preview = state.organizations.slice(0, 6);
+        networkContainer.innerHTML = preview.map(org => `
+            <div class="eg-org-row" data-org-id="${org.id}">
+                ${renderOrgAvatar(org)}
+                <div class="eg-org-info">
+                    <div class="eg-org-name">${escapeHtml(org.name || 'Unnamed')}</div>
+                    <div class="eg-org-tagline">${escapeHtml(org.tagline || '')}</div>
+                </div>
+                <span class="eg-org-arrow">&rsaquo;</span>
+            </div>
+        `).join('');
+        networkContainer.querySelectorAll('.eg-org-row').forEach(row => {
+            row.addEventListener('click', () => openOrgModal(row.dataset.orgId));
+        });
+    } else {
+        networkContainer.innerHTML = '<div class="eg-empty-state">Join an apostolate to see it here</div>';
+    }
+
+    // Recent Messages (first 3 threads)
     const inboxContainer = $('eg-home-inbox');
     if (state.threads.length > 0) {
-        const preview = state.threads.slice(0, 2);
+        const preview = state.threads.slice(0, 3);
         inboxContainer.innerHTML = preview.map(t => {
             const name = getThreadDisplayName(t);
             const otherId = getThreadOtherUserId(t);
@@ -812,54 +958,6 @@ function renderHomePreview() {
         loadThreadAvatarPhotos(inboxContainer);
     } else {
         inboxContainer.innerHTML = '<div class="eg-empty-state">No messages yet</div>';
-    }
-
-    // Network preview (first 5 orgs)
-    const networkContainer = $('eg-home-network');
-    if (state.organizations.length > 0) {
-        const preview = state.organizations.slice(0, 5);
-        networkContainer.innerHTML = preview.map(org => `
-            <div class="eg-org-row" data-org-id="${org.id}">
-                ${renderOrgAvatar(org)}
-                <div class="eg-org-info">
-                    <div class="eg-org-name">${escapeHtml(org.name || 'Unnamed')}</div>
-                    <div class="eg-org-tagline">${escapeHtml(org.tagline || '')}</div>
-                </div>
-                <span class="eg-org-arrow">&rsaquo;</span>
-            </div>
-        `).join('');
-        networkContainer.querySelectorAll('.eg-org-row').forEach(row => {
-            row.addEventListener('click', () => openOrgModal(row.dataset.orgId));
-        });
-    } else {
-        networkContainer.innerHTML = '<div class="eg-empty-state">No organizations yet</div>';
-    }
-
-    // Discovery preview (top 3 suggestions)
-    const discoveryContainer = $('eg-home-discovery');
-    let discoveryHtml = '';
-    if (state.invitations.length > 0) {
-        discoveryHtml += `<div style="padding:0.5rem;color:var(--color-text-muted);font-size:0.85rem">${state.invitations.length} pending invitation${state.invitations.length > 1 ? 's' : ''}</div>`;
-    }
-    if (state.suggestions.length > 0) {
-        discoveryHtml += state.suggestions.slice(0, 3).map(org => `
-            <div class="eg-org-row" data-org-id="${org.id}">
-                ${renderOrgAvatar(org)}
-                <div class="eg-org-info">
-                    <div class="eg-org-name">${escapeHtml(org.name || 'Organization')}</div>
-                    <div class="eg-org-tagline">${escapeHtml(org.tagline || org.description || '')}</div>
-                </div>
-                <span class="eg-org-arrow">&rsaquo;</span>
-            </div>
-        `).join('');
-    }
-    if (discoveryHtml) {
-        discoveryContainer.innerHTML = discoveryHtml;
-        discoveryContainer.querySelectorAll('.eg-org-row').forEach(row => {
-            row.addEventListener('click', () => openOrgModal(row.dataset.orgId));
-        });
-    } else {
-        discoveryContainer.innerHTML = '<div class="eg-empty-state">No suggestions yet</div>';
     }
 }
 
