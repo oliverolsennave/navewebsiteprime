@@ -2831,8 +2831,8 @@ textarea.bulletin-receipt-input {
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
 }
 .eg-hero-card-logo img {
-    width: 66%;
-    height: 66%;
+    width: 55%;
+    height: 55%;
     object-fit: contain;
 }
 .eg-hero-empty {
@@ -2907,8 +2907,8 @@ textarea.bulletin-receipt-input {
     color: #fff;
 }
 .eg-feature-card-icon img {
-    width: 66%;
-    height: 66%;
+    width: 55%;
+    height: 55%;
     object-fit: contain;
 }
 
@@ -3255,8 +3255,8 @@ textarea.bulletin-receipt-input {
     /* Inset the logo inside its brand-color tile so transparent logos
        (Nave sail, ICLE crest) get breathing room around the artwork.
        Matches iOS's ~36px-on-56px inset for small avatars. */
-    width: 66%;
-    height: 66%;
+    width: 55%;
+    height: 55%;
     object-fit: contain;
 }
 
