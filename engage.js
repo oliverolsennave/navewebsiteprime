@@ -624,12 +624,17 @@ async function loadInvitations() {
 }
 
 // ── Suggestions (orgs user is NOT a member of) ─────────────────────────
+// Mirrors iOS: only public-visibility apostolates (`isPublic === true`)
+// surface in Discover. Private orgs like SENT Ventures, CLI, ICLE, etc.
+// stay hidden until they flip their visibility on.
 async function loadSuggestions() {
     try {
         const allOrgsSnap = await getDocs(collection(db, 'organizations'));
         const allOrgs = allOrgsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         const memberOrgIds = new Set(state.organizations.map(o => o.id));
-        state.suggestions = allOrgs.filter(o => !memberOrgIds.has(o.id));
+        state.suggestions = allOrgs
+            .filter(o => o.isPublic === true)
+            .filter(o => !memberOrgIds.has(o.id));
         renderSuggestions();
     } catch (err) {
         console.error('Error loading suggestions:', err);
@@ -1006,11 +1011,15 @@ function renderFeatureCardIcon(org) {
 
 function renderHomePreview() {
     // Picks for hero + secondary feature slots.
-    // Prefer the user's joined orgs (puts familiar imagery up top); fall
-    // back to suggestions so the page doesn't feel empty for new users.
+    // Mirrors iOS: Discover only surfaces public-visibility apostolates
+    // (`isPublic === true`). Members of private orgs (CLI, SENT, etc.)
+    // still see them in their Network tab / profile; they just don't
+    // appear on the public Discover face of Engage.
+    const publicJoined = state.organizations.filter(o => o.isPublic === true);
+    const publicSuggestions = state.suggestions; // already public-filtered
     const featurePool = [
-        ...state.organizations,
-        ...state.suggestions.filter(s => !state.organizations.some(o => o.id === s.id)),
+        ...publicJoined,
+        ...publicSuggestions.filter(s => !publicJoined.some(o => o.id === s.id)),
     ];
     const heroOrg = featurePool[0];
     const feature1 = featurePool[1];
@@ -1088,10 +1097,13 @@ function renderHomePreview() {
         discoveryContainer.innerHTML = '<div class="eg-empty-state">No suggestions yet</div>';
     }
 
-    // Your Missions (joined orgs, 3-col grid)
+    // Your Missions (joined PUBLIC orgs, 3-col grid). Same visibility
+    // rule as the rest of the Discover view — private memberships are
+    // visible on the Network tab and profile, just not on the public
+    // discovery face.
     const networkContainer = $('eg-home-network');
-    if (state.organizations.length > 0) {
-        const preview = state.organizations.slice(0, 6);
+    if (publicJoined.length > 0) {
+        const preview = publicJoined.slice(0, 6);
         networkContainer.innerHTML = preview.map(org => `
             <div class="eg-org-row" data-org-id="${org.id}">
                 ${renderOrgAvatar(org)}
