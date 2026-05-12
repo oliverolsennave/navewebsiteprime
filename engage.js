@@ -1134,7 +1134,7 @@ function renderHomePreview() {
     renderFeatureCard('eg-home-feature-1', feature1, 'Apostolates We Love');
     renderFeatureCard('eg-home-feature-2', feature2, 'Also Worth Joining');
 
-    // Best New Apostolates (suggestions list, 3-col grid)
+    // Browse Apostolates (suggestions list, 3-col grid)
     const discoveryContainer = $('eg-home-discovery');
     const newApostolates = state.suggestions.length > 0
         ? state.suggestions.slice(0, 6)
