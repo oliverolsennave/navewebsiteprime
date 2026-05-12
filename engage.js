@@ -526,10 +526,15 @@ function getOrgLogoSrc(org) {
 
 function renderOrgAvatar(org, sizeClass = '') {
     const logoSrc = getOrgLogoSrc(org);
-    const bgColor = org.backgroundColorHex || getOrgColor(org);
     if (logoSrc) {
-        return `<div class="eg-org-avatar ${sizeClass}" style="background:${bgColor}"><img src="${logoSrc}" alt="" class="eg-org-logo-img"></div>`;
+        // Match iOS: when an org has a logo image, show just the image —
+        // no colored backplate behind it. Pre-composed logos (e.g. FOCUS)
+        // ship with their brand background baked in; transparent ones
+        // (e.g. SENT dove) read cleanly against the page background.
+        return `<div class="eg-org-avatar eg-org-avatar-image ${sizeClass}"><img src="${logoSrc}" alt="" class="eg-org-logo-img"></div>`;
     }
+    // Initials fallback keeps the colored circle so the slot isn't blank.
+    const bgColor = org.backgroundColorHex || getOrgColor(org);
     return `<div class="eg-org-avatar ${sizeClass}" style="background:${bgColor}">${getOrgInitials(org)}</div>`;
 }
 
@@ -804,22 +809,23 @@ function updateDiscoveryBadge() {
 
 // Renders an org's logo or initials for a hero/feature card slot.
 // Mirrors `renderOrgAvatar` but uses the larger hero-style classes.
+// Matches iOS: when a logo image exists, show it bare with no backplate.
 function renderHeroLogoVisual(org) {
     const logoSrc = getOrgLogoSrc(org);
+    if (logoSrc) {
+        return `<div class="eg-hero-card-logo eg-hero-card-logo-image"><img src="${escapeHtml(logoSrc)}" alt=""></div>`;
+    }
     const bgColor = org.backgroundColorHex || getOrgColor(org);
-    const inner = logoSrc
-        ? `<img src="${escapeHtml(logoSrc)}" alt="">`
-        : escapeHtml(getOrgInitials(org));
-    return `<div class="eg-hero-card-logo" style="background:${bgColor}">${inner}</div>`;
+    return `<div class="eg-hero-card-logo" style="background:${bgColor}">${escapeHtml(getOrgInitials(org))}</div>`;
 }
 
 function renderFeatureCardIcon(org) {
     const logoSrc = getOrgLogoSrc(org);
+    if (logoSrc) {
+        return `<div class="eg-feature-card-icon eg-feature-card-icon-image"><img src="${escapeHtml(logoSrc)}" alt=""></div>`;
+    }
     const bgColor = org.backgroundColorHex || getOrgColor(org);
-    const inner = logoSrc
-        ? `<img src="${escapeHtml(logoSrc)}" alt="">`
-        : escapeHtml(getOrgInitials(org));
-    return `<div class="eg-feature-card-icon" style="background:${bgColor}">${inner}</div>`;
+    return `<div class="eg-feature-card-icon" style="background:${bgColor}">${escapeHtml(getOrgInitials(org))}</div>`;
 }
 
 function renderHomePreview() {
@@ -975,11 +981,13 @@ async function openOrgModal(orgId) {
     // Set header
     const avatarEl = $('eg-org-avatar-lg');
     const logoSrc = getOrgLogoSrc(org);
-    const bgColor = org.backgroundColorHex || getOrgColor(org);
-    avatarEl.style.background = bgColor;
     if (logoSrc) {
+        avatarEl.classList.add('eg-org-avatar-lg-image');
+        avatarEl.style.background = 'transparent';
         avatarEl.innerHTML = `<img src="${logoSrc}" alt="" class="eg-org-logo-img">`;
     } else {
+        avatarEl.classList.remove('eg-org-avatar-lg-image');
+        avatarEl.style.background = org.backgroundColorHex || getOrgColor(org);
         avatarEl.textContent = getOrgInitials(org);
     }
     $('eg-org-modal-name').textContent = org.name || 'Organization';

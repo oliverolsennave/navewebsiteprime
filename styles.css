@@ -2816,12 +2816,9 @@ textarea.bulletin-receipt-input {
     background: radial-gradient(circle at 70% 50%, rgba(76, 139, 245, 0.35) 0%, transparent 60%);
 }
 .eg-hero-card-logo {
-    width: 180px;
-    height: 180px;
+    width: 200px;
+    height: 200px;
     border-radius: 32px;
-    object-fit: cover;
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
-    background: rgba(255, 255, 255, 0.05);
     position: relative;
     z-index: 1;
     display: flex;
@@ -2830,12 +2827,21 @@ textarea.bulletin-receipt-input {
     font-size: 4rem;
     font-weight: 700;
     color: #fff;
+    overflow: hidden;
+    /* Drop shadow only applies in initials-fallback mode (when an
+       inline background fill is set). Transparent logos look weird
+       with a shadow on their own silhouette. */
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+.eg-hero-card-logo.eg-hero-card-logo-image {
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
 }
 .eg-hero-card-logo img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    border-radius: 32px;
+    object-fit: contain;
 }
 .eg-hero-empty {
     grid-column: 1 / -1;
@@ -2898,8 +2904,7 @@ textarea.bulletin-receipt-input {
 .eg-feature-card-icon {
     width: 96px;
     height: 96px;
-    border-radius: 50%;
-    background: #1f1f1f;
+    border-radius: 20px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -2909,10 +2914,15 @@ textarea.bulletin-receipt-input {
     font-weight: 700;
     color: #fff;
 }
+.eg-feature-card-icon.eg-feature-card-icon-image {
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+}
 .eg-feature-card-icon img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 /* Section header (Best New / Your Missions / Recent Messages) */
@@ -3253,10 +3263,15 @@ textarea.bulletin-receipt-input {
     flex-shrink: 0;
     overflow: hidden;
 }
+.eg-org-avatar.eg-org-avatar-image {
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+}
 
 .eg-org-logo-img {
-    width: 70%;
-    height: 70%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
 }
 
@@ -3504,6 +3519,10 @@ textarea.bulletin-receipt-input {
     flex-shrink: 0;
     background: #4C8BF5;
     overflow: hidden;
+}
+.eg-org-avatar-lg.eg-org-avatar-lg-image {
+    border-radius: 0;
+    overflow: visible;
 }
 
 .eg-org-modal-info {
