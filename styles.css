@@ -1808,6 +1808,29 @@ input {
 }
 .join-auth-apple { background: #fff; color: #111; }
 .join-auth-google { background: #1a1a1a; }
+
+/* Brand-icon images inside sign-in buttons. Sized to match the
+   button line-height and aligned with the label text. */
+.join-auth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.join-auth-icon-img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+/* On the dark Google button, the multicolor Google logo reads fine
+   as-is. On the white Apple button, the Apple PNG is already black,
+   so no filter needed. */
+.join-auth-icon-img-apple {
+    width: 16px;
+    height: 16px;
+    margin-top: -2px; /* visually center the Apple glyph */
+}
 .join-auth-form { margin-top: 16px; }
 .join-auth-form.hidden { display: none; }
 .join-auth-row {
