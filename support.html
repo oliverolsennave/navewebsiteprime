@@ -4,147 +4,481 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support — Nave</title>
+    <meta name="description" content="Get help with Nave — the Catholic culture heat map. Contact us or browse frequently asked questions.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico?v=20260209-red" sizes="48x48">
+    <link rel="icon" href="assets/favicon-32.png?v=20260209-red" sizes="32x32" type="image/png">
+    <link rel="icon" href="assets/favicon-16.png?v=20260209-red" sizes="16x16" type="image/png">
+    <link rel="icon" href="assets/favicon-adaptive.svg?v=20260209-red" type="image/svg+xml" sizes="any">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260209-red" sizes="180x180">
+    <link rel="mask-icon" href="assets/favicon-adaptive.svg?v=20260209-red" color="#CC3333">
+    <link rel="shortcut icon" href="/favicon.ico?v=20260209-red">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="theme-color" content="#0D0D10">
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Instrument Sans', -apple-system, sans-serif;
-            background: #0a0a0a;
-            color: #f5f5f5;
-            line-height: 1.7;
-            padding: 40px 20px 80px;
+        /* Support page specific styles */
+        .support-hero {
+            padding: var(--spacing-2xl) var(--spacing-md) var(--spacing-xl);
+            text-align: center;
         }
-        .container { max-width: 720px; margin: 0 auto; }
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #d4af37;
+        .support-hero .section-title {
+            margin-bottom: var(--spacing-xs);
         }
-        .subtitle {
-            font-size: 1rem;
-            color: #888;
-            margin-bottom: 40px;
+        .support-hero .section-subtitle {
+            max-width: 480px;
+            margin: 0 auto;
         }
-        h2 {
-            font-size: 1.3rem;
+
+        .support-content {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md) var(--spacing-2xl);
+        }
+
+        /* Contact form section */
+        .support-form-card {
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+        .support-form-card h2 {
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-top: 36px;
-            margin-bottom: 12px;
-            color: #f5f5f5;
+            color: var(--color-text);
+            margin-bottom: 4px;
         }
-        p, li {
+        .support-form-card .form-intro {
             font-size: 0.95rem;
-            color: #ccc;
-            margin-bottom: 12px;
+            color: var(--color-text-muted);
+            margin-bottom: var(--spacing-md);
         }
-        ul { padding-left: 24px; margin-bottom: 16px; }
-        li { margin-bottom: 6px; }
-        strong { color: #f5f5f5; }
-        a { color: #d4af37; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 24px;
-            font-size: 0.9rem;
-            color: #888;
-        }
-        .contact-card {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 16px;
-            padding: 28px;
-            margin-top: 24px;
-        }
-        .contact-card h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #f5f5f5;
-        }
-        .contact-item {
+
+        .support-form {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 16px;
+            flex-direction: column;
+            gap: var(--spacing-sm);
         }
-        .contact-label {
+        .support-form .field-row {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+        .support-form .field-row .field-group {
+            flex: 1;
+        }
+        .support-form label {
+            display: block;
             font-size: 0.85rem;
-            color: #888;
-            min-width: 60px;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-bottom: 6px;
         }
-        .contact-value {
+        .support-form input,
+        .support-form textarea,
+        .support-form select {
+            width: 100%;
+            padding: 0.75rem 1rem;
             font-size: 0.95rem;
-            color: #ccc;
+            font-family: inherit;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            background: var(--color-bg);
+            color: var(--color-text);
+            transition: border-color var(--transition);
+        }
+        .support-form input:focus,
+        .support-form textarea:focus,
+        .support-form select:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+        .support-form textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .support-form select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        .support-form select option {
+            background: var(--color-bg-alt);
+            color: var(--color-text);
+        }
+
+        .support-submit {
+            align-self: flex-start;
+            padding: 0.75rem 2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: #000;
+            background: var(--color-accent);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition);
+        }
+        .support-submit:hover {
+            background: var(--color-accent-hover);
+            transform: translateY(-1px);
+        }
+        .support-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .support-form-success {
+            display: none;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md);
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: var(--border-radius);
+        }
+        .support-form-success.visible {
+            display: flex;
+        }
+        .support-form-success svg {
+            flex-shrink: 0;
+        }
+        .support-form-success p {
+            color: var(--color-success);
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* FAQ section */
+        .faq-section {
+            margin-bottom: var(--spacing-xl);
+        }
+        .faq-section h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: var(--spacing-sm);
         }
         .faq-item {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 12px;
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 10px;
         }
         .faq-item strong {
             display: block;
-            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: var(--color-text);
+            margin-bottom: 6px;
         }
         .faq-item p {
-            margin-bottom: 0;
             font-size: 0.9rem;
+            color: var(--color-text-muted);
+            line-height: 1.6;
+            margin: 0;
+        }
+        .faq-item a {
+            color: var(--color-accent);
+            text-decoration: none;
+        }
+        .faq-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Contact info card */
+        .contact-info {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+        .contact-info-card {
+            flex: 1;
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-lg);
+            padding: 20px 24px;
+        }
+        .contact-info-card .info-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        .contact-info-card .info-value {
+            font-size: 0.95rem;
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+        .contact-info-card a {
+            color: var(--color-accent);
+            text-decoration: none;
+        }
+        .contact-info-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* Additional resources */
+        .resources-section h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: var(--spacing-sm);
+        }
+        .resources-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            gap: 10px;
+        }
+        .resources-list li a {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--color-text-muted);
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            transition: border-color var(--transition), color var(--transition);
+        }
+        .resources-list li a:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent);
+        }
+
+        @media (max-width: 600px) {
+            .support-form .field-row {
+                flex-direction: column;
+            }
+            .contact-info {
+                flex-direction: column;
+            }
+            .resources-list {
+                flex-direction: column;
+            }
+            .support-submit {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="/" class="back-link">&larr; catholicnave.com</a>
-        <h1>Support</h1>
-        <p class="subtitle">We're here to help you get the most out of Nave.</p>
-
-        <div class="contact-card">
-            <h3>Contact Us</h3>
-            <div class="contact-item">
-                <span class="contact-label">Email</span>
-                <span class="contact-value"><a href="mailto:support@catholicnave.com">support@catholicnave.com</a></span>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="assets/whitenavelogo.png" alt="Nave" class="logo-img">
+                <span class="logo-text">Nave</span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="map.html" class="nav-link">Map</a>
+                <a href="engage.html" class="nav-link">Engage</a>
+                <a href="ask-gabe.html" class="nav-link">Ask</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="join.html" class="nav-cta">Try Nave Free</a>
             </div>
-            <div class="contact-item">
-                <span class="contact-label">Mail</span>
-                <span class="contact-value">Nave Support<br>240 Beverly Hills Cir, Apt 637<br>Lynchburg, VA 24502</span>
+            <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" onclick="document.getElementById('nav-links').classList.toggle('open');document.getElementById('nav-backdrop').classList.toggle('visible');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+        </div>
+    </nav>
+    <div class="nav-backdrop" id="nav-backdrop" onclick="document.getElementById('nav-links').classList.remove('open');this.classList.remove('visible');"></div>
+    <script>requestAnimationFrame(()=>document.getElementById('nav-links').classList.add('ready'));</script>
+
+    <!-- Hero -->
+    <section class="support-hero">
+        <h1 class="section-title">Support</h1>
+        <p class="section-subtitle">We're here to help you get the most out of Nave.</p>
+    </section>
+
+    <!-- Main Content -->
+    <div class="support-content">
+
+        <!-- Contact Form -->
+        <div class="support-form-card">
+            <h2>Send us a message</h2>
+            <p class="form-intro">Have a question, issue, or suggestion? We typically respond within 24 hours.</p>
+
+            <form id="support-form" class="support-form">
+                <div class="field-row">
+                    <div class="field-group">
+                        <label for="support-name">Name</label>
+                        <input type="text" id="support-name" name="name" placeholder="Your name" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="support-email">Email</label>
+                        <input type="email" id="support-email" name="email" placeholder="you@email.com" required>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="support-topic">Topic</label>
+                    <select id="support-topic" name="topic" required>
+                        <option value="" disabled selected>Select a topic</option>
+                        <option value="account">Account & Sign-In</option>
+                        <option value="subscription">Subscription & Billing</option>
+                        <option value="listing">My Listing</option>
+                        <option value="gabe">Ask Gabe (AI)</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="feature">Feature Request</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label for="support-message">Message</label>
+                    <textarea id="support-message" name="message" placeholder="Tell us what's going on..." rows="5" required></textarea>
+                </div>
+
+                <button type="submit" class="support-submit">Send Message</button>
+            </form>
+
+            <div id="support-form-success" class="support-form-success">
+                <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z" fill="#22c55e"/>
+                </svg>
+                <p>Message sent! We'll get back to you soon.</p>
             </div>
-            <p style="color: #888; font-size: 0.85rem; margin-top: 8px; margin-bottom: 0;">We typically respond within 24 hours.</p>
         </div>
 
-        <h2>Frequently Asked Questions</h2>
-
-        <div class="faq-item">
-            <strong>How do I manage or cancel my subscription?</strong>
-            <p>Open your iPhone Settings, tap your name at the top, then tap Subscriptions. Find Nave and manage or cancel from there. Subscriptions must be cancelled at least 24 hours before the renewal date.</p>
+        <!-- Contact Info -->
+        <div class="contact-info">
+            <div class="contact-info-card">
+                <div class="info-label">Email</div>
+                <div class="info-value"><a href="mailto:oliver@catholicnave.com">oliver@catholicnave.com</a></div>
+            </div>
         </div>
 
-        <div class="faq-item">
-            <strong>How do I delete my account?</strong>
-            <p>Go to Home tab in the app, tap Settings, and select "Delete Account." Your data will be removed within 30 days. You can also email <a href="mailto:privacy@catholicnave.com">privacy@catholicnave.com</a> to request deletion.</p>
+        <!-- FAQ -->
+        <div class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <strong>How do I manage or cancel my subscription?</strong>
+                <p>Open your iPhone Settings, tap your name at the top, then tap Subscriptions. Find Nave and manage or cancel from there. Subscriptions must be cancelled at least 24 hours before the renewal date.</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>How do I delete my account?</strong>
+                <p>Go to the Home tab in the app, tap Settings, and select "Delete Account." Your data will be removed within 30 days. You can also email <a href="mailto:oliver@catholicnave.com">oliver@catholicnave.com</a> to request deletion.</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>How do I update my parish or business listing?</strong>
+                <p>Navigate to your listing on the map, tap the pencil icon to enter edit mode, and use the + button to add photos, events, staff, and more.</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>Is Gabe official Catholic teaching?</strong>
+                <p>No. Gabe is an AI assistant that helps you discover Catholic resources. Its responses are for informational purposes only and should not be considered official Church teaching or a substitute for professional advice.</p>
+            </div>
+
+            <div class="faq-item">
+                <strong>How do I request a refund?</strong>
+                <p>Refunds for in-app purchases are handled by Apple. Visit <a href="https://reportaproblem.apple.com" target="_blank">reportaproblem.apple.com</a> to request a refund through Apple.</p>
+            </div>
         </div>
 
-        <div class="faq-item">
-            <strong>How do I update my parish or business listing?</strong>
-            <p>Navigate to your listing on the map, tap the pencil icon to enter edit mode, and use the + button to add photos, events, staff, and more.</p>
+        <!-- Additional Resources -->
+        <div class="resources-section">
+            <h2>Additional Resources</h2>
+            <ul class="resources-list">
+                <li><a href="/privacy">Privacy Policy</a></li>
+                <li><a href="/terms">Terms of Service</a></li>
+            </ul>
         </div>
-
-        <div class="faq-item">
-            <strong>Is Gabriel AI official Catholic teaching?</strong>
-            <p>No. Gabriel is an AI assistant that helps you discover Catholic resources. Its responses are for informational purposes only and should not be considered official Church teaching or a substitute for professional advice.</p>
-        </div>
-
-        <div class="faq-item">
-            <strong>How do I request a refund?</strong>
-            <p>Refunds for in-app purchases are handled by Apple. Visit <a href="https://reportaproblem.apple.com" target="_blank">reportaproblem.apple.com</a> to request a refund through Apple.</p>
-        </div>
-
-        <h2>Additional Resources</h2>
-        <ul>
-            <li><a href="/privacy">Privacy Policy</a></li>
-            <li><a href="/terms">Terms of Service</a></li>
-        </ul>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <img src="assets/whitenavelogo.png" alt="Nave" class="footer-logo-img">
+                <span class="footer-logo-text">Nave</span>
+            </div>
+
+            <div class="footer-links">
+                <a href="mailto:oliver@catholicnave.com">Contact</a>
+                <a href="/support">Support</a>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/terms">Terms of Service</a>
+            </div>
+
+            <p class="footer-copyright">
+                &copy; 2025 Nave. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="app.js"></script>
+
+    <!-- Support form handler -->
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const supportForm = document.getElementById('support-form');
+        const successMessage = document.getElementById('support-form-success');
+
+        supportForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('support-name').value.trim();
+            const email = document.getElementById('support-email').value.trim();
+            const topic = document.getElementById('support-topic').value;
+            const message = document.getElementById('support-message').value.trim();
+
+            if (!name || !email || !topic || !message) return;
+
+            const submitBtn = supportForm.querySelector('.support-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+
+            try {
+                await addDoc(collection(db, 'support-inquiries'), {
+                    name,
+                    email,
+                    topic,
+                    message,
+                    createdAt: serverTimestamp(),
+                    source: 'support_page'
+                });
+
+                supportForm.style.display = 'none';
+                successMessage.classList.add('visible');
+
+            } catch (error) {
+                console.error('Error submitting support form:', error);
+                submitBtn.textContent = 'Error — Try Again';
+                submitBtn.disabled = false;
+                setTimeout(() => {
+                    submitBtn.textContent = 'Send Message';
+                }, 3000);
+            }
+        });
+    </script>
 </body>
 </html>
