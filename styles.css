@@ -301,10 +301,37 @@ input {
     color: var(--color-text);
 }
 
+/* Origin Story Section */
+.about-origin {
+    padding: var(--spacing-2xl) 0;
+    background: var(--color-bg);
+}
+.about-origin-container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+.about-origin .section-title {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+.origin-body p {
+    font-size: 1.0625rem;
+    color: var(--color-text-muted);
+    line-height: 1.8;
+    margin-bottom: var(--spacing-md);
+}
+.origin-body p.origin-close {
+    color: var(--color-text);
+    font-style: italic;
+    margin-top: var(--spacing-lg);
+    margin-bottom: 0;
+}
+
 /* Founders Section */
 .about-founders {
     padding: var(--spacing-2xl) 0;
-    background: var(--color-bg);
+    background: var(--color-bg-alt);
 }
 
 .about-founders-container {
