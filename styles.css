@@ -2818,7 +2818,7 @@ textarea.bulletin-receipt-input {
 .eg-hero-card-logo {
     width: 200px;
     height: 200px;
-    border-radius: 32px;
+    border-radius: 44px;
     position: relative;
     z-index: 1;
     display: flex;
@@ -2828,15 +2828,7 @@ textarea.bulletin-receipt-input {
     font-weight: 700;
     color: #fff;
     overflow: hidden;
-    /* Drop shadow only applies in initials-fallback mode (when an
-       inline background fill is set). Transparent logos look weird
-       with a shadow on their own silhouette. */
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
-}
-.eg-hero-card-logo.eg-hero-card-logo-image {
-    box-shadow: none;
-    border-radius: 0;
-    overflow: visible;
 }
 .eg-hero-card-logo img {
     width: 100%;
@@ -2904,7 +2896,7 @@ textarea.bulletin-receipt-input {
 .eg-feature-card-icon {
     width: 96px;
     height: 96px;
-    border-radius: 20px;
+    border-radius: 22px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -2913,11 +2905,6 @@ textarea.bulletin-receipt-input {
     font-size: 2.25rem;
     font-weight: 700;
     color: #fff;
-}
-.eg-feature-card-icon.eg-feature-card-icon-image {
-    background: transparent;
-    border-radius: 0;
-    overflow: visible;
 }
 .eg-feature-card-icon img {
     width: 100%;
@@ -3263,11 +3250,6 @@ textarea.bulletin-receipt-input {
     flex-shrink: 0;
     overflow: hidden;
 }
-.eg-org-avatar.eg-org-avatar-image {
-    background: transparent;
-    border-radius: 0;
-    overflow: visible;
-}
 
 .eg-org-logo-img {
     width: 100%;
@@ -3519,10 +3501,6 @@ textarea.bulletin-receipt-input {
     flex-shrink: 0;
     background: #4C8BF5;
     overflow: hidden;
-}
-.eg-org-avatar-lg.eg-org-avatar-lg-image {
-    border-radius: 0;
-    overflow: visible;
 }
 
 .eg-org-modal-info {
