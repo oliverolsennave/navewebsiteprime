@@ -220,48 +220,98 @@ async function renderProfileSection() {
     $('eg-profile-name').textContent = name;
     $('eg-profile-username').textContent = profile.username ? `@${profile.username}` : 'Nave Member';
 
-    // Friends count — query subcollection
-    const friendCount = await loadFriendsCount(user.uid);
-    $('eg-profile-friends').textContent = friendCount;
+    // Friends — count via subcollection, lazy-load list on expand
+    state.profileFriends = await loadProfileFriends(user.uid);
+    $('eg-profile-friends').textContent = state.profileFriends.length;
+    $('eg-profile-friends-sub').textContent = state.profileFriends.length === 0
+        ? 'Connect with people on Nave'
+        : state.profileFriends.slice(0, 3).map(f => f.displayName || 'Member').join(', ')
+            + (state.profileFriends.length > 3 ? `, +${state.profileFriends.length - 3} more` : '');
 
-    // Networks count
-    $('eg-profile-networks').textContent = state.organizations.length;
+    // Networks (apostolates)
+    const orgs = state.organizations;
+    $('eg-profile-networks').textContent = orgs.length;
+    $('eg-profile-networks-sub').textContent = orgs.length === 0
+        ? 'Join an apostolate'
+        : orgs.slice(0, 3).map(o => o.name || 'Apostolate').join(', ')
+            + (orgs.length > 3 ? `, +${orgs.length - 3} more` : '');
 
-    // Keys count — deduplicate by objectId (matches iOS behavior)
-    const uniqueIds = new Set();
-    if (profile.associatedObjects) {
-        for (const [, arr] of Object.entries(profile.associatedObjects)) {
-            if (Array.isArray(arr)) {
-                for (const a of arr) {
-                    if (a.isActive !== false && a.objectId) uniqueIds.add(a.objectId);
-                }
-            }
-        }
-    }
-    $('eg-profile-keys').textContent = uniqueIds.size;
+    // Keys — flatten associatedObjects and dedupe by objectId
+    state.profileKeys = collectProfileKeys(profile);
+    $('eg-profile-keys').textContent = state.profileKeys.length;
+    const typeBreakdown = summarizeKeysByType(state.profileKeys);
+    $('eg-profile-keys-sub').textContent = state.profileKeys.length === 0
+        ? 'Add an owned business, parish, etc.'
+        : typeBreakdown;
 
     // Home parish and campus
     loadProfileParish(profile.homeParishId);
     loadProfileCampus(profile.homeCampusMinistryId);
 }
 
-async function loadFriendsCount(userId) {
+// Pulls all friend connection records from /users/{uid}/connections,
+// falling back to the legacy friends subcollection if empty. Returns
+// { uid, displayName, username, photoURL }[] sorted by connection date.
+async function loadProfileFriends(userId) {
     try {
-        // Try newer "connections" subcollection first (matches iOS ConnectionService)
         const connectionsSnap = await getDocs(collection(db, 'users', userId, 'connections'));
-        if (connectionsSnap.size > 0) return connectionsSnap.size;
-
-        // Fallback: legacy "friends" subcollection with status == "active"
+        if (connectionsSnap.size > 0) {
+            return connectionsSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
+        }
         const friendsQ = query(
             collection(db, 'users', userId, 'friends'),
             where('status', '==', 'active')
         );
         const friendsSnap = await getDocs(friendsQ);
-        return friendsSnap.size;
+        return friendsSnap.docs.map(d => ({ uid: d.id, ...d.data() }));
     } catch (err) {
-        console.error('Error loading friends count:', err);
-        return 0;
+        console.error('Error loading friends:', err);
+        return [];
     }
+}
+
+function collectProfileKeys(profile) {
+    if (!profile || !profile.associatedObjects) return [];
+    const seen = new Set();
+    const result = [];
+    for (const [, arr] of Object.entries(profile.associatedObjects)) {
+        if (!Array.isArray(arr)) continue;
+        for (const a of arr) {
+            if (a.isActive === false || !a.objectId) continue;
+            if (seen.has(a.objectId)) continue;
+            seen.add(a.objectId);
+            result.push(a);
+        }
+    }
+    return result;
+}
+
+const KEY_TYPE_LABELS = {
+    parish: { singular: 'parish', plural: 'parishes' },
+    business: { singular: 'business', plural: 'businesses' },
+    school: { singular: 'school', plural: 'schools' },
+    missionary: { singular: 'missionary', plural: 'missionaries' },
+    vocation: { singular: 'vocation', plural: 'vocations' },
+    retreat: { singular: 'retreat', plural: 'retreats' },
+    retreatOffering: { singular: 'retreat offering', plural: 'retreat offerings' },
+    pilgrimage: { singular: 'pilgrimage', plural: 'pilgrimages' },
+    pilgrimageOffering: { singular: 'pilgrimage trip', plural: 'pilgrimage trips' },
+    pilgrimageSite: { singular: 'pilgrimage site', plural: 'pilgrimage sites' },
+    bibleStudy: { singular: 'campus ministry', plural: 'campus ministries' },
+};
+
+function summarizeKeysByType(keys) {
+    const counts = {};
+    for (const k of keys) counts[k.objectType] = (counts[k.objectType] || 0) + 1;
+    const parts = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([type, n]) => {
+            const labels = KEY_TYPE_LABELS[type];
+            const label = labels ? (n === 1 ? labels.singular : labels.plural) : type;
+            return `${n} ${label}`;
+        });
+    return parts.join(', ');
 }
 
 async function loadProfileParish(parishId) {
@@ -346,6 +396,108 @@ $('eg-user-info').addEventListener('click', () => {
     navigateTo('profile');
     renderProfileSection();
 });
+
+// Profile stat rows — expand/collapse with lazy list render
+document.querySelectorAll('.eg-profile-stat-row').forEach(row => {
+    row.addEventListener('click', () => {
+        const stat = row.dataset.stat;
+        const detail = $(`eg-profile-${stat}-detail`);
+        const isOpen = !detail.classList.contains('hidden');
+        if (isOpen) {
+            detail.classList.add('hidden');
+            row.classList.remove('expanded');
+            return;
+        }
+        renderProfileStatDetail(stat, detail);
+        detail.classList.remove('hidden');
+        row.classList.add('expanded');
+    });
+});
+
+function renderProfileStatDetail(stat, container) {
+    if (stat === 'friends') {
+        const friends = state.profileFriends || [];
+        if (friends.length === 0) {
+            container.innerHTML = '<div class="eg-empty-state">No friends yet — connect with someone in the iOS app.</div>';
+            return;
+        }
+        container.innerHTML = friends.map(f => {
+            const initial = (f.displayName || 'M').charAt(0).toUpperCase();
+            const photo = f.photoURL ? `<img src="${escapeHtml(cleanURL(f.photoURL))}" alt="" onerror="this.replaceWith(document.createTextNode('${initial}'))">` : initial;
+            return `
+                <div class="eg-profile-stat-detail-row">
+                    <div class="eg-profile-stat-detail-avatar">${photo}</div>
+                    <div class="eg-profile-stat-detail-name">${escapeHtml(f.displayName || 'Member')}</div>
+                    <div class="eg-profile-stat-detail-sub">${escapeHtml(f.username ? '@' + f.username : '')}</div>
+                </div>
+            `;
+        }).join('');
+        return;
+    }
+
+    if (stat === 'networks') {
+        const orgs = state.organizations || [];
+        if (orgs.length === 0) {
+            container.innerHTML = '<div class="eg-empty-state">Not a member of any apostolates yet.</div>';
+            return;
+        }
+        container.innerHTML = orgs.map(org => {
+            const initials = getOrgInitials(org);
+            const logoSrc = getOrgLogoSrc(org);
+            const bgColor = org.backgroundColorHex || getOrgColor(org);
+            const avatar = logoSrc
+                ? `<img src="${escapeHtml(logoSrc)}" alt="">`
+                : initials;
+            const bgStyle = isFullBleedLogo(org) ? '' : `background:${bgColor}`;
+            return `
+                <div class="eg-profile-stat-detail-row" data-tappable="true" data-org-id="${escapeHtml(org.id)}">
+                    <div class="eg-profile-stat-detail-avatar" style="${bgStyle}">${avatar}</div>
+                    <div class="eg-profile-stat-detail-name">${escapeHtml(org.name || 'Apostolate')}</div>
+                    <div class="eg-profile-stat-detail-sub">${escapeHtml(org.tagline || '')}</div>
+                </div>
+            `;
+        }).join('');
+        container.querySelectorAll('[data-org-id]').forEach(el => {
+            el.addEventListener('click', () => openOrgModal(el.dataset.orgId));
+        });
+        return;
+    }
+
+    if (stat === 'keys') {
+        const keys = state.profileKeys || [];
+        if (keys.length === 0) {
+            container.innerHTML = '<div class="eg-empty-state">No keys yet.</div>';
+            return;
+        }
+        // Group by objectType
+        const grouped = {};
+        for (const k of keys) {
+            const t = k.objectType || 'other';
+            (grouped[t] ||= []).push(k);
+        }
+        const orderedTypes = Object.keys(grouped).sort((a, b) => grouped[b].length - grouped[a].length);
+        let html = '';
+        for (const type of orderedTypes) {
+            const labels = KEY_TYPE_LABELS[type];
+            const label = labels ? labels.plural : type;
+            html += `<div class="eg-profile-stat-detail-group-label">${escapeHtml(label)}</div>`;
+            for (const k of grouped[type]) {
+                const initial = (k.objectName || '?').charAt(0).toUpperCase();
+                html += `
+                    <div class="eg-profile-stat-detail-row">
+                        <div class="eg-profile-stat-detail-avatar">${escapeHtml(initial)}</div>
+                        <div class="eg-profile-stat-detail-name">${escapeHtml(k.objectName || 'Unnamed')}</div>
+                        <div class="eg-profile-stat-detail-sub">${escapeHtml(k.associationType || '')}</div>
+                    </div>
+                `;
+            }
+        }
+        container.innerHTML = html;
+        return;
+    }
+
+    container.innerHTML = '<div class="eg-empty-state">Nothing to show.</div>';
+}
 
 // ==========================================================================
 // Filter Tabs (Inbox)
