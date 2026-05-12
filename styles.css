@@ -3889,10 +3889,21 @@ textarea.bulletin-receipt-input {
 }
 
 .eg-profile-layout {
-    display: grid;
-    grid-template-columns: 380px minmax(0, 1fr);
+    display: flex;
     gap: 1.5rem;
-    align-items: start;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.eg-profile-identity {
+    flex: 0 0 380px;
+    max-width: 380px;
+}
+.eg-profile-stats-stack {
+    flex: 1 1 380px;
+    min-width: 0;
+}
+@media (max-width: 760px) {
+    .eg-profile-identity { flex-basis: 100%; max-width: none; }
 }
 
 /* Left column: identity card */
@@ -4146,9 +4157,6 @@ textarea.bulletin-receipt-input {
     font-weight: 600;
 }
 
-@media (max-width: 900px) {
-    .eg-profile-layout { grid-template-columns: 1fr; }
-}
 
 /* ── Mobile Tab Bar (Engage) ─────────────────────────────────────────── */
 .eg-mobile-tabs {
