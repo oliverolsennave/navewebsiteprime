@@ -525,17 +525,34 @@ function getOrgLogoSrc(org) {
     return null;
 }
 
+// Returns true when the logo is a user-uploaded image (URL pointing at
+// Firebase Storage or similar) versus a bundled transparent asset. User
+// uploads are typically self-contained app-icon images — they already
+// include their own background, so we should NOT add another brand
+// backplate behind them (which would show as a colored ring) and the
+// image should fill the tile rather than be inset.
+function isFullBleedLogo(org) {
+    if (org.logoAssetName && logoAssetMap[org.logoAssetName]) return false;
+    if (!org.logoURL) return false;
+    if (logoAssetMap[org.logoURL]) return false;
+    return org.logoURL.startsWith('http://') || org.logoURL.startsWith('https://');
+}
+
 function renderOrgAvatar(org, sizeClass = '') {
     const logoSrc = getOrgLogoSrc(org);
-    const bgColor = org.backgroundColorHex || getOrgColor(org);
     if (logoSrc) {
-        // Match iOS: rounded-square tile with the brand backplate, image
-        // fills via `object-fit: contain`. Pre-composed app icons (FOCUS,
-        // CLI, ICLE, NASPA) cover the backplate entirely; transparent
-        // logos (Nave wordmark, SENT dove) sit on top so the brand color
-        // reads through their transparent pixels.
+        if (isFullBleedLogo(org)) {
+            // Self-contained user upload: image is the tile. No backplate,
+            // image covers (any transparent padding in the upload gets
+            // trimmed against the rounded crop).
+            return `<div class="eg-org-avatar eg-org-avatar-fullbleed ${sizeClass}"><img src="${logoSrc}" alt="" class="eg-org-logo-img-fullbleed"></div>`;
+        }
+        // Bundled transparent asset: brand backplate + image scaled to fit
+        // with internal padding.
+        const bgColor = org.backgroundColorHex || getOrgColor(org);
         return `<div class="eg-org-avatar ${sizeClass}" style="background:${bgColor}"><img src="${logoSrc}" alt="" class="eg-org-logo-img"></div>`;
     }
+    const bgColor = org.backgroundColorHex || getOrgColor(org);
     return `<div class="eg-org-avatar ${sizeClass}" style="background:${bgColor}">${getOrgInitials(org)}</div>`;
 }
 
@@ -814,19 +831,27 @@ function updateDiscoveryBadge() {
 // backplate while transparent ones read through to the brand color.
 function renderHeroLogoVisual(org) {
     const logoSrc = getOrgLogoSrc(org);
-    const bgColor = org.backgroundColorHex || getOrgColor(org);
     if (logoSrc) {
+        if (isFullBleedLogo(org)) {
+            return `<div class="eg-hero-card-logo eg-hero-card-logo-fullbleed"><img src="${escapeHtml(logoSrc)}" alt=""></div>`;
+        }
+        const bgColor = org.backgroundColorHex || getOrgColor(org);
         return `<div class="eg-hero-card-logo" style="background:${bgColor}"><img src="${escapeHtml(logoSrc)}" alt=""></div>`;
     }
+    const bgColor = org.backgroundColorHex || getOrgColor(org);
     return `<div class="eg-hero-card-logo" style="background:${bgColor}">${escapeHtml(getOrgInitials(org))}</div>`;
 }
 
 function renderFeatureCardIcon(org) {
     const logoSrc = getOrgLogoSrc(org);
-    const bgColor = org.backgroundColorHex || getOrgColor(org);
     if (logoSrc) {
+        if (isFullBleedLogo(org)) {
+            return `<div class="eg-feature-card-icon eg-feature-card-icon-fullbleed"><img src="${escapeHtml(logoSrc)}" alt=""></div>`;
+        }
+        const bgColor = org.backgroundColorHex || getOrgColor(org);
         return `<div class="eg-feature-card-icon" style="background:${bgColor}"><img src="${escapeHtml(logoSrc)}" alt=""></div>`;
     }
+    const bgColor = org.backgroundColorHex || getOrgColor(org);
     return `<div class="eg-feature-card-icon" style="background:${bgColor}">${escapeHtml(getOrgInitials(org))}</div>`;
 }
 
@@ -983,11 +1008,16 @@ async function openOrgModal(orgId) {
     // Set header
     const avatarEl = $('eg-org-avatar-lg');
     const logoSrc = getOrgLogoSrc(org);
-    avatarEl.classList.remove('eg-org-avatar-lg-image');
-    avatarEl.style.background = org.backgroundColorHex || getOrgColor(org);
-    if (logoSrc) {
+    avatarEl.classList.remove('eg-org-avatar-lg-fullbleed');
+    if (logoSrc && isFullBleedLogo(org)) {
+        avatarEl.classList.add('eg-org-avatar-lg-fullbleed');
+        avatarEl.style.background = 'transparent';
+        avatarEl.innerHTML = `<img src="${logoSrc}" alt="" class="eg-org-logo-img-fullbleed">`;
+    } else if (logoSrc) {
+        avatarEl.style.background = org.backgroundColorHex || getOrgColor(org);
         avatarEl.innerHTML = `<img src="${logoSrc}" alt="" class="eg-org-logo-img">`;
     } else {
+        avatarEl.style.background = org.backgroundColorHex || getOrgColor(org);
         avatarEl.textContent = getOrgInitials(org);
     }
     $('eg-org-modal-name').textContent = org.name || 'Organization';

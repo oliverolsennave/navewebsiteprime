@@ -2831,9 +2831,17 @@ textarea.bulletin-receipt-input {
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
 }
 .eg-hero-card-logo img {
+    width: 64%;
+    height: 64%;
+    object-fit: contain;
+}
+.eg-hero-card-logo.eg-hero-card-logo-fullbleed {
+    background: transparent;
+}
+.eg-hero-card-logo.eg-hero-card-logo-fullbleed img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
 }
 .eg-hero-empty {
     grid-column: 1 / -1;
@@ -2907,9 +2915,17 @@ textarea.bulletin-receipt-input {
     color: #fff;
 }
 .eg-feature-card-icon img {
+    width: 64%;
+    height: 64%;
+    object-fit: contain;
+}
+.eg-feature-card-icon.eg-feature-card-icon-fullbleed {
+    background: transparent;
+}
+.eg-feature-card-icon.eg-feature-card-icon-fullbleed img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
 }
 
 /* Section header (Best New / Your Missions / Recent Messages) */
@@ -3251,14 +3267,25 @@ textarea.bulletin-receipt-input {
     overflow: hidden;
 }
 
-/* Let the PNG decide its own proportions: fill the tile and let any
-   padding baked into the PNG (pre-composed app icons like FOCUS) or
-   absence of it (tight transparent logos like Nave) read naturally.
-   The backplate behind shows through transparent areas. */
+/* Bundled transparent assets (Nave wordmark, SENT dove, FOCUS, CLI,
+   ICLE, NASPA) sit on a brand-color backplate inset so the artwork has
+   breathing room — matches the iOS "36 on 56" pattern. */
 .eg-org-logo-img {
+    width: 64%;
+    height: 64%;
+    object-fit: contain;
+}
+
+/* User-uploaded logos: image IS the tile, no backplate, image covers
+   so any transparent margin in the upload gets cropped against the
+   rounded corners rather than showing as a colored ring. */
+.eg-org-avatar.eg-org-avatar-fullbleed {
+    background: transparent;
+}
+.eg-org-logo-img-fullbleed {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
 }
 
 .eg-org-info {
@@ -3505,6 +3532,14 @@ textarea.bulletin-receipt-input {
     flex-shrink: 0;
     background: #4C8BF5;
     overflow: hidden;
+}
+.eg-org-avatar-lg.eg-org-avatar-lg-fullbleed {
+    background: transparent;
+}
+.eg-org-avatar-lg .eg-org-logo-img-fullbleed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .eg-org-modal-info {
