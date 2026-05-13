@@ -235,14 +235,14 @@
             font-weight: 700;
         }
 
-        /* Quick detail card (first-tap UI on map dots) */
+        /* Quick detail card (first-tap UI on map dots) — centered at bottom */
         .map-quick-card {
             position: absolute;
             bottom: 24px;
-            left: 24px;
+            left: 50%;
             z-index: 1100;
-            width: 360px;
-            max-width: calc(100vw - 48px);
+            width: 380px;
+            max-width: calc(100vw - 24px);
             background: rgba(20, 20, 20, 0.97);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -252,15 +252,22 @@
             padding: 16px;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
             color: #f5f5f5;
-            transform: translateY(20px);
+            transform: translate(-50%, 20px);
             opacity: 0;
             pointer-events: none;
             transition: transform 0.22s ease, opacity 0.22s ease;
         }
         .map-quick-card.active {
-            transform: translateY(0);
+            transform: translate(-50%, 0);
             opacity: 1;
             pointer-events: auto;
+        }
+        /* When quick card is up, hide overlapping controls (stats + locate) so the card sits cleanly center-bottom */
+        .map-wrapper.qc-open .map-stats,
+        .map-wrapper.qc-open .locate-btn {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease;
         }
         .map-quick-card-header {
             display: flex;
@@ -365,10 +372,7 @@
         @media (max-width: 768px) {
             .map-quick-card {
                 bottom: 12px;
-                left: 12px;
-                right: 12px;
-                width: auto;
-                max-width: none;
+                width: calc(100vw - 24px);
                 padding: 14px;
                 padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
             }
@@ -1997,6 +2001,7 @@
 
         // ── Quick detail card (lightweight first-tap UI) ──
         const quickCard = document.getElementById('map-quick-card');
+        const mapWrapper = document.querySelector('.map-wrapper');
         let quickCardCurrentId = null;
 
         function quickCardAddress(d) {
@@ -2045,10 +2050,12 @@
                 <button class="map-quick-card-cta" onclick="openFullDetailFromCard()">View full details</button>
             `;
             quickCard.classList.add('active');
+            mapWrapper?.classList.add('qc-open');
         }
 
         window.hideQuickCard = function() {
             quickCard.classList.remove('active');
+            mapWrapper?.classList.remove('qc-open');
             quickCardCurrentId = null;
         };
 
