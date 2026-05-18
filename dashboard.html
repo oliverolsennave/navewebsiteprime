@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Nave · Internal Dashboard</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --panel-2: #1c232c;
+    --border: #2a313c;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --good: #3fb950;
+    --bad: #f85149;
+    --warn: #d29922;
+    --pill: #21262d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 18px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    background: var(--panel);
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: .3px; }
+  header .meta { color: var(--muted); font-size: 12px; }
+  header button {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  header button:hover { border-color: var(--accent); }
+
+  /* Login screen */
+  .login-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; z-index: 10;
+  }
+  .login-box {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 28px; width: 360px; max-width: calc(100% - 32px);
+  }
+  .login-box h2 { font-size: 18px; margin: 0 0 4px; }
+  .login-box p { color: var(--muted); margin: 0 0 18px; font-size: 13px; }
+  .login-box input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); border-radius: 6px; font-size: 14px;
+  }
+  .login-box input:focus { outline: none; border-color: var(--accent); }
+  .login-box button {
+    width: 100%; margin-top: 10px; padding: 10px; cursor: pointer;
+    background: var(--accent); color: #fff; border: 0; border-radius: 6px; font-size: 14px; font-weight: 600;
+  }
+  .login-error { color: var(--bad); font-size: 12px; margin-top: 8px; display: none; }
+
+  /* Stats strip */
+  .stats {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+  }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .stat .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+
+  /* Sections */
+  main { padding: 16px 24px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
+  section {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    display: flex; flex-direction: column; min-height: 360px;
+  }
+  section h2 {
+    margin: 0; padding: 14px 16px; border-bottom: 1px solid var(--border);
+    font-size: 13px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  section h2 .count {
+    background: var(--pill); color: var(--text); padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0;
+  }
+  .list { overflow-y: auto; max-height: 520px; }
+  .row {
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row .avatar {
+    width: 36px; height: 36px; border-radius: 18px; flex-shrink: 0;
+    background: var(--panel-2); display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-weight: 600; font-size: 14px; overflow: hidden;
+  }
+  .row .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .row .body { flex: 1; min-width: 0; }
+  .row .top { display: flex; align-items: baseline; gap: 8px; }
+  .row .name { font-weight: 600; }
+  .row .username { color: var(--muted); font-size: 12px; }
+  .row .meta { color: var(--muted); font-size: 12px; margin-top: 2px; word-break: break-word; }
+  .row .right { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .badge-true { color: var(--good); font-weight: 600; }
+  .badge-false { color: var(--bad); }
+  .pill {
+    display: inline-block; padding: 1px 8px; border-radius: 10px;
+    background: var(--pill); font-size: 11px; color: var(--muted); margin-left: 6px;
+  }
+  .pill.warn { color: var(--warn); }
+  .empty { padding: 28px; text-align: center; color: var(--muted); font-size: 13px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- Login overlay -->
+<div id="login" class="login-overlay">
+  <div class="login-box">
+    <h2>Nave Internal Dashboard</h2>
+    <p>Enter password to continue.</p>
+    <form id="login-form" autocomplete="off">
+      <input id="password" type="password" placeholder="Password" autofocus />
+      <button type="submit" id="login-btn">Unlock</button>
+      <div id="login-error" class="login-error">Incorrect password.</div>
+    </form>
+  </div>
+</div>
+
+<header id="header" style="display:none">
+  <h1>Nave · Internal Dashboard</h1>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <span class="meta" id="generated-at"></span>
+    <button id="refresh">Refresh</button>
+    <button id="logout">Log out</button>
+  </div>
+</header>
+
+<div id="stats-row" class="stats" style="display:none"></div>
+
+<main id="main" style="display:none">
+  <section>
+    <h2>Recent Users <span class="count" id="cnt-users">0</span></h2>
+    <div class="list" id="users-list"></div>
+  </section>
+  <section>
+    <h2>Recent Parish Keys <span class="count" id="cnt-keys">0</span></h2>
+    <div class="list" id="keys-list"></div>
+  </section>
+  <section>
+    <h2>Apostolates <span class="count" id="cnt-apos">0</span></h2>
+    <div class="list" id="apos-list"></div>
+  </section>
+  <section>
+    <h2>Ask Gabe Questions <span class="count" id="cnt-gabe">0</span></h2>
+    <div class="list" id="gabe-list"></div>
+  </section>
+</main>
+
+<script>
+const STORAGE_KEY = 'nave_dashboard_password';
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function initialsFor(name) {
+  if (!name) return '?';
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' }) +
+         ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
+function avatarHTML(name, photoURL) {
+  if (photoURL) return `<div class="avatar"><img src="${esc(photoURL)}" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.textContent='${esc(initialsFor(name))}'" /></div>`;
+  return `<div class="avatar">${esc(initialsFor(name))}</div>`;
+}
+
+function renderUsers(users) {
+  document.getElementById('cnt-users').textContent = users.length;
+  const el = document.getElementById('users-list');
+  if (!users.length) { el.innerHTML = '<div class="empty">No users</div>'; return; }
+  el.innerHTML = users.map(u => {
+    const name = u.displayName || u.username || u.email || u.uid;
+    return `<div class="row">
+      ${avatarHTML(name, u.photoURL)}
+      <div class="body">
+        <div class="top">
+          <span class="name">${esc(name)}</span>
+          ${u.username ? `<span class="username">@${esc(u.username)}</span>` : ''}
+        </div>
+        <div class="meta">
+          ${esc(u.email || '')}
+          <span class="pill">home parish: <span class="${u.hasHomeParish ? 'badge-true' : 'badge-false'}">${u.hasHomeParish ? 'true' : 'false'}</span></span>
+        </div>
+      </div>
+      <div class="right">${esc(fmtDate(u.createdAt))}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderKeys(keys) {
+  document.getElementById('cnt-keys').textContent = keys.length;
+  const el = document.getElementById('keys-list');
+  if (!keys.length) { el.innerHTML = '<div class="empty">No keys activated yet</div>'; return; }
+  el.innerHTML = keys.map(k => `<div class="row">
+    <div class="body">
+      <div class="top">
+        <span class="name">${esc(k.parishName || '(parish name not in cache)')}</span>
+        ${k.isActive ? '' : '<span class="pill warn">inactive</span>'}
+      </div>
+      <div class="meta">
+        Held by <strong>${esc(k.ownerName || k.ownerUid || 'unknown')}</strong>
+        ${k.ownerUsername ? `<span class="username">@${esc(k.ownerUsername)}</span>` : ''}
+        · <code>${esc(k.parishId)}</code>
+      </div>
+    </div>
+    <div class="right">${esc(fmtDate(k.createdAt))}</div>
+  </div>`).join('');
+}
+
+function renderApostolates(apos) {
+  document.getElementById('cnt-apos').textContent = apos.length;
+  const el = document.getElementById('apos-list');
+  if (!apos.length) { el.innerHTML = '<div class="empty">No apostolates</div>'; return; }
+  el.innerHTML = apos.map(a => `<div class="row">
+    <div class="body">
+      <div class="top">
+        <span class="name">${esc(a.name || '(unnamed)')}</span>
+        ${a.featuredOrder ? `<span class="pill" style="color:var(--warn)">featured #${a.featuredOrder}</span>` : ''}
+        ${a.isPublic ? '' : '<span class="pill">private</span>'}
+      </div>
+      <div class="meta">
+        Owner: <strong>${esc(a.ownerName || a.ownerUid || '—')}</strong>
+        ${a.ownerUsername ? `<span class="username">@${esc(a.ownerUsername)}</span>` : ''}
+        · ${esc(a.type || 'org')} · ${a.memberCount} member${a.memberCount === 1 ? '' : 's'}
+      </div>
+    </div>
+    <div class="right">${esc(fmtDate(a.createdAt))}</div>
+  </div>`).join('');
+}
+
+function renderGabe(gabe) {
+  document.getElementById('cnt-gabe').textContent = gabe.length;
+  const el = document.getElementById('gabe-list');
+  if (!gabe.length) {
+    el.innerHTML = '<div class="empty">No Ask-Gabe chats saved yet.<br/><br/>The collection <code>unified_intelligencia_chats</code> is empty in production — saving may not be wired up or the iOS app isn\'t persisting chats. Worth verifying.</div>';
+    return;
+  }
+  el.innerHTML = gabe.map(g => `<div class="row">
+    <div class="body">
+      <div class="top">
+        <span class="name">${esc(g.userName || g.userId || 'unknown')}</span>
+        ${g.userUsername ? `<span class="username">@${esc(g.userUsername)}</span>` : ''}
+      </div>
+      <div class="meta">${esc(g.question)}</div>
+    </div>
+    <div class="right">${esc(fmtDate(g.timestamp))}</div>
+  </div>`).join('');
+}
+
+function renderStats(s) {
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat"><div class="label">Users</div><div class="value">${s.totalUsers}</div></div>
+    <div class="stat"><div class="label">With home parish</div><div class="value">${s.usersWithHomeParish}</div></div>
+    <div class="stat"><div class="label">Parish keys</div><div class="value">${s.totalKeys}</div></div>
+    <div class="stat"><div class="label">Apostolates</div><div class="value">${s.totalApostolates}</div></div>
+    <div class="stat"><div class="label">Gabe questions</div><div class="value">${s.totalGabeQuestions}</div></div>
+  `;
+}
+
+async function load(password) {
+  const res = await fetch('/api/dashboard-data', {
+    headers: { 'x-dashboard-password': password },
+  });
+  if (res.status === 401) throw new Error('unauthorized');
+  if (!res.ok) throw new Error('Server error ' + res.status);
+  return res.json();
+}
+
+function showApp(data) {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('header').style.display = 'flex';
+  document.getElementById('stats-row').style.display = 'grid';
+  document.getElementById('main').style.display = 'grid';
+  document.getElementById('generated-at').textContent = 'updated ' + fmtDate(data.generatedAt);
+  renderStats(data.stats);
+  renderUsers(data.users);
+  renderKeys(data.keys);
+  renderApostolates(data.apostolates);
+  renderGabe(data.gabeQuestions);
+}
+
+async function attemptLoad(password) {
+  try {
+    const data = await load(password);
+    sessionStorage.setItem(STORAGE_KEY, password);
+    showApp(data);
+    return true;
+  } catch (e) {
+    if (e.message === 'unauthorized') {
+      sessionStorage.removeItem(STORAGE_KEY);
+      document.getElementById('login-error').style.display = 'block';
+    } else {
+      document.getElementById('login-error').textContent = e.message;
+      document.getElementById('login-error').style.display = 'block';
+    }
+    return false;
+  }
+}
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  document.getElementById('login-error').style.display = 'none';
+  await attemptLoad(document.getElementById('password').value);
+  btn.disabled = false; btn.textContent = 'Unlock';
+});
+
+document.getElementById('refresh').addEventListener('click', async () => {
+  const pw = sessionStorage.getItem(STORAGE_KEY);
+  if (pw) await attemptLoad(pw);
+});
+document.getElementById('logout').addEventListener('click', () => {
+  sessionStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
+
+// Auto-login on revisit (within the browser tab/session)
+const stored = sessionStorage.getItem(STORAGE_KEY);
+if (stored) attemptLoad(stored);
+</script>
+</body>
+</html>
