@@ -77,6 +77,9 @@ module.exports = async (req, res) => {
       const parishIds = Array.isArray(x.activatedParishes) ? x.activatedParishes : [];
       const createdAt = x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null;
       parishIds.forEach((pid) => {
+        // Skip falsy / non-string parish ids — production data has some
+        // empty entries that crash Firestore's .doc() validator.
+        if (typeof pid !== 'string' || !pid.trim()) return;
         parishIdsNeeded.add(pid);
         keys.push({
           parishId: pid,
@@ -95,8 +98,12 @@ module.exports = async (req, res) => {
     const parishNameById = {};
     await Promise.all(
       Array.from(parishIdsNeeded).map(async (pid) => {
-        const doc = await adminDb.collection('Churches').doc(pid).get();
-        if (doc.exists) parishNameById[pid] = doc.data().name || null;
+        try {
+          const doc = await adminDb.collection('Churches').doc(pid).get();
+          if (doc.exists) parishNameById[pid] = doc.data().name || null;
+        } catch (e) {
+          // Skip individual lookup failures so one bad id can't 500 the whole dashboard
+        }
       })
     );
     keys.forEach((k) => { k.parishName = parishNameById[k.parishId] || null; });
