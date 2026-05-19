@@ -136,6 +136,46 @@ module.exports = async (req, res) => {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
+    // ---------- Bulletin uploads: each doc is one extraction session
+    const bulletinsSnap = await adminDb.collection('bulletinUploads')
+      .orderBy('startedAt', 'desc')
+      .limit(500)
+      .get()
+      .catch(() => null);
+    const bulletinUploads = [];
+    if (bulletinsSnap && !bulletinsSnap.empty) {
+      const missingParishNames = new Set();
+      bulletinsSnap.docs.forEach((d) => {
+        const x = d.data();
+        if (x.parishId && !x.parishName) missingParishNames.add(x.parishId);
+      });
+      // Reuse the Churches lookups we already did for keys; only fetch new ids.
+      const newParishIds = Array.from(missingParishNames).filter((id) => !(id in parishNameById));
+      await Promise.all(newParishIds.map(async (pid) => {
+        try {
+          const doc = await adminDb.collection('Churches').doc(pid).get();
+          if (doc.exists) parishNameById[pid] = doc.data().name || null;
+        } catch (e) { /* skip bad ids */ }
+      }));
+      bulletinsSnap.docs.forEach((d) => {
+        const x = d.data();
+        const uid = x.uploaderUid || null;
+        bulletinUploads.push({
+          id: d.id,
+          uploaderUid: uid,
+          uploaderName: uid ? (userNameByUid[uid] || null) : null,
+          uploaderUsername: uid ? ((userDocByUid[uid] || {}).username || null) : null,
+          parishId: x.parishId || null,
+          parishName: x.parishName || (x.parishId ? (parishNameById[x.parishId] || null) : null),
+          status: x.status || 'unknown',
+          pageCount: x.pageCount || null,
+          flow: x.flow || null,
+          startedAt: x.startedAt && x.startedAt.toDate ? x.startedAt.toDate().toISOString() : null,
+          finishedAt: x.finishedAt && x.finishedAt.toDate ? x.finishedAt.toDate().toISOString() : null,
+        });
+      });
+    }
+
     // ---------- Ask Gabe questions: flatten user messages across all chats
     const chatsSnap = await adminDb.collection('unified_intelligencia_chats').get();
     const gabeQuestions = [];
@@ -172,11 +212,15 @@ module.exports = async (req, res) => {
         totalKeys: keys.length,
         totalApostolates: apostolates.length,
         totalGabeQuestions: gabeQuestions.length,
+        totalBulletinUploads: bulletinUploads.length,
+        bulletinPublished: bulletinUploads.filter((b) => b.status === 'published').length,
+        bulletinAborted: bulletinUploads.filter((b) => b.status === 'aborted').length,
       },
       users,
       keys,
       apostolates,
       gabeQuestions,
+      bulletinUploads,
     });
   } catch (err) {
     console.error('[dashboard-data] error:', err);

@@ -62,9 +62,10 @@
 
   /* Stats strip */
   .stats {
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;
     padding: 16px 24px; border-bottom: 1px solid var(--border);
   }
+  @media (max-width: 1100px) { .stats { grid-template-columns: repeat(3, 1fr); } }
   .stat {
     background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
     padding: 12px 14px;
@@ -161,6 +162,10 @@
   <section>
     <h2>Ask Gabe Questions <span class="count" id="cnt-gabe">0</span></h2>
     <div class="list" id="gabe-list"></div>
+  </section>
+  <section style="grid-column: 1 / -1;">
+    <h2>Bulletin Uploads <span class="count" id="cnt-bulletins">0</span></h2>
+    <div class="list" id="bulletins-list"></div>
   </section>
 </main>
 
@@ -282,7 +287,40 @@ function renderStats(s) {
     <div class="stat"><div class="label">Parish keys</div><div class="value">${s.totalKeys}</div></div>
     <div class="stat"><div class="label">Apostolates</div><div class="value">${s.totalApostolates}</div></div>
     <div class="stat"><div class="label">Gabe questions</div><div class="value">${s.totalGabeQuestions}</div></div>
+    <div class="stat"><div class="label">Bulletins (pub / abort)</div><div class="value">${s.bulletinPublished || 0} / ${s.bulletinAborted || 0}</div></div>
   `;
+}
+
+function statusPill(status) {
+  if (status === 'published') return '<span class="pill" style="color:var(--good); background:rgba(63,185,80,.15)">Published</span>';
+  if (status === 'aborted')   return '<span class="pill" style="color:var(--bad); background:rgba(248,81,73,.15)">Aborted</span>';
+  if (status === 'extracting') return '<span class="pill" style="color:var(--warn); background:rgba(210,153,34,.15)">Extracting</span>';
+  return `<span class="pill">${esc(status)}</span>`;
+}
+
+function renderBulletins(items) {
+  document.getElementById('cnt-bulletins').textContent = items.length;
+  const el = document.getElementById('bulletins-list');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty">No bulletin uploads tracked yet.<br/><br/>Tracking starts from the next iOS build forward — older uploads (Storage-only) won\'t appear here.</div>';
+    return;
+  }
+  el.innerHTML = items.map(b => `<div class="row">
+    <div class="body">
+      <div class="top">
+        <span class="name">${esc(b.parishName || '(parish not set)')}</span>
+        ${statusPill(b.status)}
+        ${b.flow === 'addToMap' ? '<span class="pill">add-to-map</span>' : ''}
+      </div>
+      <div class="meta">
+        Uploaded by <strong>${esc(b.uploaderName || b.uploaderUid || 'unknown')}</strong>
+        ${b.uploaderUsername ? `<span class="username">@${esc(b.uploaderUsername)}</span>` : ''}
+        ${b.pageCount ? ` · ${b.pageCount} page${b.pageCount === 1 ? '' : 's'}` : ''}
+        ${b.parishId ? ` · <code>${esc(b.parishId)}</code>` : ''}
+      </div>
+    </div>
+    <div class="right">${esc(fmtDate(b.startedAt))}</div>
+  </div>`).join('');
 }
 
 async function load(password) {
@@ -305,6 +343,7 @@ function showApp(data) {
   renderKeys(data.keys);
   renderApostolates(data.apostolates);
   renderGabe(data.gabeQuestions);
+  renderBulletins(data.bulletinUploads || []);
 }
 
 async function attemptLoad(password) {
