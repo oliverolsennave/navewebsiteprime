@@ -6,7 +6,7 @@
 // back to "thenavepassword" if unset (DO NOT ship to prod without setting
 // the env var — the fallback is for first-deploy only).
 
-const { adminDb, adminAuth } = require('./_lib/firebase-admin');
+const { admin, adminDb, adminAuth } = require('./_lib/firebase-admin');
 
 const FALLBACK_PASSWORD = 'thenavepassword';
 
@@ -136,6 +136,21 @@ module.exports = async (req, res) => {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
+    // ---------- App installs: total first-launch pings + last-7-day count
+    let installTotal = 0;
+    let installLast7 = 0;
+    try {
+      const totalAgg = await adminDb.collection('appInstalls').count().get();
+      installTotal = totalAgg.data().count || 0;
+      const cutoff = admin.firestore.Timestamp.fromMillis(Date.now() - 7 * 24 * 3600 * 1000);
+      const recentAgg = await adminDb.collection('appInstalls')
+        .where('firstLaunchAt', '>=', cutoff)
+        .count().get();
+      installLast7 = recentAgg.data().count || 0;
+    } catch (e) {
+      console.error('[dashboard-data] appInstalls count failed:', e.message);
+    }
+
     // ---------- Bulletin uploads: each doc is one extraction session
     const bulletinsSnap = await adminDb.collection('bulletinUploads')
       .orderBy('startedAt', 'desc')
@@ -215,6 +230,8 @@ module.exports = async (req, res) => {
         totalBulletinUploads: bulletinUploads.length,
         bulletinPublished: bulletinUploads.filter((b) => b.status === 'published').length,
         bulletinAborted: bulletinUploads.filter((b) => b.status === 'aborted').length,
+        totalInstalls: installTotal,
+        installsLast7Days: installLast7,
       },
       users,
       keys,

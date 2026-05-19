@@ -62,10 +62,11 @@
 
   /* Stats strip */
   .stats {
-    display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px;
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px;
     padding: 16px 24px; border-bottom: 1px solid var(--border);
   }
-  @media (max-width: 1100px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 1400px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 900px)  { .stats { grid-template-columns: repeat(2, 1fr); } }
   .stat {
     background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
     padding: 12px 14px;
@@ -282,6 +283,8 @@ function renderGabe(gabe) {
 
 function renderStats(s) {
   document.getElementById('stats-row').innerHTML = `
+    <div class="stat" title="Unique devices that opened the app at least once (not literal App Store downloads)"><div class="label">First opens</div><div class="value">${s.totalInstalls ?? 0}</div></div>
+    <div class="stat"><div class="label">Opens last 7d</div><div class="value">${s.installsLast7Days ?? 0}</div></div>
     <div class="stat"><div class="label">Users</div><div class="value">${s.totalUsers}</div></div>
     <div class="stat"><div class="label">With home parish</div><div class="value">${s.usersWithHomeParish}</div></div>
     <div class="stat"><div class="label">Parish keys</div><div class="value">${s.totalKeys}</div></div>
