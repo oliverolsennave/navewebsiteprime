@@ -336,24 +336,49 @@ module.exports = async (req, res) => {
       console.error('[messageActivity] failed:', e.message);
     }
 
-    // ---------- Ask Gabe questions: flatten user messages across all chats
+    // ---------- Ask Gabe questions + paired Gabe responses.
+    // Each chat doc has a `messages[]` array with alternating user/assistant
+    // turns. We walk in order and pair each user message with the FIRST
+    // assistant message that follows it in the same chat — that's the
+    // model's reply to that question. If Gabe never answered (network
+    // failure mid-stream), `answer` stays null.
     const chatsSnap = await adminDb.collection('unified_intelligencia_chats').get();
     const gabeQuestions = [];
+    const tsToIso = (t) => {
+      if (!t) return null;
+      if (t.toDate) return t.toDate().toISOString();
+      if (typeof t === 'string') return t;
+      return null;
+    };
     chatsSnap.docs.forEach((d) => {
       const x = d.data();
       const msgs = Array.isArray(x.messages) ? x.messages : [];
       const uid = x.userId || null;
-      msgs.forEach((m) => {
+      msgs.forEach((m, idx) => {
         if (!m || m.role !== 'user') return;
-        const ts = m.timestamp && m.timestamp.toDate ? m.timestamp.toDate().toISOString() :
-                   (typeof m.timestamp === 'string' ? m.timestamp : null);
+        // Look ahead for the next assistant turn within this chat.
+        let answer = null;
+        let answerTimestamp = null;
+        for (let j = idx + 1; j < msgs.length; j++) {
+          const next = msgs[j];
+          if (next && next.role === 'assistant') {
+            answer = String(next.content || '').slice(0, 1200);
+            answerTimestamp = tsToIso(next.timestamp);
+            break;
+          }
+          // If we hit the next user message before finding an assistant,
+          // this question went unanswered.
+          if (next && next.role === 'user') break;
+        }
         gabeQuestions.push({
           chatId: d.id,
           userId: uid,
           userName: uid ? (userNameByUid[uid] || null) : null,
           userUsername: uid ? ((userDocByUid[uid] || {}).username || null) : null,
           question: String(m.content || '').slice(0, 800),
-          timestamp: ts,
+          answer,
+          answerTimestamp,
+          timestamp: tsToIso(m.timestamp),
         });
       });
     });
@@ -534,7 +559,12 @@ module.exports = async (req, res) => {
     // noisy without stopword work.
     const topGabeQuestions = gabeQuestions
       .slice(0, 15)
-      .map((q) => ({ question: q.question, userName: q.userName, timestamp: q.timestamp }));
+      .map((q) => ({
+        question: q.question,
+        answer: q.answer,
+        userName: q.userName,
+        timestamp: q.timestamp,
+      }));
 
     const analytics = {
       windowDays: DAYS,

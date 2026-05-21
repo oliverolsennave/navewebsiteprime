@@ -493,7 +493,10 @@ function renderGabe(gabe) {
         <span class="name">${esc(g.userName || g.userId || 'unknown')}</span>
         ${g.userUsername ? `<span class="username">@${esc(g.userUsername)}</span>` : ''}
       </div>
-      <div class="meta">${esc(g.question)}</div>
+      <div class="meta"><strong style="color:var(--text);">Q.</strong> ${esc(g.question)}</div>
+      ${g.answer
+        ? `<div class="meta" style="margin-top:6px; border-left:2px solid var(--accent); padding-left:8px;"><strong style="color:var(--accent);">Gabe.</strong> ${esc(g.answer.slice(0, 400))}${g.answer.length > 400 ? '…' : ''}</div>`
+        : '<div class="meta" style="color:var(--bad); margin-top:4px;">no response saved</div>'}
     </div>
     <div class="right">${esc(fmtDate(g.timestamp))}</div>
   </div>`).join('');
@@ -756,7 +759,8 @@ function renderGabeTopList(list) {
     return;
   }
   el.innerHTML = list.map(q => `<div class="gabe-q-row">
-    <div>${esc(q.question)}</div>
+    <div><strong style="color:var(--text);">Q.</strong> ${esc(q.question)}</div>
+    ${q.answer ? `<div style="font-size:12px; color:var(--muted); margin-top:4px; line-height:1.4;"><strong style="color:var(--accent);">Gabe.</strong> ${esc(q.answer.slice(0, 280))}${q.answer.length > 280 ? '…' : ''}</div>` : '<div style="font-size:11px; color:var(--bad); margin-top:2px;">no response saved</div>'}
     <div class="who">${esc(q.userName || '—')} · ${esc(fmtDate(q.timestamp))}</div>
   </div>`).join('');
 }
