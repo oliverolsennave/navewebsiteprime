@@ -199,9 +199,15 @@ module.exports = async (req, res) => {
       bulletinsSnap.docs.forEach((d) => {
         const x = d.data();
         const uid = x.uploaderUid || null;
-        const urls = Array.isArray(x.bulletinURLs) && x.bulletinURLs.length
-          ? x.bulletinURLs
-          : (x.parishId ? fallbackUrlsByParish[x.parishId] : null) || [];
+        // Only surface URLs for published sessions. Aborted/extracting rows
+        // would otherwise show URLs via the parish-doc fallback that don't
+        // actually belong to this session.
+        const status = x.status || 'unknown';
+        const directUrls = Array.isArray(x.bulletinURLs) ? x.bulletinURLs : [];
+        const fallbackUrls = (x.parishId ? fallbackUrlsByParish[x.parishId] : null) || [];
+        const urls = directUrls.length
+          ? directUrls
+          : (status === 'published' ? fallbackUrls : []);
         bulletinUploads.push({
           id: d.id,
           uploaderUid: uid,
