@@ -42,10 +42,15 @@ module.exports = async (req, res) => {
     const userDocs = await Promise.all(
       authUsers.map((u) => adminDb.collection('users').doc(u.uid).get())
     );
+    // Only count Auth accounts that also have a Firestore /users/{uid} doc.
+    // Without this, dashboard shows orphaned Auth records (test accounts you
+    // deleted the Firestore doc for, signups that didn't complete, etc.) that
+    // never appear in Discover. Match Discover's source-of-truth.
     const userDocByUid = {};
-    userDocs.forEach((d) => { userDocByUid[d.id] = d.exists ? d.data() : {}; });
+    userDocs.forEach((d) => { if (d.exists) userDocByUid[d.id] = d.data(); });
 
     const users = authUsers
+      .filter((u) => userDocByUid[u.uid] !== undefined)
       .map((u) => {
         const d = userDocByUid[u.uid] || {};
         const fsName = [d.firstName, d.lastName].filter(Boolean).join(' ').trim();
