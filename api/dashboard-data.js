@@ -237,6 +237,88 @@ module.exports = async (req, res) => {
       });
     }
 
+    // ---------- DM thread activity (user ↔ key/apostolate messaging).
+    // Walk `messages_threads` once for object metadata, then pull every
+    // message via collectionGroup. Cheap at current scale (~32 messages,
+    // grows linearly). Group by day + extract recent + tokenize for top
+    // words.
+    let messageActivity = { dailySeries: [], topWords: [], recent: [], total: 0 };
+    try {
+      const threadsSnap = await adminDb.collection('messages_threads').get();
+      const threadById = {};
+      threadsSnap.docs.forEach((t) => {
+        const td = t.data();
+        threadById[t.id] = {
+          objectType: td.objectType || null,
+          objectName: td.objectName || null,
+          objectId: td.objectId || null,
+        };
+      });
+
+      const msgsSnap = await adminDb.collectionGroup('messages').get();
+      const dailyMessages = buildEmptyDays();
+      const wordCounts = {};
+      const STOPWORDS = new Set([
+        'the','a','an','and','or','but','if','then','that','this','those','these','to','of','in','on','at','for','from','by','with','as','is','are','was','were','be','been','being','it','its','i','im','me','my','we','our','you','your','yours','he','she','his','her','they','them','their','will','can','could','would','should','have','has','had','do','does','did','not','no','yes','so','just','like','about','what','which','who','how','when','where','why','any','some','all','more','most','one','two','only','also','out','up','down','over','your','okay','ok','hi','hey','hello','thanks','thank','really','please','very','too','than','here','there','now','well',
+      ]);
+
+      const recent = [];
+      msgsSnap.docs.forEach((m) => {
+        const x = m.data();
+        messageActivity.total += 1;
+
+        // Thread is the doc above /messages. e.g.
+        // messages_threads/{tid}/messages/{mid}
+        const threadId = m.ref.parent.parent ? m.ref.parent.parent.id : null;
+        const thread = threadId ? threadById[threadId] : null;
+
+        const sentDate = x.sentAt && x.sentAt.toDate ? x.sentAt.toDate() : null;
+        if (sentDate && sentDate.getTime() >= windowStartMs) {
+          const k = dayKey(sentDate);
+          if (k in dailyMessages) dailyMessages[k] += 1;
+        }
+
+        const text = typeof x.text === 'string' ? x.text : '';
+        if (text) {
+          text.toLowerCase()
+            .replace(/[^a-z0-9' ]+/g, ' ')
+            .split(/\s+/)
+            .filter((w) => w.length >= 3 && !STOPWORDS.has(w))
+            .forEach((w) => { wordCounts[w] = (wordCounts[w] || 0) + 1; });
+        }
+
+        const senderUid = x.senderId || null;
+        const senderUser = senderUid ? userDocByUid[senderUid] : null;
+        const senderKind = senderUser ? 'user'
+                        : (senderUid ? 'org-or-system'
+                        : 'unknown');
+        recent.push({
+          text: text.slice(0, 240),
+          senderId: senderUid,
+          senderName: x.senderName || (senderUid ? (userNameByUid[senderUid] || senderUid) : null),
+          senderKind,
+          objectType: thread ? thread.objectType : null,
+          objectName: thread ? thread.objectName : null,
+          objectId: thread ? thread.objectId : null,
+          sentAt: sentDate ? sentDate.toISOString() : null,
+        });
+      });
+      recent.sort((a, b) => {
+        if (!a.sentAt) return 1;
+        if (!b.sentAt) return -1;
+        return new Date(b.sentAt) - new Date(a.sentAt);
+      });
+
+      messageActivity.dailySeries = Object.entries(dailyMessages).map(([date, count]) => ({ date, count }));
+      messageActivity.topWords = Object.entries(wordCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20)
+        .map(([word, count]) => ({ word, count }));
+      messageActivity.recent = recent.slice(0, 50);
+    } catch (e) {
+      console.error('[messageActivity] failed:', e.message);
+    }
+
     // ---------- Ask Gabe questions: flatten user messages across all chats
     const chatsSnap = await adminDb.collection('unified_intelligencia_chats').get();
     const gabeQuestions = [];
@@ -458,6 +540,8 @@ module.exports = async (req, res) => {
       funnel,
       apostolateSeries,
       topGabeQuestions,
+      dailyMessages: messageActivity.dailySeries,
+      topMessageWords: messageActivity.topWords,
     };
 
     res.setHeader('Cache-Control', 'no-store');
@@ -474,6 +558,7 @@ module.exports = async (req, res) => {
         bulletinAborted: bulletinUploads.filter((b) => b.status === 'aborted').length,
         totalInstalls: installTotal,
         installsLast7Days: installLast7,
+        totalMessages: messageActivity.total,
       },
       users,
       keys,
@@ -481,6 +566,7 @@ module.exports = async (req, res) => {
       apostolates,
       gabeQuestions,
       bulletinUploads,
+      messages: messageActivity.recent,
       analytics,
     });
   } catch (err) {

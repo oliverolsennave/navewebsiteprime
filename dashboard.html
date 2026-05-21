@@ -63,10 +63,10 @@
 
   /* Stats strip */
   .stats {
-    display: grid; grid-template-columns: repeat(8, 1fr); gap: 12px;
+    display: grid; grid-template-columns: repeat(9, 1fr); gap: 10px;
     padding: 16px 24px; border-bottom: 1px solid var(--border);
   }
-  @media (max-width: 1400px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 1500px) { .stats { grid-template-columns: repeat(5, 1fr); } }
   @media (max-width: 900px)  { .stats { grid-template-columns: repeat(2, 1fr); } }
   .stat {
     background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
@@ -222,6 +222,16 @@
     <div class="subtitle">Cumulative followers · public apostolates · last 60 days</div>
     <div id="apostolate-spark-list"></div>
   </div>
+  <div class="chart-card">
+    <h3>Daily message activity</h3>
+    <div class="subtitle">DM thread messages per day · users ↔ keys/apostolates</div>
+    <div class="chart-wrap"><canvas id="chart-messages"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>Top words in messages</h3>
+    <div class="subtitle">Most-used words (stopwords filtered) across all threads</div>
+    <div id="top-words-list" style="max-height:220px; overflow-y:auto;"></div>
+  </div>
 </div>
 
 <main id="main" style="display:none">
@@ -248,6 +258,10 @@
   <section style="grid-column: 1 / -1;">
     <h2>Bulletin Uploads <span class="count" id="cnt-bulletins">0</span></h2>
     <div class="list" id="bulletins-list"></div>
+  </section>
+  <section style="grid-column: 1 / -1;">
+    <h2>Recent Messages <span class="count" id="cnt-messages">0</span></h2>
+    <div class="list" id="messages-list"></div>
   </section>
 </main>
 
@@ -408,6 +422,7 @@ function renderStats(s) {
     <div class="stat" title="Apostolates with isPublic === true; private/test orgs are excluded"><div class="label">Public apostolates</div><div class="value">${s.totalApostolates}</div></div>
     <div class="stat"><div class="label">Gabe questions</div><div class="value">${s.totalGabeQuestions}</div></div>
     <div class="stat"><div class="label">Bulletins (pub / abort)</div><div class="value">${s.bulletinPublished || 0} / ${s.bulletinAborted || 0}</div></div>
+    <div class="stat" title="Total DM thread messages (users ↔ keys/apostolates)"><div class="label">Messages</div><div class="value">${s.totalMessages ?? 0}</div></div>
   `;
 }
 
@@ -631,6 +646,79 @@ function renderApostolateSparklines(series) {
   });
 }
 
+function renderMessagesChart(daily) {
+  destroyChart('messages');
+  const ctx = document.getElementById('chart-messages').getContext('2d');
+  chartInstances.messages = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: daily.map(d => shortDayLabel(d.date)),
+      datasets: [{
+        label: 'Messages',
+        data: daily.map(d => d.count),
+        backgroundColor: '#7c3aed',
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, maxTicksLimit: 8 }, grid: { color: CHART_GRID_COLOR } },
+        y: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
+      },
+    },
+  });
+}
+
+function renderTopWords(words) {
+  const el = document.getElementById('top-words-list');
+  if (!words || !words.length) {
+    el.innerHTML = '<div class="empty" style="padding:14px 0; text-align:center; color:var(--muted); font-size:12px;">No messages yet.</div>';
+    return;
+  }
+  // Tag-cloud-ish layout: size scales with frequency.
+  const max = Math.max(...words.map(w => w.count));
+  el.innerHTML = '<div style="display:flex; flex-wrap:wrap; gap:6px 10px; padding:4px 0;">' +
+    words.map(w => {
+      const ratio = w.count / max;
+      const size = (12 + ratio * 8).toFixed(0); // 12–20px
+      const opacity = (0.55 + ratio * 0.45).toFixed(2);
+      return `<span style="font-size:${size}px; opacity:${opacity}; color:var(--text);">${esc(w.word)}<span style="color:var(--muted); font-size:10px; margin-left:3px;">${w.count}</span></span>`;
+    }).join('') + '</div>';
+}
+
+function renderRecentMessages(items) {
+  document.getElementById('cnt-messages').textContent = items.length;
+  const el = document.getElementById('messages-list');
+  if (!items.length) { el.innerHTML = '<div class="empty">No messages yet</div>'; return; }
+  el.innerHTML = items.map(m => {
+    // Sender side: who sent it — a user or an org/system?
+    const kindBadge = m.senderKind === 'user'
+      ? '<span class="pill" style="background:rgba(88,166,255,.15); color:var(--accent); margin:0;">user</span>'
+      : m.senderKind === 'org-or-system'
+      ? '<span class="pill" style="background:rgba(124,58,237,.18); color:#a78bfa; margin:0;">org/system</span>'
+      : '<span class="pill">?</span>';
+    // Thread is "about" a key/apostolate of some type.
+    const objBadge = m.objectType
+      ? `<span class="pill" style="background:var(--pill); color:var(--text); margin:0;">${esc(m.objectType)}</span>`
+      : '';
+    return `<div class="row">
+      <div class="body">
+        <div class="top">
+          ${kindBadge}
+          ${objBadge}
+          <span class="name">${esc(m.objectName || '(no object)')}</span>
+        </div>
+        <div class="meta">
+          <strong>${esc(m.senderName || '—')}</strong>
+          ${m.text ? ' · ' + esc(m.text) : ''}
+        </div>
+      </div>
+      <div class="right">${esc(fmtDate(m.sentAt))}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderAnalytics(a) {
   if (!a) return;
   renderUsersChart(a.dailyUsers || []);
@@ -639,6 +727,8 @@ function renderAnalytics(a) {
   renderFunnel(a.funnel || {});
   renderGabeTopList(a.topGabeQuestions || []);
   renderApostolateSparklines(a.apostolateSeries || []);
+  renderMessagesChart(a.dailyMessages || []);
+  renderTopWords(a.topMessageWords || []);
 }
 
 async function load(password) {
@@ -665,6 +755,7 @@ function showApp(data) {
   renderApostolates(data.apostolates);
   renderGabe(data.gabeQuestions);
   renderBulletins(data.bulletinUploads || []);
+  renderRecentMessages(data.messages || []);
 }
 
 async function attemptLoad(password) {
