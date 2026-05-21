@@ -237,6 +237,23 @@ module.exports = async (req, res) => {
       });
     }
 
+    // ---------- Shared time-bucket helpers (used by both messageActivity
+    // and the analytics block below).
+    const DAYS = 60;
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const dayKey = (d) => d.toISOString().slice(0, 10);
+    const buildEmptyDays = () => {
+      const out = {};
+      for (let i = DAYS - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setUTCDate(d.getUTCDate() - i);
+        out[dayKey(d)] = 0;
+      }
+      return out;
+    };
+    const windowStartMs = Date.now() - DAYS * 24 * 3600 * 1000;
+
     // ---------- DM thread activity (user ↔ key/apostolate messaging).
     // Walk `messages_threads` once for object metadata, then pull every
     // message via collectionGroup. Cheap at current scale (~32 messages,
@@ -408,21 +425,8 @@ module.exports = async (req, res) => {
     // ===========================================================
     // ANALYTICS — time-series + funnel data for the dashboard charts
     // ===========================================================
-
-    const DAYS = 60; // window for all daily series
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    const dayKey = (d) => d.toISOString().slice(0, 10); // YYYY-MM-DD
-    const buildEmptyDays = () => {
-      const out = {};
-      for (let i = DAYS - 1; i >= 0; i--) {
-        const d = new Date(today);
-        d.setUTCDate(d.getUTCDate() - i);
-        out[dayKey(d)] = 0;
-      }
-      return out;
-    };
-    const windowStartMs = Date.now() - DAYS * 24 * 3600 * 1000;
+    // (DAYS / dayKey / buildEmptyDays / windowStartMs declared above the
+    // messageActivity block since both sections use them.)
 
     // 1. Daily new users (signups inside the window).
     // `u.createdAt` is Firebase Auth's RFC2822 creationTime string
