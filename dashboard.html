@@ -70,10 +70,21 @@
   @media (max-width: 900px)  { .stats { grid-template-columns: repeat(2, 1fr); } }
   .stat {
     background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
-    padding: 12px 14px;
+    padding: 12px 14px; cursor: pointer; transition: border-color 120ms ease, transform 80ms ease;
+    text-align: left; color: inherit; font: inherit;
   }
+  .stat:hover { border-color: var(--accent); }
+  .stat:active { transform: translateY(1px); }
   .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
   .stat .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  /* Brief highlight after scrolling so the user sees where they landed */
+  @keyframes flashSection {
+    0% { box-shadow: 0 0 0 2px var(--accent); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .flash { animation: flashSection 1.2s ease-out; }
+  /* Keep destination from hiding under the sticky-ish header on scroll */
+  section, .chart-card { scroll-margin-top: 24px; }
 
   /* Sections */
   main { padding: 16px 24px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -412,18 +423,42 @@ function renderGabe(gabe) {
   </div>`).join('');
 }
 
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Find the nearest scrollable container — sections live in <main>, charts
+  // in <div id="analytics"> — and walk up to its outer wrapper for the
+  // visual flash. .scrollIntoView handles the actual scroll.
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Flash the wrapping section/card for ~1s so it's obvious where the click
+  // landed (otherwise the user has to hunt for what changed).
+  const flashTarget = el.closest('section, .chart-card') || el;
+  flashTarget.classList.remove('flash');
+  // Reflow to restart the animation if it was already in progress.
+  void flashTarget.offsetWidth;
+  flashTarget.classList.add('flash');
+}
+
 function renderStats(s) {
-  document.getElementById('stats-row').innerHTML = `
-    <div class="stat" title="Unique devices that opened the app at least once (not literal App Store downloads)"><div class="label">First opens</div><div class="value">${s.totalInstalls ?? 0}</div></div>
-    <div class="stat"><div class="label">Opens last 7d</div><div class="value">${s.installsLast7Days ?? 0}</div></div>
-    <div class="stat"><div class="label">Users</div><div class="value">${s.totalUsers}</div></div>
-    <div class="stat"><div class="label">With home parish</div><div class="value">${s.usersWithHomeParish}</div></div>
-    <div class="stat"><div class="label">Parish keys</div><div class="value">${s.totalKeys}</div></div>
-    <div class="stat" title="Apostolates with isPublic === true; private/test orgs are excluded"><div class="label">Public apostolates</div><div class="value">${s.totalApostolates}</div></div>
-    <div class="stat"><div class="label">Gabe questions</div><div class="value">${s.totalGabeQuestions}</div></div>
-    <div class="stat"><div class="label">Bulletins (pub / abort)</div><div class="value">${s.bulletinPublished || 0} / ${s.bulletinAborted || 0}</div></div>
-    <div class="stat" title="Total DM thread messages (users ↔ keys/apostolates)"><div class="label">Messages</div><div class="value">${s.totalMessages ?? 0}</div></div>
-  `;
+  // Each stat maps to a DOM id its number is computed from — clicking
+  // scrolls there and flashes the target.
+  const tiles = [
+    { target: 'chart-installs', title: 'Unique devices that opened the app at least once (not literal App Store downloads)', label: 'First opens',        value: s.totalInstalls ?? 0 },
+    { target: 'chart-installs', label: 'Opens last 7d',     value: s.installsLast7Days ?? 0 },
+    { target: 'users-list',     label: 'Users',             value: s.totalUsers },
+    { target: 'users-list',     label: 'With home parish',  value: s.usersWithHomeParish },
+    { target: 'parish-keys-list', label: 'Parish keys',     value: s.totalKeys },
+    { target: 'apos-list',      title: 'Apostolates with isPublic === true; private/test orgs are excluded', label: 'Public apostolates', value: s.totalApostolates },
+    { target: 'gabe-list',      label: 'Gabe questions',    value: s.totalGabeQuestions },
+    { target: 'bulletins-list', label: 'Bulletins (pub / abort)', value: `${s.bulletinPublished || 0} / ${s.bulletinAborted || 0}` },
+    { target: 'messages-list',  title: 'Total DM thread messages (users ↔ keys/apostolates)', label: 'Messages', value: s.totalMessages ?? 0 },
+  ];
+  document.getElementById('stats-row').innerHTML = tiles.map(t => `
+    <button class="stat" onclick="scrollToSection('${esc(t.target)}')" ${t.title ? `title="${esc(t.title)}"` : ''}>
+      <div class="label">${esc(t.label)}</div>
+      <div class="value">${esc(t.value)}</div>
+    </button>
+  `).join('');
 }
 
 function statusPill(status) {
