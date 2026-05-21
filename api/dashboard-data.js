@@ -264,6 +264,65 @@ module.exports = async (req, res) => {
       return new Date(b.timestamp) - new Date(a.timestamp);
     });
 
+    // ---------- Recent key uploads across every submission type.
+    // Each of the 7 user-submittable entity collections has a
+    // `createdByUserId` + a `createdAt`; we pull the newest from each in
+    // parallel, plus parish unlocks (which don't live in a user-submitted
+    // collection — the signal is parishesprime.bulletinSubmittedAt), then
+    // merge into one chronological feed.
+    const recentKeyConfigs = [
+      { collection: 'businesses',       type: 'Business',   nameField: 'name'  },
+      { collection: 'schools',          type: 'School',     nameField: 'name'  },
+      { collection: 'pilgrimageSites',  type: 'Pilgrimage', nameField: 'name'  },
+      { collection: 'retreats',         type: 'Retreat',    nameField: 'name', altNameField: 'title' },
+      { collection: 'vocations',        type: 'Vocation',   nameField: 'title' },
+      { collection: 'missionaries',     type: 'Missionary', nameField: 'name'  },
+      { collection: 'bibleStudies',     type: 'Campus',     nameField: 'title' },
+    ];
+    let recentKeys = [];
+    await Promise.all(recentKeyConfigs.map(async (cfg) => {
+      try {
+        const snap = await adminDb.collection(cfg.collection)
+          .orderBy('createdAt', 'desc')
+          .limit(50)
+          .get();
+        snap.docs.forEach((d) => {
+          const x = d.data();
+          const uid = x.createdByUserId || null;
+          const created = x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null;
+          recentKeys.push({
+            type: cfg.type,
+            id: d.id,
+            name: x[cfg.nameField] || (cfg.altNameField ? x[cfg.altNameField] : null) || '(unnamed)',
+            ownerUid: uid,
+            ownerName: uid ? (userNameByUid[uid] || null) : null,
+            ownerUsername: uid ? ((userDocByUid[uid] || {}).username || null) : null,
+            createdAt: created,
+          });
+        });
+      } catch (e) {
+        console.error(`[recentKeys] ${cfg.collection} failed:`, e.message);
+      }
+    }));
+    // Add parish unlocks (already loaded into `keys` above).
+    keys.forEach((k) => {
+      recentKeys.push({
+        type: 'Parish',
+        id: k.parishId,
+        name: k.parishName || '(unnamed)',
+        ownerUid: k.ownerUid,
+        ownerName: k.ownerName,
+        ownerUsername: k.ownerUsername,
+        createdAt: k.createdAt,
+      });
+    });
+    recentKeys.sort((a, b) => {
+      if (!a.createdAt) return 1;
+      if (!b.createdAt) return -1;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    recentKeys = recentKeys.slice(0, 100);
+
     // ===========================================================
     // ANALYTICS — time-series + funnel data for the dashboard charts
     // ===========================================================
@@ -415,6 +474,7 @@ module.exports = async (req, res) => {
       },
       users,
       keys,
+      recentKeys,
       apostolates,
       gabeQuestions,
       bulletinUploads,
