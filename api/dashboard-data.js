@@ -343,12 +343,15 @@ module.exports = async (req, res) => {
     const windowStartMs = Date.now() - DAYS * 24 * 3600 * 1000;
 
     // 1. Daily new users (signups inside the window).
+    // `u.createdAt` is Firebase Auth's RFC2822 creationTime string
+    // ("Sat, 25 Oct 2025 01:23:11 GMT"), not ISO — slicing the raw string
+    // produces garbage. Reformat through Date → ISO before bucketing.
     const dailyUsers = buildEmptyDays();
     users.forEach((u) => {
       if (!u.createdAt) return;
-      const t = new Date(u.createdAt).getTime();
-      if (t < windowStartMs) return;
-      const k = u.createdAt.slice(0, 10);
+      const d = new Date(u.createdAt);
+      if (isNaN(d.getTime()) || d.getTime() < windowStartMs) return;
+      const k = dayKey(d);
       if (k in dailyUsers) dailyUsers[k] += 1;
     });
 
