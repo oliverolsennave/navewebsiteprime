@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
 <title>Nave · Internal Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #0e1116;
@@ -119,6 +120,49 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+  /* Analytics charts grid */
+  .analytics {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+    padding: 16px 24px 8px;
+  }
+  @media (max-width: 1100px) { .analytics { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .chart-card h3 {
+    margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--muted); font-weight: 600;
+  }
+  .chart-card .subtitle { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+  .chart-card .chart-wrap { position: relative; height: 200px; }
+  .chart-card.tall .chart-wrap { height: 260px; }
+  .chart-card.wide { grid-column: 1 / -1; }
+  .sparkline-row {
+    display: flex; align-items: center; gap: 10px; padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sparkline-row:last-child { border-bottom: 0; }
+  .sparkline-row .name { flex: 1; min-width: 0; font-size: 13px; }
+  .sparkline-row .total { font-size: 12px; color: var(--muted); width: 36px; text-align: right; }
+  .sparkline-row canvas { width: 120px; height: 28px; }
+  .funnel-row {
+    display: flex; align-items: center; gap: 12px; padding: 6px 0;
+  }
+  .funnel-row .label { width: 130px; font-size: 13px; color: var(--text); }
+  .funnel-row .bar { flex: 1; height: 28px; border-radius: 6px; background: var(--panel-2); overflow: hidden; position: relative; }
+  .funnel-row .bar > div {
+    height: 100%; background: linear-gradient(90deg, #58a6ff 0%, #3a7ad9 100%);
+    border-radius: 6px;
+  }
+  .funnel-row .count { width: 90px; font-size: 12px; color: var(--muted); text-align: right; }
+  .funnel-row .drop { font-size: 11px; color: var(--bad); margin-left: 6px; }
+  .gabe-q-row {
+    padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .gabe-q-row:last-child { border-bottom: 0; }
+  .gabe-q-row .who { font-size: 11px; color: var(--muted); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -146,6 +190,39 @@
 </header>
 
 <div id="stats-row" class="stats" style="display:none"></div>
+
+<div id="analytics" class="analytics" style="display:none">
+  <div class="chart-card">
+    <h3>Daily new users</h3>
+    <div class="subtitle">Signups per day · last 60 days</div>
+    <div class="chart-wrap"><canvas id="chart-users"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>Daily first opens</h3>
+    <div class="subtitle">Unique device first launches · last 60 days</div>
+    <div class="chart-wrap"><canvas id="chart-installs"></canvas></div>
+  </div>
+  <div class="chart-card wide tall">
+    <h3>Bulletin extraction outcomes</h3>
+    <div class="subtitle">Published / aborted / extracting · last 60 days</div>
+    <div class="chart-wrap"><canvas id="chart-bulletins"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <h3>Onboarding funnel</h3>
+    <div class="subtitle">Install → signup → home parish → first action</div>
+    <div id="funnel-list"></div>
+  </div>
+  <div class="chart-card">
+    <h3>Top Ask Gabe questions</h3>
+    <div class="subtitle">Most recent verbatim · empty until chats start saving</div>
+    <div id="gabe-q-list"></div>
+  </div>
+  <div class="chart-card wide">
+    <h3>Apostolate follower growth</h3>
+    <div class="subtitle">Cumulative followers · public apostolates · last 60 days</div>
+    <div id="apostolate-spark-list"></div>
+  </div>
+</div>
 
 <main id="main" style="display:none">
   <section>
@@ -346,6 +423,184 @@ function renderBulletins(items) {
   }).join('');
 }
 
+// ---- Analytics charts ----
+// Single shared dark-theme config; Chart.js instances are destroyed and
+// rebuilt on each refresh so the canvas stays in sync with the data.
+const CHART_AXIS_COLOR = '#8b949e';
+const CHART_GRID_COLOR = 'rgba(139, 148, 158, 0.15)';
+const CHART_TICK_FONT = { size: 10 };
+const chartInstances = {};
+
+function destroyChart(id) {
+  if (chartInstances[id]) {
+    chartInstances[id].destroy();
+    delete chartInstances[id];
+  }
+}
+
+function shortDayLabel(dateStr) {
+  // YYYY-MM-DD → "May 14"
+  const d = new Date(dateStr + 'T00:00:00Z');
+  return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit', timeZone: 'UTC' });
+}
+
+function renderUsersChart(daily) {
+  destroyChart('users');
+  const ctx = document.getElementById('chart-users').getContext('2d');
+  chartInstances.users = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: daily.map(d => shortDayLabel(d.date)),
+      datasets: [{
+        label: 'New users',
+        data: daily.map(d => d.count),
+        borderColor: '#58a6ff',
+        backgroundColor: 'rgba(88, 166, 255, 0.15)',
+        fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, maxTicksLimit: 8 }, grid: { color: CHART_GRID_COLOR } },
+        y: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
+      },
+    },
+  });
+}
+
+function renderInstallsChart(daily) {
+  destroyChart('installs');
+  const ctx = document.getElementById('chart-installs').getContext('2d');
+  chartInstances.installs = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: daily.map(d => shortDayLabel(d.date)),
+      datasets: [{
+        label: 'First opens',
+        data: daily.map(d => d.count),
+        borderColor: '#3fb950',
+        backgroundColor: 'rgba(63, 185, 80, 0.15)',
+        fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2,
+      }],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, maxTicksLimit: 8 }, grid: { color: CHART_GRID_COLOR } },
+        y: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
+      },
+    },
+  });
+}
+
+function renderBulletinsChart(series) {
+  destroyChart('bulletins');
+  const ctx = document.getElementById('chart-bulletins').getContext('2d');
+  chartInstances.bulletins = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: series.map(d => shortDayLabel(d.date)),
+      datasets: [
+        { label: 'Published',  data: series.map(d => d.published),  backgroundColor: '#3fb950' },
+        { label: 'Aborted',    data: series.map(d => d.aborted),    backgroundColor: '#f85149' },
+        { label: 'Extracting', data: series.map(d => d.extracting), backgroundColor: '#d29922' },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: CHART_AXIS_COLOR, font: { size: 11 }, boxWidth: 12 } } },
+      scales: {
+        x: { stacked: true, ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, maxTicksLimit: 12 }, grid: { color: CHART_GRID_COLOR } },
+        y: { stacked: true, ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
+      },
+    },
+  });
+}
+
+function renderFunnel(funnel) {
+  const stages = [
+    { key: 'installs',       label: 'Installs' },
+    { key: 'signups',        label: 'Signups' },
+    { key: 'withHomeParish', label: 'Home parish' },
+    { key: 'withActivity',   label: 'First action' },
+  ];
+  const top = funnel.installs || 1;
+  document.getElementById('funnel-list').innerHTML = stages.map((s, i) => {
+    const n = funnel[s.key] || 0;
+    const pct = (n / top) * 100;
+    const prev = i > 0 ? (funnel[stages[i - 1].key] || 0) : null;
+    const dropPct = (prev != null && prev > 0) ? Math.round(100 * (1 - n / prev)) : null;
+    return `<div class="funnel-row">
+      <div class="label">${esc(s.label)}</div>
+      <div class="bar"><div style="width:${pct.toFixed(1)}%"></div></div>
+      <div class="count">${n}${dropPct != null && dropPct > 0 ? `<span class="drop">−${dropPct}%</span>` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderGabeTopList(list) {
+  const el = document.getElementById('gabe-q-list');
+  if (!list || !list.length) {
+    el.innerHTML = '<div class="empty" style="padding:14px 0; text-align:center; color:var(--muted); font-size:12px;">Will populate once Ask Gabe chats start saving.</div>';
+    return;
+  }
+  el.innerHTML = list.map(q => `<div class="gabe-q-row">
+    <div>${esc(q.question)}</div>
+    <div class="who">${esc(q.userName || '—')} · ${esc(fmtDate(q.timestamp))}</div>
+  </div>`).join('');
+}
+
+function renderApostolateSparklines(series) {
+  const el = document.getElementById('apostolate-spark-list');
+  if (!series || !series.length) {
+    el.innerHTML = '<div class="empty" style="padding:14px 0; text-align:center; color:var(--muted); font-size:12px;">No public apostolates.</div>';
+    return;
+  }
+  el.innerHTML = series.map((s, i) => `
+    <div class="sparkline-row">
+      <span class="name">${esc(s.name || s.id)}</span>
+      <canvas id="spark-${i}"></canvas>
+      <span class="total">${s.totalFollowers}</span>
+    </div>
+  `).join('');
+  series.forEach((s, i) => {
+    const id = 'spark-' + i;
+    destroyChart(id);
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    chartInstances[id] = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: s.points.map(p => p.date),
+        datasets: [{
+          data: s.points.map(p => p.value),
+          borderColor: '#58a6ff',
+          backgroundColor: 'rgba(88, 166, 255, 0.12)',
+          fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5,
+        }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: { x: { display: false }, y: { display: false, beginAtZero: true } },
+      },
+    });
+  });
+}
+
+function renderAnalytics(a) {
+  if (!a) return;
+  renderUsersChart(a.dailyUsers || []);
+  renderInstallsChart(a.dailyInstalls || []);
+  renderBulletinsChart(a.bulletinByDay || []);
+  renderFunnel(a.funnel || {});
+  renderGabeTopList(a.topGabeQuestions || []);
+  renderApostolateSparklines(a.apostolateSeries || []);
+}
+
 async function load(password) {
   const res = await fetch('/api/dashboard-data', {
     headers: { 'x-dashboard-password': password },
@@ -359,9 +614,11 @@ function showApp(data) {
   document.getElementById('login').style.display = 'none';
   document.getElementById('header').style.display = 'flex';
   document.getElementById('stats-row').style.display = 'grid';
+  document.getElementById('analytics').style.display = 'grid';
   document.getElementById('main').style.display = 'grid';
   document.getElementById('generated-at').textContent = 'updated ' + fmtDate(data.generatedAt);
   renderStats(data.stats);
+  renderAnalytics(data.analytics);
   renderUsers(data.users);
   renderKeys(data.keys);
   renderApostolates(data.apostolates);

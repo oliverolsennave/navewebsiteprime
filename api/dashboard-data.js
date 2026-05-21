@@ -264,6 +264,140 @@ module.exports = async (req, res) => {
       return new Date(b.timestamp) - new Date(a.timestamp);
     });
 
+    // ===========================================================
+    // ANALYTICS — time-series + funnel data for the dashboard charts
+    // ===========================================================
+
+    const DAYS = 60; // window for all daily series
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const dayKey = (d) => d.toISOString().slice(0, 10); // YYYY-MM-DD
+    const buildEmptyDays = () => {
+      const out = {};
+      for (let i = DAYS - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setUTCDate(d.getUTCDate() - i);
+        out[dayKey(d)] = 0;
+      }
+      return out;
+    };
+    const windowStartMs = Date.now() - DAYS * 24 * 3600 * 1000;
+
+    // 1. Daily new users (signups inside the window).
+    const dailyUsers = buildEmptyDays();
+    users.forEach((u) => {
+      if (!u.createdAt) return;
+      const t = new Date(u.createdAt).getTime();
+      if (t < windowStartMs) return;
+      const k = u.createdAt.slice(0, 10);
+      if (k in dailyUsers) dailyUsers[k] += 1;
+    });
+
+    // 2. Daily new installs (first-launch pings).
+    const dailyInstalls = buildEmptyDays();
+    try {
+      const cutoffTs = admin.firestore.Timestamp.fromMillis(windowStartMs);
+      const recentInstallsSnap = await adminDb.collection('appInstalls')
+        .where('firstLaunchAt', '>=', cutoffTs).get();
+      recentInstallsSnap.docs.forEach((d) => {
+        const ts = d.data().firstLaunchAt;
+        if (!ts || !ts.toDate) return;
+        const k = dayKey(ts.toDate());
+        if (k in dailyInstalls) dailyInstalls[k] += 1;
+      });
+    } catch (e) { console.error('[analytics] installs by day failed:', e.message); }
+
+    // 3. Bulletin outcomes by day — stacked by status.
+    const bulletinByDay = {};
+    Object.keys(dailyUsers).forEach((k) => { bulletinByDay[k] = { published: 0, aborted: 0, extracting: 0 }; });
+    bulletinUploads.forEach((b) => {
+      if (!b.startedAt) return;
+      const t = new Date(b.startedAt).getTime();
+      if (t < windowStartMs) return;
+      const k = b.startedAt.slice(0, 10);
+      if (!(k in bulletinByDay)) return;
+      const bucket = b.status === 'published' ? 'published'
+        : b.status === 'aborted' ? 'aborted'
+        : 'extracting';
+      bulletinByDay[k][bucket] += 1;
+    });
+
+    // 4. Onboarding funnel: install → signup → home parish → activity.
+    // "Activity" = uid appears as a bulletin uploader, a Gabe chat user,
+    // or an organization member.
+    const activityUids = new Set();
+    bulletinUploads.forEach((b) => { if (b.uploaderUid) activityUids.add(b.uploaderUid); });
+    gabeQuestions.forEach((g) => { if (g.userId) activityUids.add(g.userId); });
+    try {
+      const membersSnap = await adminDb.collection('organizationMembers').get();
+      membersSnap.docs.forEach((m) => {
+        const uid = m.data().userId;
+        if (uid) activityUids.add(uid);
+      });
+    } catch (e) { console.error('[analytics] org members fetch failed:', e.message); }
+
+    const funnel = {
+      installs: installTotal,
+      signups: users.length,
+      withHomeParish: users.filter((u) => u.hasHomeParish).length,
+      withActivity: users.filter((u) => activityUids.has(u.uid)).length,
+    };
+
+    // 5. Apostolate engagement — cumulative follower growth per public org
+    // over the 60-day window. Sparkline-friendly: each org gets a series.
+    const apostolateSeries = [];
+    const publicApos = apostolates.filter((a) => a.isPublic === true);
+    try {
+      const orgFollowersByOrg = {};
+      const followersSnap = await adminDb.collection('organizationFollowers').get();
+      followersSnap.docs.forEach((f) => {
+        const x = f.data();
+        const orgId = x.organizationId;
+        if (!orgId) return;
+        if (!orgFollowersByOrg[orgId]) orgFollowersByOrg[orgId] = [];
+        const ts = x.followedAt;
+        const date = ts && ts.toDate ? ts.toDate() : null;
+        if (date) orgFollowersByOrg[orgId].push(date);
+      });
+      publicApos.forEach((apo) => {
+        const dates = orgFollowersByOrg[apo.id] || [];
+        const series = buildEmptyDays();
+        let cumulative = 0;
+        // Count joins before the window to seed cumulative.
+        dates.forEach((d) => { if (d.getTime() < windowStartMs) cumulative += 1; });
+        const seriesEntries = Object.keys(series);
+        // For each day in order, count joins on that day, accumulate.
+        seriesEntries.forEach((k) => {
+          const dayJoins = dates.filter((d) => dayKey(d) === k).length;
+          cumulative += dayJoins;
+          series[k] = cumulative;
+        });
+        apostolateSeries.push({
+          id: apo.id,
+          name: apo.name,
+          totalFollowers: apo.followerCount || 0,
+          points: seriesEntries.map((k) => ({ date: k, value: series[k] })),
+        });
+      });
+    } catch (e) { console.error('[analytics] org followers fetch failed:', e.message); }
+
+    // 6. Top Gabe questions — at small scale, show top 15 verbatim
+    // (most-recent across all chats) instead of word frequency, which is
+    // noisy without stopword work.
+    const topGabeQuestions = gabeQuestions
+      .slice(0, 15)
+      .map((q) => ({ question: q.question, userName: q.userName, timestamp: q.timestamp }));
+
+    const analytics = {
+      windowDays: DAYS,
+      dailyUsers: Object.entries(dailyUsers).map(([date, count]) => ({ date, count })),
+      dailyInstalls: Object.entries(dailyInstalls).map(([date, count]) => ({ date, count })),
+      bulletinByDay: Object.entries(bulletinByDay).map(([date, v]) => ({ date, ...v })),
+      funnel,
+      apostolateSeries,
+      topGabeQuestions,
+    };
+
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({
       generatedAt: new Date().toISOString(),
@@ -284,6 +418,7 @@ module.exports = async (req, res) => {
       apostolates,
       gabeQuestions,
       bulletinUploads,
+      analytics,
     });
   } catch (err) {
     console.error('[dashboard-data] error:', err);
