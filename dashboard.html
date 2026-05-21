@@ -614,8 +614,17 @@ function renderBulletins(items) {
 // rebuilt on each refresh so the canvas stays in sync with the data.
 const CHART_AXIS_COLOR = '#8b949e';
 const CHART_GRID_COLOR = 'rgba(139, 148, 158, 0.15)';
-const CHART_TICK_FONT = { size: 10 };
 const chartInstances = {};
+
+// Chart.js doesn't react to CSS media queries — read the breakpoint
+// directly each render so axis fonts, tick counts, and legends shrink
+// to fit small screens. Re-render charts on resize past the breakpoint
+// so a rotation refreshes the look.
+const isMobileViewport = () => window.matchMedia('(max-width: 700px)').matches;
+const tickFont = () => ({ size: isMobileViewport() ? 9 : 10 });
+const xMaxTicks = () => isMobileViewport() ? 4 : 8;
+const legendFont = () => ({ size: isMobileViewport() ? 9 : 11 });
+const legendBoxWidth = () => isMobileViewport() ? 8 : 12;
 
 function destroyChart(id) {
   if (chartInstances[id]) {
@@ -649,8 +658,8 @@ function renderUsersChart(daily) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, maxTicksLimit: 8 }, grid: { color: CHART_GRID_COLOR } },
-        y: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
+        x: { ticks: { color: CHART_AXIS_COLOR, font: tickFont(), maxTicksLimit: xMaxTicks() }, grid: { color: CHART_GRID_COLOR } },
+        y: { ticks: { color: CHART_AXIS_COLOR, font: tickFont(), precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
       },
     },
   });
@@ -675,8 +684,8 @@ function renderInstallsChart(daily) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, maxTicksLimit: 8 }, grid: { color: CHART_GRID_COLOR } },
-        y: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
+        x: { ticks: { color: CHART_AXIS_COLOR, font: tickFont(), maxTicksLimit: xMaxTicks() }, grid: { color: CHART_GRID_COLOR } },
+        y: { ticks: { color: CHART_AXIS_COLOR, font: tickFont(), precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
       },
     },
   });
@@ -697,10 +706,10 @@ function renderBulletinsChart(series) {
     },
     options: {
       maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: CHART_AXIS_COLOR, font: { size: 11 }, boxWidth: 12 } } },
+      plugins: { legend: { labels: { color: CHART_AXIS_COLOR, font: legendFont(), boxWidth: legendBoxWidth() } } },
       scales: {
-        x: { stacked: true, ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, maxTicksLimit: 12 }, grid: { color: CHART_GRID_COLOR } },
-        y: { stacked: true, ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
+        x: { stacked: true, ticks: { color: CHART_AXIS_COLOR, font: tickFont(), maxTicksLimit: isMobileViewport() ? 5 : 12 }, grid: { color: CHART_GRID_COLOR } },
+        y: { stacked: true, ticks: { color: CHART_AXIS_COLOR, font: tickFont(), precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
       },
     },
   });
@@ -794,8 +803,8 @@ function renderMessagesChart(daily) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, maxTicksLimit: 8 }, grid: { color: CHART_GRID_COLOR } },
-        y: { ticks: { color: CHART_AXIS_COLOR, font: CHART_TICK_FONT, precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
+        x: { ticks: { color: CHART_AXIS_COLOR, font: tickFont(), maxTicksLimit: xMaxTicks() }, grid: { color: CHART_GRID_COLOR } },
+        y: { ticks: { color: CHART_AXIS_COLOR, font: tickFont(), precision: 0 }, grid: { color: CHART_GRID_COLOR }, beginAtZero: true },
       },
     },
   });
@@ -850,8 +859,10 @@ function renderRecentMessages(items) {
   }).join('');
 }
 
+let lastAnalytics = null;
 function renderAnalytics(a) {
   if (!a) return;
+  lastAnalytics = a;
   renderUsersChart(a.dailyUsers || []);
   renderInstallsChart(a.dailyInstalls || []);
   renderBulletinsChart(a.bulletinByDay || []);
@@ -861,6 +872,21 @@ function renderAnalytics(a) {
   renderMessagesChart(a.dailyMessages || []);
   renderTopWords(a.topMessageWords || []);
 }
+
+// Rebuild charts when the viewport crosses the mobile breakpoint so
+// rotating a phone/tablet picks up the right font sizes + tick counts.
+let lastWasMobile = isMobileViewport();
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const nowMobile = isMobileViewport();
+    if (nowMobile !== lastWasMobile && lastAnalytics) {
+      lastWasMobile = nowMobile;
+      renderAnalytics(lastAnalytics);
+    }
+  }, 250);
+});
 
 async function load(password) {
   const res = await fetch('/api/dashboard-data', {
