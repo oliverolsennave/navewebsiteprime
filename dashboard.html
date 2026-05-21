@@ -322,23 +322,40 @@ function renderParishKeys(keys) {
   </div>`).join('');
 }
 
+// Map dot colors from iOS LegendColor (NaveMapView.swift:6).
+// Pill uses the full color for text + a ~20% alpha background.
+const KEY_COLORS = {
+  Parish:     '#011893',  // (0.005, 0.096, 0.575)
+  Missionary: '#CC9900',  // (0.8, 0.6, 0.0)
+  Pilgrimage: '#FF3B30',  // SwiftUI Color.red
+  School:     '#AF52DE',  // SwiftUI Color.purple
+  Vocation:   '#34C759',  // SwiftUI Color.green
+  Retreat:    '#FF9500',  // SwiftUI Color.orange
+  Business:   '#A2845E',  // SwiftUI Color.brown
+  Campus:     '#006600',  // (0.0, 0.4, 0.0)
+};
+
 function renderKeys(keys) {
   document.getElementById('cnt-keys').textContent = keys.length;
   const el = document.getElementById('keys-list');
   if (!keys.length) { el.innerHTML = '<div class="empty">No keys uploaded yet</div>'; return; }
-  el.innerHTML = keys.map(k => `<div class="row">
-    <div class="body">
-      <div class="top">
-        <span class="pill" style="background:var(--pill); color:var(--accent); margin:0;">${esc(k.type || 'Key')}</span>
-        <span class="name">${esc(k.name || '(unnamed)')}</span>
+  el.innerHTML = keys.map(k => {
+    const color = KEY_COLORS[k.type] || '#8b949e';
+    const pillStyle = `color:${color}; background:${color}26; margin:0; font-weight:600;`;
+    return `<div class="row">
+      <div class="body">
+        <div class="top">
+          <span class="pill" style="${pillStyle}">${esc(k.type || 'Key')}</span>
+          <span class="name">${esc(k.name || '(unnamed)')}</span>
+        </div>
+        <div class="meta">
+          Uploaded by <strong>${esc(k.ownerName || k.ownerUid || 'unknown')}</strong>
+          ${k.ownerUsername ? `<span class="username">@${esc(k.ownerUsername)}</span>` : ''}
+        </div>
       </div>
-      <div class="meta">
-        Uploaded by <strong>${esc(k.ownerName || k.ownerUid || 'unknown')}</strong>
-        ${k.ownerUsername ? `<span class="username">@${esc(k.ownerUsername)}</span>` : ''}
-      </div>
-    </div>
-    <div class="right">${esc(fmtDate(k.createdAt))}</div>
-  </div>`).join('');
+      <div class="right">${esc(fmtDate(k.createdAt))}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderApostolates(apos) {
