@@ -288,7 +288,7 @@ function renderStats(s) {
     <div class="stat"><div class="label">Users</div><div class="value">${s.totalUsers}</div></div>
     <div class="stat"><div class="label">With home parish</div><div class="value">${s.usersWithHomeParish}</div></div>
     <div class="stat"><div class="label">Parish keys</div><div class="value">${s.totalKeys}</div></div>
-    <div class="stat"><div class="label">Apostolates</div><div class="value">${s.totalApostolates}</div></div>
+    <div class="stat" title="Apostolates with isPublic === true; private/test orgs are excluded"><div class="label">Public apostolates</div><div class="value">${s.totalApostolates}</div></div>
     <div class="stat"><div class="label">Gabe questions</div><div class="value">${s.totalGabeQuestions}</div></div>
     <div class="stat"><div class="label">Bulletins (pub / abort)</div><div class="value">${s.bulletinPublished || 0} / ${s.bulletinAborted || 0}</div></div>
   `;

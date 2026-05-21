@@ -230,7 +230,7 @@ module.exports = async (req, res) => {
         totalUsers: users.length,
         usersWithHomeParish: users.filter((u) => u.hasHomeParish).length,
         totalKeys: keys.length,
-        totalApostolates: apostolates.length,
+        totalApostolates: apostolates.filter((a) => a.isPublic === true).length,
         totalGabeQuestions: gabeQuestions.length,
         totalBulletinUploads: bulletinUploads.length,
         bulletinPublished: bulletinUploads.filter((b) => b.status === 'published').length,
