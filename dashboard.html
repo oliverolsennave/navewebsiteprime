@@ -310,15 +310,19 @@ function renderBulletins(items) {
   }
   el.innerHTML = items.map(b => {
     const urls = Array.isArray(b.bulletinURLs) ? b.bulletinURLs : [];
-    // Paperclip button hits /api/bulletin-pdf, which combines every page
-    // image into a single PDF on the server. We POST the password via a
-    // header (not query string) and open the resulting blob in a new tab.
-    const pageLabel = urls.length === 1 ? '1 page' : `${urls.length} pages`;
+    // Paperclip + one numbered link per page. Click the paperclip itself
+    // (which links to page 1) for the first page; click any number to
+    // jump to that specific page. Each image opens inline in a new tab.
+    const numberLinks = urls.slice(1).map((u, i) => `
+      <a href="${esc(u)}" target="_blank" rel="noopener" title="Page ${i + 2}" style="color:var(--accent); text-decoration:none; padding:0 4px; font-size:12px;">${i + 2}</a>
+    `).join('');
     const clip = urls.length
-      ? `<button onclick="openBulletinPDF('${esc(b.id)}')" title="Open ${urls.length}-page bulletin PDF" style="display:inline-flex; align-items:center; gap:4px; margin-right:10px; padding:4px 6px; background:transparent; border:0; color:var(--accent); cursor:pointer;">
-           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-           <span style="font-size:11px;">${esc(pageLabel)}</span>
-         </button>`
+      ? `<span style="display:inline-flex; align-items:center; gap:2px; margin-right:10px;">
+           <a href="${esc(urls[0])}" target="_blank" rel="noopener" title="Open page 1 of ${urls.length}" style="display:inline-flex; align-items:center; gap:4px; color:var(--accent); text-decoration:none;">
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+             <span style="font-size:11px;">1</span>
+           </a>${numberLinks}
+         </span>`
       : '';
     return `<div class="row">
       <div class="body">
@@ -340,29 +344,6 @@ function renderBulletins(items) {
       </div>
     </div>`;
   }).join('');
-}
-
-async function openBulletinPDF(docId) {
-  const pw = sessionStorage.getItem(STORAGE_KEY);
-  if (!pw) { alert('Session expired — refresh and log in again.'); return; }
-  try {
-    const res = await fetch('/api/bulletin-pdf?docId=' + encodeURIComponent(docId), {
-      headers: { 'x-dashboard-password': pw },
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      alert('Could not build PDF: ' + body.slice(0, 200));
-      return;
-    }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    // Keep the URL alive long enough for the new tab to fetch + render,
-    // then release the memory.
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-  } catch (e) {
-    alert('Network error loading bulletin: ' + e.message);
-  }
 }
 
 async function load(password) {
