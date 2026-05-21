@@ -308,22 +308,38 @@ function renderBulletins(items) {
     el.innerHTML = '<div class="empty">No bulletin uploads tracked yet.<br/><br/>Tracking starts from the next iOS build forward — older uploads (Storage-only) won\'t appear here.</div>';
     return;
   }
-  el.innerHTML = items.map(b => `<div class="row">
-    <div class="body">
-      <div class="top">
-        <span class="name">${esc(b.parishName || '(parish not set)')}</span>
-        ${statusPill(b.status)}
-        ${b.flow === 'addToMap' ? '<span class="pill">add-to-map</span>' : ''}
+  el.innerHTML = items.map(b => {
+    const urls = Array.isArray(b.bulletinURLs) ? b.bulletinURLs : [];
+    const firstURL = urls[0] || null;
+    // SVG paperclip — inline so we don't depend on an icon font. Opens the
+    // first bulletin file in a new tab; PDFs render inline, images preview
+    // in the browser. Badge shows the count when there's more than one.
+    const clip = firstURL
+      ? `<a href="${esc(firstURL)}" target="_blank" rel="noopener" title="Open bulletin file${urls.length > 1 ? ` (1 of ${urls.length})` : ''}" style="display:inline-flex; align-items:center; gap:4px; margin-right:8px; color:var(--accent); text-decoration:none;">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+           ${urls.length > 1 ? `<span style="font-size:11px;">${urls.length}</span>` : ''}
+         </a>`
+      : '';
+    return `<div class="row">
+      <div class="body">
+        <div class="top">
+          <span class="name">${esc(b.parishName || '(parish not set)')}</span>
+          ${statusPill(b.status)}
+          ${b.flow === 'addToMap' ? '<span class="pill">add-to-map</span>' : ''}
+        </div>
+        <div class="meta">
+          Uploaded by <strong>${esc(b.uploaderName || b.uploaderUid || 'unknown')}</strong>
+          ${b.uploaderUsername ? `<span class="username">@${esc(b.uploaderUsername)}</span>` : ''}
+          ${b.pageCount ? ` · ${b.pageCount} page${b.pageCount === 1 ? '' : 's'}` : ''}
+          ${b.parishId ? ` · <code>${esc(b.parishId)}</code>` : ''}
+        </div>
       </div>
-      <div class="meta">
-        Uploaded by <strong>${esc(b.uploaderName || b.uploaderUid || 'unknown')}</strong>
-        ${b.uploaderUsername ? `<span class="username">@${esc(b.uploaderUsername)}</span>` : ''}
-        ${b.pageCount ? ` · ${b.pageCount} page${b.pageCount === 1 ? '' : 's'}` : ''}
-        ${b.parishId ? ` · <code>${esc(b.parishId)}</code>` : ''}
+      <div class="right" style="display:flex; align-items:center;">
+        ${clip}
+        <span>${esc(fmtDate(b.startedAt))}</span>
       </div>
-    </div>
-    <div class="right">${esc(fmtDate(b.startedAt))}</div>
-  </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function load(password) {

@@ -165,9 +165,14 @@ module.exports = async (req, res) => {
     const bulletinUploads = [];
     if (bulletinsSnap && !bulletinsSnap.empty) {
       const missingParishNames = new Set();
+      const parishIdsForUrlFallback = new Set();
       bulletinsSnap.docs.forEach((d) => {
         const x = d.data();
         if (x.parishId && !x.parishName) missingParishNames.add(x.parishId);
+        // Pre-instrumentation sessions (or upload-in-progress sessions) won't
+        // have bulletinURLs on the telemetry doc; we'll fall back to the
+        // parishesprime doc's latestBulletinURLs for those.
+        if (x.parishId && !Array.isArray(x.bulletinURLs)) parishIdsForUrlFallback.add(x.parishId);
       });
       // Reuse the Churches lookups we already did for keys; only fetch new ids.
       const newParishIds = Array.from(missingParishNames).filter((id) => !(id in parishNameById));
@@ -177,9 +182,26 @@ module.exports = async (req, res) => {
           if (doc.exists) parishNameById[pid] = doc.data().name || null;
         } catch (e) { /* skip bad ids */ }
       }));
+      // Fetch latestBulletinURLs from parishesprime for fallback. Caveat: this
+      // is overwritten on each publish, so a historical session for a parish
+      // that's been re-published since will show the newer file. Acceptable
+      // for v1 until the iOS write lands on every doc.
+      const fallbackUrlsByParish = {};
+      await Promise.all(Array.from(parishIdsForUrlFallback).map(async (pid) => {
+        try {
+          const doc = await adminDb.collection('parishesprime').doc(pid).get();
+          if (doc.exists) {
+            const urls = doc.data().latestBulletinURLs;
+            if (Array.isArray(urls) && urls.length) fallbackUrlsByParish[pid] = urls;
+          }
+        } catch (e) { /* skip */ }
+      }));
       bulletinsSnap.docs.forEach((d) => {
         const x = d.data();
         const uid = x.uploaderUid || null;
+        const urls = Array.isArray(x.bulletinURLs) && x.bulletinURLs.length
+          ? x.bulletinURLs
+          : (x.parishId ? fallbackUrlsByParish[x.parishId] : null) || [];
         bulletinUploads.push({
           id: d.id,
           uploaderUid: uid,
@@ -190,6 +212,7 @@ module.exports = async (req, res) => {
           status: x.status || 'unknown',
           pageCount: x.pageCount || null,
           flow: x.flow || null,
+          bulletinURLs: urls,
           startedAt: x.startedAt && x.startedAt.toDate ? x.startedAt.toDate().toISOString() : null,
           finishedAt: x.finishedAt && x.finishedAt.toDate ? x.finishedAt.toDate().toISOString() : null,
         });
