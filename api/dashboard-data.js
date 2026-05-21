@@ -73,50 +73,41 @@ module.exports = async (req, res) => {
     const userNameByUid = {};
     users.forEach((u) => { userNameByUid[u.uid] = u.displayName || u.username || u.email || u.uid; });
 
-    // ---------- Keys: user_subscriptions docs, flatten activatedParishes
-    const subsSnap = await adminDb.collection('user_subscriptions').get();
+    // ---------- Keys: every parishesprime doc with isUnlocked==true.
+    // The original `user_subscriptions.activatedParishes` source was dead
+    // (subscription gate is disabled, nothing's writing there). The actual
+    // signal for "this parish got a key" is the `isUnlocked` flag flipped
+    // by `linkToParish` when a bulletin is published.
+    const unlockedSnap = await adminDb.collection('parishesprime')
+      .where('isUnlocked', '==', true)
+      .get()
+      .catch((e) => { console.error('[dashboard-data] unlocked query failed:', e.message); return null; });
+    const parishNameById = {}; // also used by bulletin-uploads section below
     const keys = [];
-    const parishIdsNeeded = new Set();
-    subsSnap.docs.forEach((s) => {
-      const x = s.data();
-      const parishIds = Array.isArray(x.activatedParishes) ? x.activatedParishes : [];
-      const createdAt = x.createdAt && x.createdAt.toDate ? x.createdAt.toDate().toISOString() : null;
-      parishIds.forEach((pid) => {
-        // Skip falsy / non-string parish ids — production data has some
-        // empty entries that crash Firestore's .doc() validator.
-        if (typeof pid !== 'string' || !pid.trim()) return;
-        parishIdsNeeded.add(pid);
+    if (unlockedSnap) {
+      unlockedSnap.docs.forEach((d) => {
+        const x = d.data();
+        parishNameById[d.id] = x.name || null;
         keys.push({
-          parishId: pid,
-          parishName: null, // hydrate below
-          subscriptionId: x.subscriptionId || s.id,
-          ownerUid: x.userId || null,
-          ownerName: x.userId ? (userNameByUid[x.userId] || null) : null,
-          ownerUsername: x.userId ? ((userDocByUid[x.userId] || {}).username || null) : null,
-          isActive: x.isActive !== false,
-          createdAt,
-          expiresAt: x.expiresAt && x.expiresAt.toDate ? x.expiresAt.toDate().toISOString() : null,
+          parishId: d.id,
+          parishName: x.name || null,
+          subscriptionId: null,
+          // Owner attribution — derived from bulletinUploads (published) later
+          // in this handler; left null here, patched below once that data is loaded.
+          ownerUid: null,
+          ownerName: null,
+          ownerUsername: null,
+          isActive: true,
+          createdAt: x.bulletinSubmittedAt && x.bulletinSubmittedAt.toDate ? x.bulletinSubmittedAt.toDate().toISOString() : null,
+          expiresAt: null,
         });
       });
-    });
-    // Hydrate parish names from Churches collection (id-aligned with parishesprime)
-    const parishNameById = {};
-    await Promise.all(
-      Array.from(parishIdsNeeded).map(async (pid) => {
-        try {
-          const doc = await adminDb.collection('Churches').doc(pid).get();
-          if (doc.exists) parishNameById[pid] = doc.data().name || null;
-        } catch (e) {
-          // Skip individual lookup failures so one bad id can't 500 the whole dashboard
-        }
-      })
-    );
-    keys.forEach((k) => { k.parishName = parishNameById[k.parishId] || null; });
-    keys.sort((a, b) => {
-      if (!a.createdAt) return 1;
-      if (!b.createdAt) return -1;
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
+      keys.sort((a, b) => {
+        if (!a.createdAt) return 1;
+        if (!b.createdAt) return -1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+    }
 
     // ---------- Apostolates
     const orgsSnap = await adminDb.collection('organizations').get();
@@ -196,6 +187,27 @@ module.exports = async (req, res) => {
           }
         } catch (e) { /* skip */ }
       }));
+      // Map of parishId → most-recent published uploader, used to fill in
+      // owner names on the keys list since parishesprime doesn't store the
+      // owner uid directly (it's in users/{uid}/associations instead).
+      const publishedByParish = {};
+      bulletinsSnap.docs.forEach((d) => {
+        const x = d.data();
+        if (x.status === 'published' && x.parishId && x.uploaderUid) {
+          // bulletinsSnap is ordered by startedAt desc, so the first hit per
+          // parish is the most recent publish — that's the current owner.
+          if (!publishedByParish[x.parishId]) publishedByParish[x.parishId] = x.uploaderUid;
+        }
+      });
+      keys.forEach((k) => {
+        const ownerUid = publishedByParish[k.parishId];
+        if (ownerUid) {
+          k.ownerUid = ownerUid;
+          k.ownerName = userNameByUid[ownerUid] || null;
+          k.ownerUsername = (userDocByUid[ownerUid] || {}).username || null;
+        }
+      });
+
       bulletinsSnap.docs.forEach((d) => {
         const x = d.data();
         const uid = x.uploaderUid || null;
