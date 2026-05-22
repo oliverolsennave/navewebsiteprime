@@ -775,7 +775,13 @@ function renderFunnel(funnel) {
     { key: 'withActivity',   label: 'First action' },
     { key: 'withHomeParish', label: 'Home parish/campus' },
   ];
-  const top = funnel.installs || 1;
+  // Use the largest stage value as the 100% baseline. Installs would be
+  // the natural top of a healthy funnel, but until iOS 1.1.2+ has been
+  // out long enough for install tracking to catch up to lifetime
+  // signups, installs is artificially small — using it as the
+  // denominator pushed every other bar past 100% and they all clipped
+  // to the same width.
+  const top = Math.max(1, ...stages.map(s => funnel[s.key] || 0));
   document.getElementById('funnel-list').innerHTML = stages.map((s, i) => {
     const n = funnel[s.key] || 0;
     const pct = (n / top) * 100;
