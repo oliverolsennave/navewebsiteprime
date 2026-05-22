@@ -509,11 +509,23 @@ module.exports = async (req, res) => {
       });
     } catch (e) { console.error('[analytics] org members fetch failed:', e.message); }
 
+    // Stage order is install → signup → first action → home parish
+    // (home parish is a *stricter* subset of "first action" since setting
+    // it requires opening the app and tapping through the home-parish
+    // picker, which already counts as activity). The funnel renders in
+    // that order downstream.
+    //
+    // Floor installs at the signup count: install tracking only began
+    // shipping with iOS 1.1.2, so historical signups have no install
+    // record. Every signup logically implies at least one install, so
+    // surfacing a lower number would mis-attribute drop-off to the
+    // wrong stage.
+    const rawSignups = users.length;
     const funnel = {
-      installs: installTotal,
-      signups: users.length,
-      withHomeParish: users.filter((u) => u.hasHomeParish).length,
+      installs: Math.max(installTotal, rawSignups),
+      signups: rawSignups,
       withActivity: users.filter((u) => activityUids.has(u.uid)).length,
+      withHomeParish: users.filter((u) => u.hasHomeParish).length,
     };
 
     // 5. Apostolate engagement — cumulative follower growth per public org
