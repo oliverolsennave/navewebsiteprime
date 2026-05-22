@@ -4427,6 +4427,29 @@ textarea.bulletin-receipt-input {
     .eg-content {
         padding: 1rem;
         padding-top: 0.5rem;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    /* Hard width lockdown — the hero card's grid + image cells used to
+       push the layout past the viewport because min-widths weren't
+       being shrunk. Force every engage child to honor the viewport. */
+    html, body { overflow-x: hidden; }
+    .eg-app,
+    .eg-section,
+    .eg-section-discover,
+    .eg-hero-card,
+    .eg-hero-card-text,
+    .eg-hero-card-visual,
+    .eg-home-grid,
+    .eg-home-row-grid {
+        max-width: 100%;
+        min-width: 0;
+    }
+    .eg-hero-card-visual img,
+    .eg-hero-card-logo img,
+    .eg-org-row {
+        max-width: 100%;
     }
 
     .eg-section-title {
