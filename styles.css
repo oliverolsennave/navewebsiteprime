@@ -4424,32 +4424,108 @@ textarea.bulletin-receipt-input {
         border-bottom-color: #fff;
     }
 
+    /* ===================================================================
+       DISCOVER PAGE — mobile redesign
+       ===================================================================
+       Desktop uses a flex layout (sidebar + content) and 2-column grids
+       inside the Discover section. On mobile we kill the flex container
+       and stack everything vertically at full viewport width. !important
+       defeats specificity collisions with the wider desktop rules. */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+    }
+    .eg-app {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
     .eg-content {
-        padding: 1rem;
-        padding-top: 0.5rem;
-        max-width: 100%;
-        overflow-x: hidden;
+        padding: 1rem !important;
+        padding-top: 0.5rem !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+    .eg-section,
+    .eg-section-discover {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+    .eg-home-title {
+        font-size: 1.75rem !important;
+        margin: 0 0 1rem !important;
     }
 
-    /* Hard width lockdown — the hero card's grid + image cells used to
-       push the layout past the viewport because min-widths weren't
-       being shrunk. Force every engage child to honor the viewport. */
-    html, body { overflow-x: hidden; }
-    .eg-app,
-    .eg-section,
-    .eg-section-discover,
-    .eg-hero-card,
-    .eg-hero-card-text,
-    .eg-hero-card-visual,
+    /* Hero card: stack text on top, visual below (or hide visual entirely
+       when there's no room). Forced to one column regardless of inherited
+       grid rules. */
+    .eg-hero-card {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 0 !important;
+        margin-bottom: 1.25rem !important;
+    }
+    .eg-hero-card-text {
+        padding: 1.25rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .eg-hero-headline { font-size: 1.5rem !important; }
+    .eg-hero-desc {
+        font-size: 0.9rem !important;
+        max-width: 100% !important;
+    }
+    .eg-hero-card-visual {
+        width: 100% !important;
+        min-height: 160px !important;
+        padding: 1.25rem !important;
+        box-sizing: border-box !important;
+    }
+    .eg-hero-card-logo {
+        width: 110px !important;
+        height: 110px !important;
+        border-radius: 22px !important;
+        font-size: 2.5rem !important;
+    }
+
+    /* All grids collapse to single column. */
     .eg-home-grid,
     .eg-home-row-grid {
-        max-width: 100%;
-        min-width: 0;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+        gap: 0.75rem !important;
     }
+    .eg-feature-card {
+        width: 100% !important;
+        min-height: 0 !important;
+        padding: 1rem !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+    }
+    .eg-feature-card-icon {
+        width: 64px !important;
+        height: 64px !important;
+        font-size: 1.5rem !important;
+    }
+    .eg-feature-headline { font-size: 1.1rem !important; }
+
+    /* Section dividers don't need the extra padding on mobile */
+    .eg-home-section { margin-bottom: 1.5rem !important; }
+    .eg-home-section-header { padding-top: 0.75rem !important; }
+
+    /* Images never bleed past their container */
     .eg-hero-card-visual img,
     .eg-hero-card-logo img,
-    .eg-org-row {
-        max-width: 100%;
+    .eg-feature-card-icon img,
+    .eg-org-row img {
+        max-width: 100% !important;
     }
 
     .eg-section-title {
