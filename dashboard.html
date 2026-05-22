@@ -454,6 +454,20 @@ function avatarHTML(name, photoURL) {
   return `<div class="avatar">${esc(initialsFor(name))}</div>`;
 }
 
+// Funnel-stage pill styling — same color scale as the funnel chart,
+// stronger as the user moves further down.
+const STAGE_PILL = {
+  homeParish:  { label: 'Home parish/campus', color: '#3fb950' /* good */ },
+  firstAction: { label: 'First action',       color: '#58a6ff' /* accent */ },
+  signup:      { label: 'Signup',             color: '#d29922' /* warn */ },
+  guest:       { label: 'Guest',              color: '#8b949e' /* muted */ },
+};
+
+function stagePillHTML(stage) {
+  const cfg = STAGE_PILL[stage] || STAGE_PILL.signup;
+  return `<span class="pill" style="color:${cfg.color}; background:${cfg.color}22; font-weight:600;">${esc(cfg.label)}</span>`;
+}
+
 function renderUsers(users) {
   document.getElementById('cnt-users').textContent = users.length;
   const el = document.getElementById('users-list');
@@ -466,11 +480,9 @@ function renderUsers(users) {
         <div class="top">
           <span class="name">${esc(name)}</span>
           ${u.username ? `<span class="username">@${esc(u.username)}</span>` : ''}
+          ${stagePillHTML(u.funnelStage || 'signup')}
         </div>
-        <div class="meta">
-          ${esc(u.email || '')}
-          <span class="pill">home parish: <span class="${u.hasHomeParish ? 'badge-true' : 'badge-false'}">${u.hasHomeParish ? 'true' : 'false'}</span></span>
-        </div>
+        <div class="meta">${esc(u.email || '')}</div>
       </div>
       <div class="right">${esc(fmtDate(u.createdAt))}</div>
     </div>`;

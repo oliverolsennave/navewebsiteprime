@@ -521,6 +521,21 @@ module.exports = async (req, res) => {
     const firstActionUsers = signupUsers.filter((u) => visitUids.has(u.uid));
     const homeParishOrCampusUsers = signupUsers.filter((u) => u.hasHomeParish || u.hasHomeCampus);
 
+    // Stamp the highest funnel stage reached onto each user so the
+    // Recent Users panel can show a stage pill per row. Stage rank:
+    //   "homeParish" > "firstAction" > "signup" > "guest"
+    users.forEach((u) => {
+      if (u.isAnonymous) {
+        u.funnelStage = 'guest';
+      } else if (u.hasHomeParish || u.hasHomeCampus) {
+        u.funnelStage = 'homeParish';
+      } else if (visitUids.has(u.uid)) {
+        u.funnelStage = 'firstAction';
+      } else {
+        u.funnelStage = 'signup';
+      }
+    });
+
     const funnel = {
       installs: installTotal,
       signups: signupUsers.length,
