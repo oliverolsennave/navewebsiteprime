@@ -525,13 +525,6 @@ input {
     transform: translateY(0);
 }
 
-/* Suppress hover-lift + click-down on opt-in buttons (e.g., the
-   App Store CTA where the press animation felt distracting). */
-.btn-no-press:hover,
-.btn-no-press:active {
-    transform: none;
-}
-
 .btn-explore-map {
     display: inline-flex;
     align-items: center;
