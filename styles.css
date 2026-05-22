@@ -4433,14 +4433,18 @@ textarea.bulletin-receipt-input {
        defeats specificity collisions with the wider desktop rules. */
     html, body {
         overflow-x: hidden !important;
+        overflow-y: auto !important;   /* let the page scroll naturally */
         width: 100% !important;
         max-width: 100vw !important;
+        height: auto !important;       /* don't pin to viewport height */
     }
     .eg-app {
         display: block !important;
         width: 100% !important;
         max-width: 100vw !important;
         overflow-x: hidden !important;
+        overflow-y: visible !important; /* was `hidden` for desktop's nested-scroll layout — kills vertical scroll on mobile */
+        height: auto !important;
     }
     .eg-content {
         padding: 1rem !important;
@@ -4449,6 +4453,9 @@ textarea.bulletin-receipt-input {
         max-width: 100vw !important;
         box-sizing: border-box !important;
         overflow-x: hidden !important;
+        overflow-y: visible !important; /* don't manage scroll internally; the body scrolls */
+        flex: none !important;          /* was flex:1 on desktop where it filled the flex container */
+        height: auto !important;
     }
     .eg-section,
     .eg-section-discover {
