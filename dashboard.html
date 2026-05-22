@@ -204,7 +204,11 @@
   }
   .funnel-row {
     display: flex; align-items: center; gap: 12px; padding: 6px 0;
+    width: 100%; background: transparent; border: 0; cursor: pointer;
+    color: inherit; font: inherit; text-align: left;
+    border-radius: 6px; transition: background 100ms ease;
   }
+  .funnel-row:hover { background: rgba(88, 166, 255, 0.06); }
   .funnel-row .label { width: 130px; font-size: 13px; color: var(--text); }
   .funnel-row .bar { flex: 1; height: 28px; border-radius: 6px; background: var(--panel-2); overflow: hidden; position: relative; }
   .funnel-row .bar > div {
@@ -213,6 +217,28 @@
   }
   .funnel-row .count { width: 90px; font-size: 12px; color: var(--muted); text-align: right; }
   .funnel-row .drop { font-size: 11px; color: var(--bad); margin-left: 6px; }
+
+  /* Funnel drill-down modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 24px;
+  }
+  .modal-backdrop.hidden { display: none; }
+  .modal-panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    width: 100%; max-width: 560px; max-height: 80vh; display: flex; flex-direction: column;
+  }
+  .modal-panel header {
+    padding: 16px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-panel header h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .modal-panel header .close {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px;
+  }
+  .modal-panel .modal-list { overflow-y: auto; padding: 4px 0; }
   .gabe-q-row {
     padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px;
   }
@@ -292,6 +318,17 @@
 <body>
 
 <!-- Login overlay -->
+<!-- Funnel drill-down modal -->
+<div id="funnel-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeFunnelModal()">
+  <div class="modal-panel">
+    <header>
+      <h3 id="funnel-modal-title">Stage</h3>
+      <button class="close" onclick="closeFunnelModal()">Close</button>
+    </header>
+    <div class="modal-list" id="funnel-modal-list"></div>
+  </div>
+</div>
+
 <div id="login" class="login-overlay">
   <div class="login-box">
     <h2>Nave Internal Dashboard</h2>
@@ -768,32 +805,90 @@ function renderBulletinsChart(series) {
   });
 }
 
-function renderFunnel(funnel) {
+// Cache the per-stage member arrays + the users[] map so the modal can
+// hydrate uids → user rows without re-fetching.
+let funnelMembersCache = null;
+let usersByUidCache = {};
+
+function renderFunnel(funnel, members, users) {
+  funnelMembersCache = members || null;
+  usersByUidCache = {};
+  (users || []).forEach((u) => { usersByUidCache[u.uid] = u; });
+
   const stages = [
     { key: 'installs',       label: 'Installs' },
     { key: 'signups',        label: 'Signups' },
     { key: 'withActivity',   label: 'First action' },
     { key: 'withHomeParish', label: 'Home parish/campus' },
   ];
-  // Use the largest stage value as the 100% baseline. Installs would be
-  // the natural top of a healthy funnel, but until iOS 1.1.2+ has been
-  // out long enough for install tracking to catch up to lifetime
-  // signups, installs is artificially small — using it as the
-  // denominator pushed every other bar past 100% and they all clipped
-  // to the same width.
   const top = Math.max(1, ...stages.map(s => funnel[s.key] || 0));
   document.getElementById('funnel-list').innerHTML = stages.map((s, i) => {
     const n = funnel[s.key] || 0;
     const pct = (n / top) * 100;
     const prev = i > 0 ? (funnel[stages[i - 1].key] || 0) : null;
     const dropPct = (prev != null && prev > 0) ? Math.round(100 * (1 - n / prev)) : null;
-    return `<div class="funnel-row">
+    return `<button type="button" class="funnel-row" onclick="openFunnelModal('${s.key}', '${esc(s.label)}')" title="Tap to see the people in this stage">
       <div class="label">${esc(s.label)}</div>
       <div class="bar"><div style="width:${pct.toFixed(1)}%"></div></div>
       <div class="count">${n}${dropPct != null && dropPct > 0 ? `<span class="drop">−${dropPct}%</span>` : ''}</div>
-    </div>`;
+    </button>`;
   }).join('');
 }
+
+function openFunnelModal(stageKey, stageLabel) {
+  const titleEl = document.getElementById('funnel-modal-title');
+  const listEl = document.getElementById('funnel-modal-list');
+  const members = (funnelMembersCache || {})[stageKey] || [];
+  titleEl.textContent = `${stageLabel} · ${members.length}`;
+
+  if (!members.length) {
+    listEl.innerHTML = '<div class="empty" style="padding:28px; text-align:center;">No one in this stage yet.</div>';
+  } else if (stageKey === 'installs') {
+    // installs are device records (idfv + meta), not users
+    listEl.innerHTML = members.map((m) => `<div class="row">
+      <div class="body">
+        <div class="top">
+          <span class="name">${esc(m.device || 'iPhone')}</span>
+          ${m.appVersion ? `<span class="pill">v${esc(m.appVersion)}${m.buildNumber ? `·${esc(m.buildNumber)}` : ''}</span>` : ''}
+          ${m.systemVersion ? `<span class="pill">${esc(m.systemVersion)}</span>` : ''}
+        </div>
+        <div class="meta"><code>${esc(m.idfv)}</code></div>
+      </div>
+      <div class="right">${esc(fmtDate(m.firstLaunchAt))}</div>
+    </div>`).join('');
+  } else {
+    // uid list → hydrate from usersByUidCache
+    listEl.innerHTML = members.map((uid) => {
+      const u = usersByUidCache[uid];
+      if (!u) {
+        return `<div class="row"><div class="body"><div class="meta"><code>${esc(uid)}</code> · (no user record)</div></div></div>`;
+      }
+      const name = u.displayName || u.username || u.email || u.uid;
+      return `<div class="row">
+        ${avatarHTML(name, u.photoURL)}
+        <div class="body">
+          <div class="top">
+            <span class="name">${esc(name)}</span>
+            ${u.username ? `<span class="username">@${esc(u.username)}</span>` : ''}
+          </div>
+          <div class="meta">${esc(u.email || '')}</div>
+        </div>
+        <div class="right">${esc(fmtDate(u.createdAt))}</div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('funnel-modal').classList.remove('hidden');
+}
+
+function closeFunnelModal() {
+  document.getElementById('funnel-modal').classList.add('hidden');
+}
+
+// Close on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeFunnelModal();
+});
 
 function renderGabeTopList(list) {
   const el = document.getElementById('gabe-q-list');
@@ -968,13 +1063,15 @@ function renderRecentMessages(items) {
 }
 
 let lastAnalytics = null;
-function renderAnalytics(a) {
+let lastUsersForFunnel = [];
+function renderAnalytics(a, users) {
   if (!a) return;
   lastAnalytics = a;
+  if (users) lastUsersForFunnel = users;
   renderUsersChart(a.dailyUsers || []);
   renderInstallsChart(a.dailyInstalls || []);
   renderBulletinsChart(a.bulletinByDay || []);
-  renderFunnel(a.funnel || {});
+  renderFunnel(a.funnel || {}, a.funnelMembers || {}, lastUsersForFunnel);
   renderGabeTopList(a.topGabeQuestions || []);
   renderApostolateSparklines(a.apostolateSeries || []);
   renderMessagesChart(a.dailyMessages || []);
@@ -1013,7 +1110,7 @@ function showApp(data) {
   document.getElementById('main').style.display = 'grid';
   document.getElementById('generated-at').textContent = 'updated ' + fmtDate(data.generatedAt);
   renderStats(data.stats);
-  renderAnalytics(data.analytics);
+  renderAnalytics(data.analytics, data.users);
   renderUsers(data.users);
   renderKeys(data.recentKeys || []);
   renderParishKeys(data.keys || []);

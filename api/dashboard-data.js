@@ -517,11 +517,48 @@ module.exports = async (req, res) => {
       });
     } catch (e) { console.error('[analytics] listing_analytics visits failed:', e.message); }
 
+    const signupUsers = users.filter((u) => !u.isAnonymous);
+    const firstActionUsers = signupUsers.filter((u) => visitUids.has(u.uid));
+    const homeParishOrCampusUsers = signupUsers.filter((u) => u.hasHomeParish || u.hasHomeCampus);
+
     const funnel = {
       installs: installTotal,
-      signups: users.filter((u) => !u.isAnonymous).length,
-      withActivity: users.filter((u) => !u.isAnonymous && visitUids.has(u.uid)).length,
-      withHomeParish: users.filter((u) => !u.isAnonymous && (u.hasHomeParish || u.hasHomeCampus)).length,
+      signups: signupUsers.length,
+      withActivity: firstActionUsers.length,
+      withHomeParish: homeParishOrCampusUsers.length,
+    };
+
+    // Per-stage member lists so the dashboard can render a tap-through
+    // drill-down. Installs come from the appInstalls collection (device
+    // records, no user attribution yet — first launch happens before
+    // auth); the other three are uid arrays the frontend joins back
+    // against `users[]` for display.
+    let installRecords = [];
+    try {
+      const installsSnap = await adminDb.collection('appInstalls')
+        .orderBy('firstLaunchAt', 'desc')
+        .limit(500)
+        .get();
+      installRecords = installsSnap.docs.map((d) => {
+        const x = d.data();
+        return {
+          idfv: d.id,
+          appVersion: x.appVersion || null,
+          buildNumber: x.buildNumber || null,
+          device: x.device || null,
+          systemVersion: x.systemVersion || null,
+          firstLaunchAt: x.firstLaunchAt && x.firstLaunchAt.toDate ? x.firstLaunchAt.toDate().toISOString() : null,
+        };
+      });
+    } catch (e) {
+      console.error('[analytics] install records fetch failed:', e.message);
+    }
+
+    const funnelMembers = {
+      installs: installRecords,
+      signups: signupUsers.map((u) => u.uid),
+      withActivity: firstActionUsers.map((u) => u.uid),
+      withHomeParish: homeParishOrCampusUsers.map((u) => u.uid),
     };
 
     // 5. Apostolate engagement — cumulative follower growth per public org
@@ -580,6 +617,7 @@ module.exports = async (req, res) => {
       dailyInstalls: Object.entries(dailyInstalls).map(([date, count]) => ({ date, count })),
       bulletinByDay: Object.entries(bulletinByDay).map(([date, v]) => ({ date, ...v })),
       funnel,
+      funnelMembers,
       apostolateSeries,
       topGabeQuestions,
       dailyMessages: messageActivity.dailySeries,
