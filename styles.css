@@ -463,6 +463,15 @@ input {
     line-height: 1.7;
 }
 
+/* Two-tier hero copy: the long "cultural heat map…" line works on
+   desktop where there's room; on mobile it crowds the iPhone preview,
+   so we swap to a tighter call-to-mission line. */
+.hero-subtext-mobile { display: none; }
+@media (max-width: 768px) {
+    .hero-subtext-desktop { display: none; }
+    .hero-subtext-mobile { display: inline; }
+}
+
 /* Form Styles */
 .hero-form,
 .cta-form {
