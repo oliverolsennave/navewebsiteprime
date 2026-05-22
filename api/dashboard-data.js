@@ -64,7 +64,9 @@ module.exports = async (req, res) => {
           createdAt: u.metadata.creationTime,
           lastSignInAt: u.metadata.lastSignInTime || null,
           hasHomeParish: Boolean(d.homeParishId),
+          hasHomeCampus: Boolean(d.homeCampusMinistryId),
           homeParishId: d.homeParishId || null,
+          homeCampusId: d.homeCampusMinistryId || null,
           isAnonymous: u.providerData.length === 0,
         };
       })
@@ -495,37 +497,31 @@ module.exports = async (req, res) => {
       bulletinByDay[k][bucket] += 1;
     });
 
-    // 4. Onboarding funnel: install → signup → home parish → activity.
-    // "Activity" = uid appears as a bulletin uploader, a Gabe chat user,
-    // or an organization member.
-    const activityUids = new Set();
-    bulletinUploads.forEach((b) => { if (b.uploaderUid) activityUids.add(b.uploaderUid); });
-    gabeQuestions.forEach((g) => { if (g.userId) activityUids.add(g.userId); });
+    // 4. Onboarding funnel.
+    //   - installs:       first-open pings (some are guests; installs > signups)
+    //   - signups:        Auth users with a non-anonymous provider (a real account)
+    //   - first action:   uid has at least one `visit` event in
+    //                     listing_analytics — i.e. opened a key or
+    //                     apostolate detail page
+    //   - home parish or campus: user doc has homeParishId OR
+    //                     homeCampusMinistryId set (either counts; one
+    //                     row per user, no double-count)
+    const visitUids = new Set();
     try {
-      const membersSnap = await adminDb.collection('organizationMembers').get();
-      membersSnap.docs.forEach((m) => {
-        const uid = m.data().userId;
-        if (uid) activityUids.add(uid);
+      const visitsSnap = await adminDb.collection('listing_analytics')
+        .where('eventType', '==', 'visit')
+        .get();
+      visitsSnap.docs.forEach((d) => {
+        const uid = d.data().userId;
+        if (uid) visitUids.add(uid);
       });
-    } catch (e) { console.error('[analytics] org members fetch failed:', e.message); }
+    } catch (e) { console.error('[analytics] listing_analytics visits failed:', e.message); }
 
-    // Stage order is install → signup → first action → home parish
-    // (home parish is a *stricter* subset of "first action" since setting
-    // it requires opening the app and tapping through the home-parish
-    // picker, which already counts as activity). The funnel renders in
-    // that order downstream.
-    //
-    // Floor installs at the signup count: install tracking only began
-    // shipping with iOS 1.1.2, so historical signups have no install
-    // record. Every signup logically implies at least one install, so
-    // surfacing a lower number would mis-attribute drop-off to the
-    // wrong stage.
-    const rawSignups = users.length;
     const funnel = {
-      installs: Math.max(installTotal, rawSignups),
-      signups: rawSignups,
-      withActivity: users.filter((u) => activityUids.has(u.uid)).length,
-      withHomeParish: users.filter((u) => u.hasHomeParish).length,
+      installs: installTotal,
+      signups: users.filter((u) => !u.isAnonymous).length,
+      withActivity: users.filter((u) => !u.isAnonymous && visitUids.has(u.uid)).length,
+      withHomeParish: users.filter((u) => !u.isAnonymous && (u.hasHomeParish || u.hasHomeCampus)).length,
     };
 
     // 5. Apostolate engagement — cumulative follower growth per public org

@@ -333,7 +333,7 @@
   </div>
   <div class="chart-card">
     <h3>Onboarding funnel</h3>
-    <div class="subtitle">Install → signup → first action → home parish</div>
+    <div class="subtitle">Install → signup → first action → home parish/campus</div>
     <div id="funnel-list"></div>
   </div>
   <div class="chart-card">
@@ -773,7 +773,7 @@ function renderFunnel(funnel) {
     { key: 'installs',       label: 'Installs' },
     { key: 'signups',        label: 'Signups' },
     { key: 'withActivity',   label: 'First action' },
-    { key: 'withHomeParish', label: 'Home parish' },
+    { key: 'withHomeParish', label: 'Home parish/campus' },
   ];
   const top = funnel.installs || 1;
   document.getElementById('funnel-list').innerHTML = stages.map((s, i) => {
