@@ -158,14 +158,50 @@
   .chart-card .chart-wrap { position: relative; height: 200px; }
   .chart-card.tall .chart-wrap { height: 260px; }
   .chart-card.wide { grid-column: 1 / -1; }
+  /* Apostolate follower growth — one row per org. Grid layout so the
+     name column has a guaranteed minimum width (Chart.js's responsive
+     mode otherwise eats all the flex space and squashes the labels). */
   .sparkline-row {
-    display: flex; align-items: center; gap: 10px; padding: 6px 0;
+    display: grid;
+    grid-template-columns: 180px 1fr 60px;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 0;
     border-bottom: 1px solid var(--border);
   }
   .sparkline-row:last-child { border-bottom: 0; }
-  .sparkline-row .name { flex: 1; min-width: 0; font-size: 13px; }
-  .sparkline-row .total { font-size: 12px; color: var(--muted); width: 36px; text-align: right; }
-  .sparkline-row canvas { width: 120px; height: 28px; }
+  .sparkline-row .name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sparkline-row .spark-wrap {
+    position: relative;
+    height: 44px;
+    min-width: 0;
+  }
+  .sparkline-row .spark-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .sparkline-row .total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: right;
+  }
+  .sparkline-row .total small {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
   .funnel-row {
     display: flex; align-items: center; gap: 12px; padding: 6px 0;
   }
@@ -230,10 +266,11 @@
     .funnel-row .label { width: 90px; font-size: 12px; }
     .funnel-row .count { width: 70px; font-size: 11px; }
 
-    .sparkline-row { gap: 8px; padding: 6px 0; }
-    .sparkline-row .name { font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .sparkline-row canvas { width: 80px; height: 24px; flex-shrink: 0; }
-    .sparkline-row .total { font-size: 11px; width: 28px; }
+    .sparkline-row { grid-template-columns: 110px 1fr 44px; gap: 10px; padding: 10px 0; }
+    .sparkline-row .name { font-size: 12px; }
+    .sparkline-row .spark-wrap { height: 32px; }
+    .sparkline-row .total { font-size: 14px; }
+    .sparkline-row .total small { font-size: 9px; }
 
     .login-box { width: calc(100% - 32px); padding: 22px; }
     .login-box input { font-size: 16px; }
@@ -771,34 +808,82 @@ function renderApostolateSparklines(series) {
     el.innerHTML = '<div class="empty" style="padding:14px 0; text-align:center; color:var(--muted); font-size:12px;">No public apostolates.</div>';
     return;
   }
-  el.innerHTML = series.map((s, i) => `
-    <div class="sparkline-row">
-      <span class="name">${esc(s.name || s.id)}</span>
-      <canvas id="spark-${i}"></canvas>
-      <span class="total">${s.totalFollowers}</span>
-    </div>
-  `).join('');
+  el.innerHTML = series.map((s, i) => {
+    // Delta over the visible window — newest value minus oldest non-zero.
+    const pts = s.points || [];
+    const last = pts.length ? pts[pts.length - 1].value : 0;
+    const first = pts.length ? pts[0].value : 0;
+    const delta = last - first;
+    const deltaLabel = delta > 0 ? `+${delta}` : (delta < 0 ? `${delta}` : '');
+    const deltaColor = delta > 0 ? 'var(--good)' : (delta < 0 ? 'var(--bad)' : 'var(--muted)');
+    return `
+      <div class="sparkline-row">
+        <span class="name" title="${esc(s.name || s.id)}">${esc(s.name || s.id)}</span>
+        <div class="spark-wrap"><canvas id="spark-${i}"></canvas></div>
+        <div class="total">
+          ${s.totalFollowers}
+          <small style="color:${deltaColor};">${deltaLabel || 'followers'}</small>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Plugin: draw a small filled dot at the end of each sparkline so the
+  // "current value" point is visually anchored.
+  const endDotPlugin = {
+    id: 'endDot',
+    afterDatasetsDraw(chart) {
+      const ds = chart.data.datasets[0];
+      if (!ds || !ds.data || !ds.data.length) return;
+      const meta = chart.getDatasetMeta(0);
+      const last = meta.data[meta.data.length - 1];
+      if (!last) return;
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.fillStyle = ds.borderColor;
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    },
+  };
+
   series.forEach((s, i) => {
     const id = 'spark-' + i;
     destroyChart(id);
     const canvas = document.getElementById(id);
     if (!canvas) return;
-    chartInstances[id] = new Chart(canvas.getContext('2d'), {
+    const ctx = canvas.getContext('2d');
+    // Vertical gradient — denser at the top of the line, fades to
+    // transparent at the bottom — gives the sparkline depth without
+    // overwhelming the row.
+    const gradient = ctx.createLinearGradient(0, 0, 0, 60);
+    gradient.addColorStop(0, 'rgba(88, 166, 255, 0.35)');
+    gradient.addColorStop(1, 'rgba(88, 166, 255, 0)');
+    chartInstances[id] = new Chart(ctx, {
       type: 'line',
       data: {
         labels: s.points.map(p => p.date),
         datasets: [{
           data: s.points.map(p => p.value),
           borderColor: '#58a6ff',
-          backgroundColor: 'rgba(88, 166, 255, 0.12)',
-          fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5,
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+          borderWidth: 2,
         }],
       },
       options: {
+        responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
         scales: { x: { display: false }, y: { display: false, beginAtZero: true } },
+        // Trim Chart.js's default canvas margin — we want the line to
+        // hug the full width of the row's middle column.
+        layout: { padding: { left: 0, right: 6, top: 4, bottom: 4 } },
       },
+      plugins: [endDotPlugin],
     });
   });
 }
