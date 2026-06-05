@@ -26,9 +26,22 @@
     },
     "api/match-mentors.js": {
       "maxDuration": 30
+    },
+    "api/notify-new-signups.js": {
+      "maxDuration": 60
+    },
+    "api/check-app-store-version.js": {
+      "maxDuration": 30
     }
   },
+  "crons": [
+    { "path": "/api/notify-new-signups", "schedule": "*/5 * * * *" },
+    { "path": "/api/check-app-store-version", "schedule": "0 14 * * *" }
+  ],
   "rewrites": [
+    { "source": "/api/send-activation-code",     "destination": "/api/activation?action=send" },
+    { "source": "/api/verify-activation-code",   "destination": "/api/activation?action=verify" },
+    { "source": "/api/submit-manual-activation", "destination": "/api/activation?action=manual" },
     { "source": "/apostolate/:id",     "destination": "/api/share?type=apostolate&id=:id" },
     { "source": "/parish/:id",         "destination": "/api/share?type=parish&id=:id" },
     { "source": "/business/:id",       "destination": "/api/share?type=business&id=:id" },

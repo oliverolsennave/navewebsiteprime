@@ -258,7 +258,11 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   const body = req.body || {};
-  switch (body.action) {
+  // Action comes from the request body (new clients) OR the rewritten URL's
+  // query string (old iOS binaries calling the legacy paths via the
+  // vercel.json rewrites). Body wins if both are present.
+  const action = body.action || (req.query && req.query.action);
+  switch (action) {
     case 'send':   return handleSend(body, res);
     case 'verify': return handleVerify(body, res);
     case 'manual': return handleManual(body, res);
