@@ -35,7 +35,7 @@
     }
   },
   "crons": [
-    { "path": "/api/notify-new-signups", "schedule": "*/5 * * * *" },
+    { "path": "/api/notify-new-signups", "schedule": "0 15 * * *" },
     { "path": "/api/check-app-store-version", "schedule": "0 14 * * *" }
   ],
   "rewrites": [
