@@ -50,6 +50,7 @@
     { "source": "/vocation/:id",       "destination": "/api/share?type=vocation&id=:id" },
     { "source": "/retreat/:id",        "destination": "/api/share?type=retreat&id=:id" },
     { "source": "/missionary/:id",     "destination": "/api/share?type=missionary&id=:id" },
-    { "source": "/pilgrimage/:id",     "destination": "/api/share?type=pilgrimage&id=:id" }
+    { "source": "/pilgrimage/:id",     "destination": "/api/share?type=pilgrimage&id=:id" },
+    { "source": "/join/:id",           "destination": "/api/share?type=network&id=:id" }
   ]
 }

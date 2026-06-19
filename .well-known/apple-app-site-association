@@ -1,0 +1,24 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["VH569K62F8.com.catholicnave.nave"],
+        "components": [
+          { "/": "/apostolate/*", "comment": "Apostolate / organization detail page" },
+          { "/": "/parish/*", "comment": "Parish detail page" },
+          { "/": "/business/*", "comment": "Business detail page" },
+          { "/": "/school/*", "comment": "School detail page" },
+          { "/": "/campusministry/*", "comment": "Campus ministry detail page" },
+          { "/": "/vocation/*", "comment": "Vocation detail page" },
+          { "/": "/retreat/*", "comment": "Retreat detail page" },
+          { "/": "/missionary/*", "comment": "Missionary detail page" },
+          { "/": "/pilgrimage/*", "comment": "Pilgrimage site detail page" },
+          { "/": "/join/*", "comment": "Network (workspace) join — opens the join flow in-app" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["VH569K62F8.com.catholicnave.nave"]
+  }
+}
