@@ -17,7 +17,7 @@
 // https://myaccount.google.com/apppasswords (requires 2FA enabled).
 
 const nodemailer = require('nodemailer');
-const { admin, adminDb } = require('./_lib/firebase-admin');
+const { admin, adminDb } = require('../firebase-admin');
 
 const RECIPIENTS = ['oliver@catholicnave.com', 'mychal@catholicnave.com'];
 const LOOKBACK_HOURS = 24;

@@ -16,7 +16,7 @@
 //   APPLE_APP_ID              — Nave's App Store numeric id (default below)
 //   CRON_SECRET               — same shared bearer the other crons use
 
-const { admin, adminDb } = require('./_lib/firebase-admin');
+const { admin, adminDb } = require('../firebase-admin');
 
 const DEFAULT_APPLE_APP_ID = '6753827903';
 

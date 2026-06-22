@@ -8,7 +8,7 @@
 // the same Apple ID counts again. Good enough as a live install pulse;
 // for the authoritative count use App Store Connect's Sales reports.
 
-const { adminDb, admin } = require('./_lib/firebase-admin');
+const { adminDb, admin } = require('../firebase-admin');
 
 const IDFV_RE = /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/;
 

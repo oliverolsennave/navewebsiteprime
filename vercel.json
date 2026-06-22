@@ -18,19 +18,19 @@
     "api/stripe-webhook.js": {
       "maxDuration": 30
     },
+    "api/stripe.js": {
+      "maxDuration": 30
+    },
     "api/process-bulletin.js": {
       "maxDuration": 60
     },
-    "api/parse-resume.js": {
+    "api/mentors.js": {
       "maxDuration": 30
     },
-    "api/match-mentors.js": {
-      "maxDuration": 30
-    },
-    "api/notify-new-signups.js": {
+    "api/notify.js": {
       "maxDuration": 60
     },
-    "api/check-app-store-version.js": {
+    "api/app.js": {
       "maxDuration": 30
     }
   },
@@ -42,6 +42,17 @@
     { "source": "/api/send-activation-code",     "destination": "/api/activation?action=send" },
     { "source": "/api/verify-activation-code",   "destination": "/api/activation?action=verify" },
     { "source": "/api/submit-manual-activation", "destination": "/api/activation?action=manual" },
+    { "source": "/api/create-payment-intent",        "destination": "/api/stripe?action=payment-intent" },
+    { "source": "/api/create-subscription-checkout", "destination": "/api/stripe?action=subscription-checkout" },
+    { "source": "/api/create-connect-account",       "destination": "/api/stripe?action=connect-account" },
+    { "source": "/api/connect-refresh",              "destination": "/api/stripe?action=connect-refresh" },
+    { "source": "/api/notify-feedback",              "destination": "/api/notify?action=feedback" },
+    { "source": "/api/send-reply-notification",      "destination": "/api/notify?action=reply" },
+    { "source": "/api/notify-new-signups",           "destination": "/api/notify?action=new-signups" },
+    { "source": "/api/register-install",             "destination": "/api/app?action=register-install" },
+    { "source": "/api/check-app-store-version",      "destination": "/api/app?action=check-version" },
+    { "source": "/api/match-mentors",                "destination": "/api/mentors?action=match" },
+    { "source": "/api/parse-resume",                 "destination": "/api/mentors?action=parse-resume" },
     { "source": "/apostolate/:id",     "destination": "/api/share?type=apostolate&id=:id" },
     { "source": "/parish/:id",         "destination": "/api/share?type=parish&id=:id" },
     { "source": "/business/:id",       "destination": "/api/share?type=business&id=:id" },
