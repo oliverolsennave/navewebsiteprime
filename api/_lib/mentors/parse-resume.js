@@ -6,14 +6,24 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { getAuth } = require('firebase-admin/auth');
 
 // ── Firebase Admin init ──────────────────────────────────────────
+// Prefer FIREBASE_SERVICE_ACCOUNT (the single JSON blob used everywhere else
+// in this project and the only credential set in prod). Fall back to the
+// split FIREBASE_PROJECT_ID/CLIENT_EMAIL/PRIVATE_KEY trio for local dev.
 if (!getApps().length) {
-    initializeApp({
-        credential: cert({
+    const svc = process.env.FIREBASE_SERVICE_ACCOUNT;
+    let credential;
+    if (svc) {
+        const sa = JSON.parse(svc);
+        if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
+        credential = cert(sa);
+    } else {
+        credential = cert({
             projectId: process.env.FIREBASE_PROJECT_ID,
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
             privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-    });
+        });
+    }
+    initializeApp({ credential });
 }
 const db = getFirestore();
 const adminAuth = getAuth();
