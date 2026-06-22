@@ -7,25 +7,26 @@
 //   /api/send-reply-notification-> /api/notify?action=reply
 //   /api/notify-new-signups     -> /api/notify?action=new-signups   (cron)
 //
-// Handlers are required LAZILY (only the matched action loads), so each
-// handler keeps the same isolation it had as a standalone function.
+// Thunks with LITERAL require paths: the literal lets Vercel's file tracer
+// bundle each file, the thunk defers execution so only the matched action
+// loads (per-function isolation preserved).
 
 const handlers = {
-  'feedback': './_lib/notify/feedback.js',
-  'reply': './_lib/notify/reply.js',
-  'new-signups': './_lib/notify/new-signups.js',
+  'feedback': () => require('./_lib/notify/feedback.js'),
+  'reply': () => require('./_lib/notify/reply.js'),
+  'new-signups': () => require('./_lib/notify/new-signups.js'),
 };
 
 module.exports = async (req, res) => {
   const action = req.query.action;
-  const modPath = handlers[action];
-  if (!modPath) {
+  const load = handlers[action];
+  if (!load) {
     res.status(404).json({ error: `Unknown notify action: ${action || '(none)'}` });
     return;
   }
   let handler;
   try {
-    handler = require(modPath);
+    handler = load();
   } catch (err) {
     console.error(`notify router: failed to load "${action}":`, err);
     res.status(500).json({ error: 'Notify handler failed to load' });

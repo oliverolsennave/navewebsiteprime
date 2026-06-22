@@ -11,27 +11,28 @@
 //   /api/create-connect-account       -> /api/stripe?action=connect-account
 //   /api/connect-refresh              -> /api/stripe?action=connect-refresh
 //
-// Handlers are required LAZILY (only the matched action loads), so each
-// handler keeps the same isolation it had as a standalone function — a
-// module-load error in one cannot take down the others or this router.
+// Each handler is wrapped in a thunk with a LITERAL require path: the literal
+// lets Vercel's file tracer (@vercel/nft) bundle the file, while the thunk
+// defers execution so only the matched action's handler loads — preserving
+// the per-function isolation each handler had as a standalone endpoint.
 
 const handlers = {
-  'payment-intent': './_lib/stripe/payment-intent.js',
-  'subscription-checkout': './_lib/stripe/subscription-checkout.js',
-  'connect-account': './_lib/stripe/connect-account.js',
-  'connect-refresh': './_lib/stripe/connect-refresh.js',
+  'payment-intent': () => require('./_lib/stripe/payment-intent.js'),
+  'subscription-checkout': () => require('./_lib/stripe/subscription-checkout.js'),
+  'connect-account': () => require('./_lib/stripe/connect-account.js'),
+  'connect-refresh': () => require('./_lib/stripe/connect-refresh.js'),
 };
 
 module.exports = async (req, res) => {
   const action = req.query.action;
-  const modPath = handlers[action];
-  if (!modPath) {
+  const load = handlers[action];
+  if (!load) {
     res.status(404).json({ error: `Unknown stripe action: ${action || '(none)'}` });
     return;
   }
   let handler;
   try {
-    handler = require(modPath);
+    handler = load();
   } catch (err) {
     console.error(`stripe router: failed to load "${action}":`, err);
     res.status(500).json({ error: 'Stripe handler failed to load' });

@@ -6,24 +6,25 @@
 //   /api/register-install         -> /api/app?action=register-install
 //   /api/check-app-store-version  -> /api/app?action=check-version   (cron)
 //
-// Handlers are required LAZILY (only the matched action loads), so each
-// handler keeps the same isolation it had as a standalone function.
+// Thunks with LITERAL require paths: the literal lets Vercel's file tracer
+// bundle each file, the thunk defers execution so only the matched action
+// loads (per-function isolation preserved).
 
 const handlers = {
-  'register-install': './_lib/app/register-install.js',
-  'check-version': './_lib/app/check-version.js',
+  'register-install': () => require('./_lib/app/register-install.js'),
+  'check-version': () => require('./_lib/app/check-version.js'),
 };
 
 module.exports = async (req, res) => {
   const action = req.query.action;
-  const modPath = handlers[action];
-  if (!modPath) {
+  const load = handlers[action];
+  if (!load) {
     res.status(404).json({ error: `Unknown app action: ${action || '(none)'}` });
     return;
   }
   let handler;
   try {
-    handler = require(modPath);
+    handler = load();
   } catch (err) {
     console.error(`app router: failed to load "${action}":`, err);
     res.status(500).json({ error: 'App handler failed to load' });

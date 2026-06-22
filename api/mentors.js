@@ -6,24 +6,25 @@
 //   /api/match-mentors -> /api/mentors?action=match
 //   /api/parse-resume  -> /api/mentors?action=parse-resume
 //
-// Handlers are required LAZILY (only the matched action loads), so each
-// handler keeps the same isolation it had as a standalone function.
+// Thunks with LITERAL require paths: the literal lets Vercel's file tracer
+// bundle each file, the thunk defers execution so only the matched action
+// loads (per-function isolation preserved).
 
 const handlers = {
-  'match': './_lib/mentors/match.js',
-  'parse-resume': './_lib/mentors/parse-resume.js',
+  'match': () => require('./_lib/mentors/match.js'),
+  'parse-resume': () => require('./_lib/mentors/parse-resume.js'),
 };
 
 module.exports = async (req, res) => {
   const action = req.query.action;
-  const modPath = handlers[action];
-  if (!modPath) {
+  const load = handlers[action];
+  if (!load) {
     res.status(404).json({ error: `Unknown mentors action: ${action || '(none)'}` });
     return;
   }
   let handler;
   try {
-    handler = require(modPath);
+    handler = load();
   } catch (err) {
     console.error(`mentors router: failed to load "${action}":`, err);
     res.status(500).json({ error: 'Mentors handler failed to load' });
