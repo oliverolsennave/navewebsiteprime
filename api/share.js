@@ -154,12 +154,17 @@ function trimTo(s, n) {
   return s.length > n ? s.slice(0, n - 1) + '…' : s;
 }
 
-function renderPage({ title, description, image, canonicalUrl, label }) {
+function renderPage({ title, description, image, canonicalUrl, label, appUrl }) {
   const safeTitle = escapeHtml(title);
   const safeDesc = escapeHtml(trimTo(description, 200));
   const safeImage = escapeHtml(image);
   const safeUrl = escapeHtml(canonicalUrl);
   const safeLabel = escapeHtml(label);
+  // The "Open in app" target. A same-domain https link tapped from inside
+  // Safari does NOT trigger the universal link, so for the join flow we hand
+  // the button a `thenave://` custom-scheme URL (passed in as appUrl), which
+  // opens the app directly. Falls back to the canonical https URL otherwise.
+  const safeAppUrl = escapeHtml(appUrl || canonicalUrl);
 
   // The page itself is a thin landing page. Universal links open
   // the app directly when iOS recognizes the domain; this body is
@@ -211,7 +216,7 @@ function renderPage({ title, description, image, canonicalUrl, label }) {
     <h1>${safeTitle}</h1>
     <p class="desc">${safeDesc}</p>
     <a class="cta" href="${APP_STORE_URL}">Get Nave</a>
-    <a class="cta" href="${safeUrl}">Open in app</a>
+    <a class="cta" href="${safeAppUrl}">Open in app</a>
   </div>
 </body>
 </html>`;
@@ -243,6 +248,7 @@ module.exports = async (req, res) => {
         image: FALLBACK_OG_IMAGE,
         canonicalUrl: `https://catholicnave.com/${cfg.pathSegment || cfg.label.toLowerCase()}/${escapeHtml(id)}`,
         label: cfg.label,
+        appUrl: cfg.isJoin ? `thenave://join/${id}` : undefined,
       });
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.status(200).send(html);
@@ -269,6 +275,9 @@ module.exports = async (req, res) => {
       image,
       canonicalUrl,
       label,
+      // For joins, "Open in app" uses the custom scheme so it opens the app
+      // even when tapped from inside Safari on catholicnave.com.
+      appUrl: cfg.isJoin ? `thenave://join/${id}` : undefined,
     });
 
     // Cache for 5 minutes at the edge — long enough that an
