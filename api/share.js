@@ -115,13 +115,12 @@ const TYPE_CONFIG = {
 };
 
 const APP_STORE_URL = 'https://apps.apple.com/us/app/nave-catholic-neighborhoods/id6753827903';
-// `favicon-512.png` is the largest square Nave logo already shipped
-// to the website (`/assets/`). Used as the OpenGraph fallback when
-// a listing has no image of its own — iMessage / Slack / etc. show
-// the Nave brand instead of a broken-image placeholder. Apple's
-// recommended OG size is 1200×630 wide; if we ever ship a hero
-// graphic at that aspect, swap this URL.
-const FALLBACK_OG_IMAGE = 'https://catholicnave.com/assets/favicon-512.png';
+// `og-image.png` is the purpose-built 1200×630 share card (white Nave sail
+// on black) — Apple's recommended OG aspect, and it fills the 16:9 hero
+// cleanly instead of cropping a square logo. Used whenever a listing has no
+// image of its own so iMessage / Slack / the join page show clean Nave
+// branding rather than a broken-image placeholder or an awkward crop.
+const FALLBACK_OG_IMAGE = 'https://catholicnave.com/assets/og-image.png';
 
 // Reads "imageNames.0" or "logoURL" from a Firestore doc dict.
 function readNested(obj, path) {
