@@ -1,13 +1,15 @@
-// Push when a message is posted in a channel — to the channel's members,
-// but ONLY for "quiet" channels (member count <= QUIET_THRESHOLD) so busy
-// channels don't spam everyone. The iOS app calls this after writing the
-// channel message; this handler reads the member list authoritatively and
-// applies the quiet gate server-side.
+// Push when a message is posted in a channel.
+//  - @mentioned users ALWAYS get a push (high signal), regardless of channel
+//    size.
+//  - All other channel members get a push only for "quiet" channels
+//    (member count <= QUIET_THRESHOLD) so busy channels don't spam everyone.
+// The iOS app calls this after writing the channel message; this handler reads
+// the member list authoritatively and applies the gate server-side.
 //
 // External URL: POST /api/send-channel-notification (rewritten to
 // /api/notify?action=channel).
 //
-// Body: { workspaceId, channelId, senderId, senderName, preview, channelName }
+// Body: { workspaceId, channelId, senderId, senderName, preview, channelName, mentionedUserIds }
 
 const admin = require('firebase-admin');
 
@@ -23,8 +25,7 @@ const app = (() => {
 const db = app.firestore();
 const messaging = app.messaging();
 
-// Channels with more members than this don't get a push per message — they'd
-// be too noisy. (@mentions still notify via the mention path.) Tunable.
+// Above this member count, only @mentions push (not every message). Tunable.
 const QUIET_THRESHOLD = 20;
 
 module.exports = async (req, res) => {
@@ -33,7 +34,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { workspaceId, channelId, senderId, senderName, preview, channelName } = req.body || {};
+    const { workspaceId, channelId, senderId, senderName, preview, channelName, mentionedUserIds } = req.body || {};
     if (!workspaceId || !channelId || !preview) {
       return res.status(400).json({ error: 'Missing workspaceId, channelId or preview' });
     }
@@ -46,38 +47,46 @@ module.exports = async (req, res) => {
     }
     const ch = chSnap.data();
 
-    // Recipients: private channel → its members; public channel → all workspace
-    // members.
-    let recipientIds = [];
+    // Members: private channel → its members; public channel → all workspace members.
+    let members = [];
     if (ch.isPublic === false && Array.isArray(ch.memberIds)) {
-      recipientIds = ch.memberIds;
+      members = ch.memberIds;
     } else {
       const wsSnap = await db.collection('messageWorkspaces').doc(workspaceId).get();
-      recipientIds = (wsSnap.exists && Array.isArray(wsSnap.data().memberIds))
-        ? wsSnap.data().memberIds : [];
+      members = (wsSnap.exists && Array.isArray(wsSnap.data().memberIds)) ? wsSnap.data().memberIds : [];
     }
-    recipientIds = [...new Set(recipientIds)].filter((id) => id && id !== senderId);
+    members = [...new Set(members)].filter((id) => id && id !== senderId);
 
-    if (recipientIds.length === 0) {
-      return res.status(200).json({ skipped: true, reason: 'no recipients' });
-    }
-    if (recipientIds.length > QUIET_THRESHOLD) {
-      // Too busy — rely on @mentions instead of per-message pushes.
-      return res.status(200).json({ skipped: true, reason: 'channel too busy', members: recipientIds.length });
-    }
+    const mentioned = new Set(
+      (Array.isArray(mentionedUserIds) ? mentionedUserIds : []).filter((id) => id && id !== senderId)
+    );
+    const quiet = members.length > 0 && members.length <= QUIET_THRESHOLD;
 
-    const title = channelName ? `${senderName || 'Someone'} in #${channelName}` : (senderName || 'New message');
+    const mentionTitle = channelName ? `${senderName || 'Someone'} mentioned you in #${channelName}` : `${senderName || 'Someone'} mentioned you`;
+    const genericTitle = channelName ? `${senderName || 'Someone'} in #${channelName}` : (senderName || 'New message');
     const body = preview.length > 140 ? preview.substring(0, 140) + '…' : preview;
 
-    // Fetch each recipient's token and push.
-    const userDocs = await db.getAll(...recipientIds.map((id) => db.collection('users').doc(id)));
+    // Build the target set: mentioned users always (mention title); other
+    // members only when the channel is quiet (generic title).
+    const targets = new Map(); // uid -> title
+    for (const uid of mentioned) targets.set(uid, mentionTitle);
+    if (quiet) {
+      for (const uid of members) if (!targets.has(uid)) targets.set(uid, genericTitle);
+    }
+
+    if (targets.size === 0) {
+      return res.status(200).json({ skipped: true, reason: quiet ? 'no recipients' : 'channel too busy, no mentions', members: members.length });
+    }
+
+    const uids = [...targets.keys()];
+    const userDocs = await db.getAll(...uids.map((id) => db.collection('users').doc(id)));
     const sends = userDocs.map(async (doc) => {
       const token = doc.exists ? doc.data().fcmToken : null;
       if (!token) return { id: doc.id, push: false };
       try {
         await messaging.send({
           token,
-          notification: { title, body },
+          notification: { title: targets.get(doc.id) || genericTitle, body },
           data: { type: 'channel_message', workspaceId: String(workspaceId), channelId: String(channelId) },
           apns: { payload: { aps: { sound: 'default', badge: 1 } } },
         });
@@ -87,8 +96,7 @@ module.exports = async (req, res) => {
       }
     });
     const results = await Promise.all(sends);
-    const pushed = results.filter((r) => r.push).length;
-    return res.status(200).json({ success: true, recipients: recipientIds.length, pushed });
+    return res.status(200).json({ success: true, targets: targets.size, pushed: results.filter((r) => r.push).length });
   } catch (error) {
     console.error('channel notify error:', error.code, error.message);
     return res.status(500).json({ error: error.message, code: error.code });
