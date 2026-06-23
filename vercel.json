@@ -48,6 +48,7 @@
     { "source": "/api/connect-refresh",              "destination": "/api/stripe?action=connect-refresh" },
     { "source": "/api/notify-feedback",              "destination": "/api/notify?action=feedback" },
     { "source": "/api/send-reply-notification",      "destination": "/api/notify?action=reply" },
+    { "source": "/api/send-message-notification",    "destination": "/api/notify?action=message" },
     { "source": "/api/notify-new-signups",           "destination": "/api/notify?action=new-signups" },
     { "source": "/api/register-install",             "destination": "/api/app?action=register-install" },
     { "source": "/api/check-app-store-version",      "destination": "/api/app?action=check-version" },

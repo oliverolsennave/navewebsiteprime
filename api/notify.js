@@ -14,6 +14,7 @@
 const handlers = {
   'feedback': () => require('./_lib/notify/feedback.js'),
   'reply': () => require('./_lib/notify/reply.js'),
+  'message': () => require('./_lib/notify/message.js'),
   'new-signups': () => require('./_lib/notify/new-signups.js'),
 };
 
