@@ -32,11 +32,15 @@
     },
     "api/app.js": {
       "maxDuration": 30
+    },
+    "api/content.js": {
+      "maxDuration": 60
     }
   },
   "crons": [
     { "path": "/api/notify-new-signups", "schedule": "0 15 * * *" },
-    { "path": "/api/check-app-store-version", "schedule": "0 14 * * *" }
+    { "path": "/api/check-app-store-version", "schedule": "0 14 * * *" },
+    { "path": "/api/ingest-feed", "schedule": "0 13 * * *" }
   ],
   "rewrites": [
     { "source": "/api/send-activation-code",     "destination": "/api/activation?action=send" },
@@ -56,6 +60,7 @@
     { "source": "/api/check-app-store-version",      "destination": "/api/app?action=check-version" },
     { "source": "/api/match-mentors",                "destination": "/api/mentors?action=match" },
     { "source": "/api/parse-resume",                 "destination": "/api/mentors?action=parse-resume" },
+    { "source": "/api/ingest-feed",                  "destination": "/api/content?action=ingest-feed" },
     { "source": "/apostolate/:id",     "destination": "/api/share?type=apostolate&id=:id" },
     { "source": "/parish/:id",         "destination": "/api/share?type=parish&id=:id" },
     { "source": "/business/:id",       "destination": "/api/share?type=business&id=:id" },
