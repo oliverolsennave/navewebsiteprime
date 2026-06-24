@@ -27,6 +27,47 @@ async function fetchText(url) {
   return res.text();
 }
 
+// Image loadability — we'd rather store no image (clean publisher-tile fallback)
+// than a URL that 404s/403s and shows a perpetual loading placeholder in the app.
+const BROWSER_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
+
+async function validateImage(url) {
+  if (!url || !/^https?:\/\//i.test(url)) return false;
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const r = await fetch(url, { headers: { 'User-Agent': BROWSER_UA, Accept: 'image/*,*/*' }, redirect: 'follow', signal: ctrl.signal });
+    clearTimeout(t);
+    const ct = r.headers.get('content-type') || '';
+    const len = parseInt(r.headers.get('content-length') || '0', 10);
+    // Must be a real image response; reject tiny tracking-pixel-sized bodies.
+    return r.ok && /^image\//i.test(ct) && (len === 0 || len > 1024);
+  } catch { return false; }
+}
+
+function extractOgImage(html) {
+  const pick = (re) => { const m = html.match(re); return m ? m[1] : ''; };
+  let img = pick(/<meta[^>]+property=["']og:image(?::url)?["'][^>]+content=["']([^"']+)["']/i)
+    || pick(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+    || pick(/<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i)
+    || pick(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i);
+  return img ? img.replace(/&amp;/g, '&').trim() : null;
+}
+
+// Best loadable hero image for an article: validated feed image -> validated
+// og:image from the article page -> none. Never returns an unverified URL.
+async function resolveImage(item) {
+  if (item.image && await validateImage(item.image)) return item.image;
+  if (item.link) {
+    try {
+      const html = await fetchText(item.link);
+      const og = extractOgImage(html);
+      if (og && await validateImage(og)) return og;
+    } catch { /* article page unreachable — fall through to no image */ }
+  }
+  return null;
+}
+
 const decode = (s) => (s || '')
   .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
   .replace(/<[^>]+>/g, '')
@@ -132,18 +173,21 @@ async function ingestArticles(src, batch) {
   // Only keep posts published within the last MAX_AGE_DAYS (undated items pass —
   // they're almost always the newest entries).
   items = items.filter((it) => !it.publishedAt || it.publishedAt.getTime() >= cutoff);
+  const chosen = items.slice(0, MAX_PER_SOURCE);
+  // Resolve + validate a loadable hero image for each (parallel per source).
+  const images = await Promise.all(chosen.map((it) => resolveImage(it)));
   let n = 0;
-  for (const it of items.slice(0, MAX_PER_SOURCE)) {
+  chosen.forEach((it, idx) => {
     const id = slug(`${src.publisherName}-${it.link}`);
     batch.set(adminDb.collection('feedPosts').doc(id), {
       ...pubFields(src), type: 'article', source: 'rss', featured: false,
       title: it.title, deck: '', author: src.publisherName, dateLabel: monthLabel(it.publishedAt),
-      imageURL: it.image || null, body: it.body, sourceURL: it.link, readingTime: it.readingTime,
+      imageURL: images[idx], body: it.body, sourceURL: it.link, readingTime: it.readingTime,
       publishedAt: it.publishedAt ? TS.fromDate(it.publishedAt) : FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(), createdAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     n++;
-  }
+  });
   // Roll the window forward: hide auto-ingested posts that have aged past the cutoff.
   const existing = await adminDb.collection('feedPosts').where('publisherName', '==', src.publisherName).get();
   existing.docs.forEach((d) => {
