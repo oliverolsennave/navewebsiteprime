@@ -27,42 +27,30 @@ async function fetchText(url) {
   return res.text();
 }
 
-// Image loadability — we'd rather store no image (clean publisher-tile fallback)
-// than a URL that 404s/403s and shows a perpetual loading placeholder in the app.
-const BROWSER_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
-
-async function validateImage(url) {
-  if (!url || !/^https?:\/\//i.test(url)) return false;
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 8000);
-    const r = await fetch(url, { headers: { 'User-Agent': BROWSER_UA, Accept: 'image/*,*/*' }, redirect: 'follow', signal: ctrl.signal });
-    clearTimeout(t);
-    const ct = r.headers.get('content-type') || '';
-    const len = parseInt(r.headers.get('content-length') || '0', 10);
-    // Must be a real image response; reject tiny tracking-pixel-sized bodies.
-    return r.ok && /^image\//i.test(ct) && (len === 0 || len > 1024);
-  } catch { return false; }
-}
+const { hostImage, BROWSER_UA } = require('./host-image');
 
 function extractOgImage(html) {
   const pick = (re) => { const m = html.match(re); return m ? m[1] : ''; };
-  let img = pick(/<meta[^>]+property=["']og:image(?::url)?["'][^>]+content=["']([^"']+)["']/i)
+  const img = pick(/<meta[^>]+property=["']og:image(?::url)?["'][^>]+content=["']([^"']+)["']/i)
     || pick(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
     || pick(/<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i)
     || pick(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i);
   return img ? img.replace(/&amp;/g, '&').trim() : null;
 }
 
-// Best loadable hero image for an article: validated feed image -> validated
-// og:image from the article page -> none. Never returns an unverified URL.
-async function resolveImage(item) {
-  if (item.image && await validateImage(item.image)) return item.image;
+// Pick a candidate hero image URL for an article: the feed-embedded image
+// first (no extra request — and survives sites whose article HTML is bot-
+// blocked, like FOCUS), else the article's og:image (browser UA to dodge UA
+// blocks). The bytes get re-hosted by hostImage afterward.
+async function pickSourceImage(item) {
+  if (item.image) return item.image;
   if (item.link) {
     try {
-      const html = await fetchText(item.link);
-      const og = extractOgImage(html);
-      if (og && await validateImage(og)) return og;
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 10000);
+      const r = await fetch(item.link, { headers: { 'User-Agent': BROWSER_UA, Accept: 'text/html,*/*' }, redirect: 'follow', signal: ctrl.signal });
+      clearTimeout(t);
+      if (r.ok) { const og = extractOgImage(await r.text()); if (og) return og; }
     } catch { /* article page unreachable — fall through to no image */ }
   }
   return null;
@@ -174,18 +162,26 @@ async function ingestArticles(src, batch) {
   // they're almost always the newest entries).
   items = items.filter((it) => !it.publishedAt || it.publishedAt.getTime() >= cutoff);
   const chosen = items.slice(0, MAX_PER_SOURCE);
-  // Resolve + validate a loadable hero image for each (parallel per source).
-  const images = await Promise.all(chosen.map((it) => resolveImage(it)));
+  // Pick + re-host a loadable hero image for each (parallel per source). Stored
+  // imageURL is always either our own bucket URL or null — never a hotlink.
+  const images = await Promise.all(chosen.map(async (it) => {
+    const id = slug(`${src.publisherName}-${it.link}`);
+    return hostImage(await pickSourceImage(it), id);
+  }));
   let n = 0;
   chosen.forEach((it, idx) => {
     const id = slug(`${src.publisherName}-${it.link}`);
-    batch.set(adminDb.collection('feedPosts').doc(id), {
+    const doc = {
       ...pubFields(src), type: 'article', source: 'rss', featured: false,
       title: it.title, deck: '', author: src.publisherName, dateLabel: monthLabel(it.publishedAt),
-      imageURL: images[idx], body: it.body, sourceURL: it.link, readingTime: it.readingTime,
+      body: it.body, sourceURL: it.link, readingTime: it.readingTime,
       publishedAt: it.publishedAt ? TS.fromDate(it.publishedAt) : FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(), createdAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
+    };
+    // Only write imageURL when we successfully hosted one; if hosting failed,
+    // leave any existing (already-hosted) image in place rather than nulling it.
+    if (images[idx]) doc.imageURL = images[idx];
+    batch.set(adminDb.collection('feedPosts').doc(id), doc, { merge: true });
     n++;
   });
   // Roll the window forward: hide auto-ingested posts that have aged past the cutoff.
