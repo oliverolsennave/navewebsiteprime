@@ -18,6 +18,7 @@ const handlers = {
   'channel': () => require('./_lib/notify/channel.js'),
   'added': () => require('./_lib/notify/added.js'),
   'new-signups': () => require('./_lib/notify/new-signups.js'),
+  'call-token': () => require('./_lib/notify/call-token.js'),
 };
 
 module.exports = async (req, res) => {
