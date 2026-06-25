@@ -55,6 +55,7 @@
     { "source": "/api/send-message-notification",    "destination": "/api/notify?action=message" },
     { "source": "/api/send-channel-notification",    "destination": "/api/notify?action=channel" },
     { "source": "/api/call-token",                   "destination": "/api/notify?action=call-token" },
+    { "source": "/api/voip-push",                     "destination": "/api/notify?action=voip-push" },
     { "source": "/api/notify-group-added",           "destination": "/api/notify?action=added" },
     { "source": "/api/notify-new-signups",           "destination": "/api/notify?action=new-signups" },
     { "source": "/api/register-install",             "destination": "/api/app?action=register-install" },

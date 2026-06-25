@@ -3,6 +3,7 @@
   "name": "nave-website",
   "version": "1.0.0",
   "dependencies": {
+    "@parse/node-apn": "^7.1.0",
     "firebase-admin": "^12.0.0",
     "formidable": "^3.5.0",
     "livekit-server-sdk": "^2.15.5",

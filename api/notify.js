@@ -19,6 +19,7 @@ const handlers = {
   'added': () => require('./_lib/notify/added.js'),
   'new-signups': () => require('./_lib/notify/new-signups.js'),
   'call-token': () => require('./_lib/notify/call-token.js'),
+  'voip-push': () => require('./_lib/notify/voip-push.js'),
 };
 
 module.exports = async (req, res) => {
