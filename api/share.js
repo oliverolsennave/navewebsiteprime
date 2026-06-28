@@ -114,6 +114,19 @@ const TYPE_CONFIG = {
   },
 };
 
+// Branded per-type share cards: each key's real map icon (graduation cap, open
+// book, church, …) in white on the key's map color, with the type label baked
+// in. Mirrors `SelectedObjectPreviewCard.swift` — including the school↔campus-
+// ministry color swap (school = dark green, campus ministry = purple). Used as
+// the og:image so the link preview is cohesive and on-brand (the listing NAME
+// renders as the og:title directly under the pic). Static 1200×630 JPEGs in
+// assets/og-keys/; regenerate via the qlmanage/sips pipeline if colors change.
+const KEY_CARD_BASE = 'https://catholicnave.com/assets/og-keys';
+const KEY_CARD_TYPES = ['parish', 'business', 'school', 'campusministry', 'vocation', 'retreat', 'missionary', 'pilgrimage'];
+for (const k of KEY_CARD_TYPES) {
+  if (TYPE_CONFIG[k]) TYPE_CONFIG[k].cardImage = `${KEY_CARD_BASE}/og-${k}.jpg`;
+}
+
 const APP_STORE_URL = 'https://apps.apple.com/us/app/nave-catholic-neighborhoods/id6753827903';
 // `og-image.png` is the purpose-built 1200×630 share card (white Nave sail
 // on black) — Apple's recommended OG aspect, and it fills the 16:9 hero
@@ -221,11 +234,76 @@ function renderPage({ title, description, image, canonicalUrl, label, appUrl }) 
 </html>`;
 }
 
+// Celebret send-ahead links are a two-hop: the id is a presentation that
+// points to a priest. We render the priest's ID-card image as the OG preview
+// and redirect the actual visitor to the interactive confirm page.
+async function renderCelebret(res, { id, pid }) {
+  let priest = null;
+  try {
+    if (pid) {
+      // Physical card / stable priest link.
+      const pr = await adminDb.collection('celebret_priests').doc(String(pid)).get();
+      if (pr.exists) priest = pr.data();
+    } else if (id) {
+      // Send-ahead presentation → priest (two-hop).
+      const presSnap = await adminDb.collection('celebret_presentations').doc(String(id)).get();
+      if (presSnap.exists && presSnap.data().priestId) {
+        const pr = await adminDb.collection('celebret_priests').doc(presSnap.data().priestId).get();
+        if (pr.exists) priest = pr.data();
+      }
+    }
+  } catch (e) { console.error('celebret lookup', e); }
+
+  const name = (priest && priest.name) || 'A visiting celebrant';
+  const diocese = (priest && priest.dioceseName) || '';
+  const image = (priest && priest.cardImageURL) || FALLBACK_OG_IMAGE;
+  const title = `${name} — Celebret`;
+  const description = priest
+    ? (pid ? `Approved by ${diocese}.` : `Approved by ${diocese}. Confirm his upcoming visit to your parish.`)
+    : 'This Celebret link is no longer available.';
+  const target = pid
+    ? `https://catholicnave.com/celebret.html?pid=${encodeURIComponent(pid)}`
+    : `https://catholicnave.com/celebret.html?id=${encodeURIComponent(id)}`;
+  const ogUrl = pid
+    ? `https://catholicnave.com/celebret/p/${escapeHtml(String(pid))}`
+    : `https://catholicnave.com/celebret/${escapeHtml(String(id))}`;
+
+  const html = `<!doctype html><html lang="en"><head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(title)}</title>
+  <meta name="description" content="${escapeHtml(description)}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Celebrat" />
+  <meta property="og:title" content="${escapeHtml(title)}" />
+  <meta property="og:description" content="${escapeHtml(description)}" />
+  <meta property="og:image" content="${escapeHtml(image)}" />
+  <meta property="og:url" content="${ogUrl}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${escapeHtml(title)}" />
+  <meta name="twitter:description" content="${escapeHtml(description)}" />
+  <meta name="twitter:image" content="${escapeHtml(image)}" />
+  <meta http-equiv="refresh" content="0; url=${target}" />
+  <script>location.replace(${JSON.stringify(target)});</script>
+</head><body style="background:#000;color:#fff;font-family:-apple-system,sans-serif">
+  <p style="text-align:center;padding:40px">Opening Celebret…</p>
+</body></html>`;
+  res.setHeader('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.status(200).send(html);
+}
+
 module.exports = async (req, res) => {
   try {
-    const { type, id } = req.query;
-    if (!type || !id) {
-      res.status(400).send('Missing type or id');
+    const { type, id, pid } = req.query;
+    if (!type) {
+      res.status(400).send('Missing type');
+      return;
+    }
+    if (String(type).toLowerCase() === 'celebret') {
+      return await renderCelebret(res, { id: id || null, pid: pid || null });
+    }
+    if (!id) {
+      res.status(400).send('Missing id');
       return;
     }
     const cfg = TYPE_CONFIG[String(type).toLowerCase()];
@@ -233,6 +311,13 @@ module.exports = async (req, res) => {
       res.status(404).send('Unknown share type');
       return;
     }
+
+    // Channel-scoped network invites arrive as /join/{id}?c={channelId}. The
+    // universal link carries that query into the app natively; forward it into
+    // the custom-scheme "Open in app" handoff too so both paths land the joiner
+    // in the right channel.
+    const channelId = req.query.c ? String(req.query.c) : null;
+    const joinAppUrl = `thenave://join/${id}${channelId ? `?c=${encodeURIComponent(channelId)}` : ''}`;
 
     const docRef = adminDb.collection(cfg.collection).doc(String(id));
     const snap = await docRef.get();
@@ -244,10 +329,10 @@ module.exports = async (req, res) => {
       const html = renderPage({
         title: cfg.label,
         description: 'This listing isn\'t available — open Nave to find more.',
-        image: FALLBACK_OG_IMAGE,
+        image: cfg.cardImage || FALLBACK_OG_IMAGE,
         canonicalUrl: `https://catholicnave.com/${cfg.pathSegment || cfg.label.toLowerCase()}/${escapeHtml(id)}`,
         label: cfg.label,
-        appUrl: cfg.isJoin ? `thenave://join/${id}` : undefined,
+        appUrl: cfg.isJoin ? joinAppUrl : undefined,
       });
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.status(200).send(html);
@@ -264,7 +349,10 @@ module.exports = async (req, res) => {
       ? `You've been invited to join the ${baseTitle} network on Nave — a Catholic community app. Download Nave to join the conversation.`
       : (tagline || (cfg.descriptionField ? data[cfg.descriptionField] : null) || `Find ${cfg.label.toLowerCase()}s and more on Nave.`);
     const label = cfg.isJoin ? 'You\'re invited' : cfg.label;
-    const image = pickImage(data, cfg.imageFields);
+    // Key types (parish, business, …) show the branded color/icon card so every
+    // share is cohesive; the listing name is the og:title under it. Apostolate +
+    // network keep their own logo/image.
+    const image = cfg.cardImage || pickImage(data, cfg.imageFields);
     // Canonical = the path the iOS app intercepts (/join/{id} for networks).
     const canonicalUrl = `https://catholicnave.com/${cfg.pathSegment || String(type).toLowerCase()}/${id}`;
 
