@@ -61,6 +61,8 @@ module.exports = async (req, res) => {
       callId,
       hostName: call.hostName || 'Nave call',
       type: call.type || 'dm',
+      // So the native incoming-call screen shows the video affordance.
+      isVideo: call.isVideo === true,
     };
 
     const result = await provider.send(note, tokens);
