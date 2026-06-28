@@ -70,10 +70,12 @@ const TYPE_CONFIG = {
   vocation: {
     label: 'Vocation',
     collection: 'vocations',
-    nameField: 'name',
-    descriptionField: 'introduction',
+    // vocations docs store the name in `title` (matches iOS VocationDetailView's
+    // `vocation.title`); description + image fields differ from the other types.
+    nameField: 'title',
+    descriptionField: 'description',
     taglineField: null,
-    imageFields: ['profileImageURL', 'photoURL'],
+    imageFields: ['image', 'profileImageURL', 'photoURL'],
   },
   retreat: {
     label: 'Retreat',
