@@ -57,9 +57,14 @@ module.exports = async (req, res) => {
     note.pushType = 'voip';
     note.priority = 10;
     note.expiry = Math.floor(Date.now() / 1000) + 30; // ring window
+    // Group huddles show the channel context on the native call screen, e.g.
+    // "Maria · #general"; DMs just show the caller's name.
+    const displayName = call.type === 'huddle'
+      ? `${call.hostName || 'Someone'} · ${call.title || 'Huddle'}`
+      : (call.hostName || 'Nave call');
     note.payload = {
       callId,
-      hostName: call.hostName || 'Nave call',
+      hostName: displayName,
       type: call.type || 'dm',
       // So the native incoming-call screen shows the video affordance.
       isVideo: call.isVideo === true,
